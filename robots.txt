@@ -1,1 +1,1 @@
-Sitemap: https://tvseshagiri.github.io/kaameekru/sitemap.xml
+Sitemap: https://github.com/tvseshagiri/kaameekru/sitemap.xml
