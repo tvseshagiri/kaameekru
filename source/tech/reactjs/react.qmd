@@ -1,0 +1,13 @@
+---
+title: "Introduction to ReactJS"
+---
+
+{{< include slides/_01-introtoreactjs.qmd >}}
+{{< include slides/_create_react_app.qmd >}}
+{{< include slides/_02-fundamentals.qmd >}}
+{{< include slides/_components.qmd >}}
+{{< include slides/_propsnstate.qmd >}}
+{{< include slides/_03-styling.qmd >}}
+{{< include slides/_04-redux.qmd >}}
+{{< include slides/_05-routing.qmd >}}
+{{< include slides/_07-testing.qmd >}}
