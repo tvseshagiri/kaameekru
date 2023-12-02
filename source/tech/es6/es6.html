@@ -549,7 +549,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="string-substitution-23.">String substitution (2/3).</h4>
+<h3 id="string-substitution-23.">String substitution (2/3).</h3>
 <p>The <code>${}</code> works fine with any kind of expression, including member expressions, function and method calls.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb10-1"><a href="#cb10-1"></a><span class="kw">function</span> <span class="fu">fn</span>() {</span>
 <span id="cb10-2"><a href="#cb10-2"></a><span class="cf">return</span> <span class="st">"I am a result. Rarr"</span><span class="op">;</span></span>
@@ -568,7 +568,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="string-substitution-33.">String substitution (3/3).</h4>
+<h3 id="string-substitution-33.">String substitution (3/3).</h3>
 <p>Advanced example of building HTML structures.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">var</span> li <span class="op">=</span> (obj) <span class="kw">=&gt;</span> <span class="vs">`&lt;li&gt;&lt;a href="</span><span class="sc">${</span>obj<span class="op">.</span><span class="at">url</span><span class="sc">}</span><span class="vs">"&gt;</span><span class="sc">${</span>obj<span class="op">.</span><span class="at">label</span><span class="sc">}</span><span class="vs">&lt;/a&gt;&lt;/li&gt;`</span><span class="op">;</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a><span class="kw">var</span> ul <span class="op">=</span> (arr) <span class="kw">=&gt;</span> <span class="vs">`&lt;ul&gt;</span><span class="sc">${</span>arr<span class="op">.</span><span class="fu">map</span>((obj) <span class="kw">=&gt;</span> <span class="fu">li</span>(obj))<span class="op">.</span><span class="fu">join</span>(<span class="st">'</span><span class="sc">\n</span><span class="st">'</span>)<span class="sc">}</span><span class="vs">&lt;/ul&gt;`</span><span class="op">;</span></span>
@@ -585,9 +585,6 @@
 <span id="cb13-3"><a href="#cb13-3"></a>  <span class="op">&lt;</span>li<span class="op">&gt;&lt;</span>a href<span class="op">=</span><span class="st">"http://www.linkedin.com"</span><span class="op">&gt;</span>Linked In<span class="op">&lt;/</span>a<span class="op">&gt;&lt;/</span>li<span class="op">&gt;</span></span>
 <span id="cb13-4"><a href="#cb13-4"></a>  <span class="op">&lt;</span>li<span class="op">&gt;&lt;</span>a href<span class="op">=</span><span class="st">"http://www.facebook.com"</span><span class="op">&gt;</span>Facebook<span class="op">&lt;/</span>a<span class="op">&gt;&lt;/</span>li<span class="op">&gt;</span></span>
 <span id="cb13-5"><a href="#cb13-5"></a><span class="op">&lt;/</span>ul<span class="op">&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section class="slide level2">
-
 </section></section>
 <section>
 <section id="destructuring" class="title-slide slide level1 center">
@@ -596,7 +593,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="what-is-destructuring">What is destructuring?</h4>
+<h3 id="what-is-destructuring">What is destructuring?</h3>
 <ul>
 <li>Destructuring is a convenient way to extract values from data stored in Objects and Arrays (also nested). This is an opposite operation to structuring (constructing data).*</li>
 </ul>
@@ -610,7 +607,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="object-destructuring.">Object destructuring.</h4>
+<h3 id="object-destructuring.">Object destructuring.</h3>
 <div class="sourceCode" id="cb16"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">var</span> foo <span class="op">=</span> {<span class="dt">bar</span><span class="op">:</span> <span class="st">'pony'</span><span class="op">,</span> <span class="dt">baz</span><span class="op">:</span> <span class="dv">3</span>}<span class="op">;</span></span>
 <span id="cb16-2"><a href="#cb16-2"></a><span class="kw">var</span> {<span class="dt">bar</span><span class="op">:</span> a<span class="op">,</span> <span class="dt">baz</span><span class="op">:</span> b} <span class="op">=</span> foo<span class="op">;</span></span>
 <span id="cb16-3"><a href="#cb16-3"></a></span>
@@ -625,7 +622,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="object-destructuring-shorthand-notation.">Object destructuring, shorthand notation.</h4>
+<h3 id="object-destructuring-shorthand-notation.">Object destructuring, shorthand notation.</h3>
 <p>Only for object literals: If the value of a property is provided via a variable whose name is the same as the property name, you can omit the property name.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">var</span> {x<span class="op">,</span> y} <span class="op">=</span> {<span class="dt">x</span><span class="op">:</span> <span class="dv">11</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="dv">8</span>}<span class="op">;</span></span>
 <span id="cb18-2"><a href="#cb18-2"></a>    </span>
@@ -638,7 +635,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="object-destructuring-nested-properties.">Object destructuring, nested properties.</h4>
+<h3 id="object-destructuring-nested-properties.">Object destructuring, nested properties.</h3>
 <p>You can also pull properties as deep as you want.</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">var</span> foo <span class="op">=</span> {<span class="dt">bar</span><span class="op">:</span> {<span class="dt">deep</span><span class="op">:</span> <span class="st">'pony'</span><span class="op">,</span> <span class="dt">smile</span><span class="op">:</span> <span class="st">'lol'</span>}}<span class="op">;</span></span>
 <span id="cb20-2"><a href="#cb20-2"></a><span class="kw">var</span> {<span class="dt">bar</span><span class="op">:</span> {deep<span class="op">,</span> <span class="dt">smile</span><span class="op">:</span> sure}} <span class="op">=</span> foo<span class="op">;</span></span>
@@ -654,7 +651,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="array-destructuring.">Array destructuring.</h4>
+<h3 id="array-destructuring.">Array destructuring.</h3>
 <p>Destructuring works for arrays as well. How? By using square brackets in the destructuring side of the declaration.</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">var</span> [a<span class="op">,</span> b<span class="op">,</span> c] <span class="op">=</span> [<span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">3</span>]<span class="op">;</span></span>
 <span id="cb22-2"><a href="#cb22-2"></a></span>
@@ -667,7 +664,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="pick-what-you-need.">Pick what you need.</h4>
+<h3 id="pick-what-you-need.">Pick what you need.</h3>
 <p>If you destructure an object, you mention only those properties that you are interested in.</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">var</span> {x} <span class="op">=</span> {<span class="dt">x</span><span class="op">:</span> <span class="dv">7</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="dv">3</span><span class="op">,</span> <span class="dt">z</span><span class="op">:</span> <span class="dv">10</span>}<span class="op">;</span></span>
 <span id="cb24-2"><a href="#cb24-2"></a><span class="co">// x = 7</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -685,7 +682,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="mix-objects-and-arrays.">Mix objects and arrays.</h4>
+<h3 id="mix-objects-and-arrays.">Mix objects and arrays.</h3>
 <p>We can also mix objects and arrays together and use theirs literals.</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">var</span> mixed <span class="op">=</span> {</span>
 <span id="cb27-2"><a href="#cb27-2"></a>  <span class="dt">one</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">two</span><span class="op">:</span> <span class="dv">2</span><span class="op">,</span> <span class="dt">values</span><span class="op">:</span> [<span class="dv">3</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="dv">5</span>]</span>
@@ -706,7 +703,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="if-a-part-has-no-match-13.">If a part has no match (1/3).</h4>
+<h3 id="if-a-part-has-no-match-13.">If a part has no match (1/3).</h3>
 <p>If the value of a destructuring assignment isn’t match, it evaluates to <code>undefined</code>. Just like when accessing not defined properties on an object with the dot or bracket notation.</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">var</span> [x<span class="op">,</span> y] <span class="op">=</span> []<span class="op">;</span></span>
 <span id="cb29-2"><a href="#cb29-2"></a>    </span>
@@ -724,7 +721,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="if-a-part-has-no-match-23.">If a part has no match (2/3).</h4>
+<h3 id="if-a-part-has-no-match-23.">If a part has no match (2/3).</h3>
 <p>Example of deep objects:</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">var</span> {</span>
 <span id="cb30-2"><a href="#cb30-2"></a>  <span class="dt">prop1</span><span class="op">:</span> x<span class="op">,</span></span>
@@ -740,7 +737,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="if-a-part-has-no-match-33.">If a part has no match (3/3).</h4>
+<h3 id="if-a-part-has-no-match-33.">If a part has no match (3/3).</h3>
 <p>If you’re trying to access a deeply nested property of a parent that doesn’t exist, then you’ll get an exception.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">var</span> {<span class="dt">foo</span><span class="op">:</span> {bar}} <span class="op">=</span> {<span class="dt">baz</span><span class="op">:</span> <span class="st">'something'</span>}<span class="op">;</span></span>
 <span id="cb32-2"><a href="#cb32-2"></a>    </span>
@@ -753,7 +750,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-values-13.">Default values (1/3).</h4>
+<h3 id="default-values-13.">Default values (1/3).</h3>
 <p>If a part (an object property or an array element) has no match in the source, it is matched against:</p>
 <ul>
 <li>its <em>default value</em> (if specified)</li>
@@ -769,7 +766,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-values-23.">Default values (2/3).</h4>
+<h3 id="default-values-23.">Default values (2/3).</h3>
 <p><code>undefined</code> triggers default values. Default values are also used if a part does have a match and that match is <code>undefined</code>.</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">var</span> {<span class="dt">prop</span><span class="op">:</span> y <span class="op">=</span> <span class="dv">2</span>} <span class="op">=</span> {<span class="dt">prop</span><span class="op">:</span> <span class="kw">undefined</span>}<span class="op">;</span></span>
 <span id="cb36-2"><a href="#cb36-2"></a><span class="co">// y = 2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -785,7 +782,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-values-33.">Default values (3/3).</h4>
+<h3 id="default-values-33.">Default values (3/3).</h3>
 <p>So far we have only seen default values for variables, but you can also associate them with object itself:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">var</span> [{<span class="dt">prop</span><span class="op">:</span> x} <span class="op">=</span> {}] <span class="op">=</span> []<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>What does this mean? The element at index 0 has no match, which is why destructuring continues with:</p>
@@ -799,7 +796,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="destructuring-in-a-functions-parameter-list.">Destructuring in a function’s parameter list.</h4>
+<h3 id="destructuring-in-a-functions-parameter-list.">Destructuring in a function’s parameter list.</h3>
 <p>You can also use destructuring in a function’s parameter list.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">function</span> <span class="fu">greet</span>({<span class="dt">name</span><span class="op">:</span> greeting <span class="op">=</span> <span class="st">'she'</span><span class="op">,</span> age}) {</span>
 <span id="cb42-2"><a href="#cb42-2"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`</span><span class="sc">${</span>greeting<span class="sc">}</span><span class="vs"> is </span><span class="sc">${</span>age<span class="sc">}</span><span class="vs"> years old.`</span>)</span>
@@ -820,7 +817,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="destructuring-with-computed-property-names.">Destructuring with computed property names.</h4>
+<h3 id="destructuring-with-computed-property-names.">Destructuring with computed property names.</h3>
 <p>Computed property names are another object literal feature that also works for destructuring. You can specify the name of a property via an expression, if you put it in square brackets.</p>
 <div class="sourceCode" id="cb44"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">var</span> KEY <span class="op">=</span> <span class="st">'z'</span><span class="op">;</span></span>
 <span id="cb44-2"><a href="#cb44-2"></a><span class="kw">var</span> {[KEY]<span class="op">:</span> foo} <span class="op">=</span> {<span class="dt">z</span><span class="op">:</span> <span class="st">'bar'</span>}<span class="op">;</span></span>
@@ -830,7 +827,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="good-to-know.">Good to know.</h4>
+<h3 id="good-to-know.">Good to know.</h3>
 <p>If we try to omit <code>var</code>, <code>let</code> or <code>const</code>, it will throw an error, because block code can’t be a destructuring assignment.</p>
 <div class="sourceCode" id="cb45"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb45-1"><a href="#cb45-1"></a><span class="kw">let</span> point <span class="op">=</span> {</span>
 <span id="cb45-2"><a href="#cb45-2"></a>  <span class="dt">x</span><span class="op">:</span> <span class="dv">1</span></span>
@@ -846,9 +843,6 @@
 <span id="cb46-6"><a href="#cb46-6"></a></span>
 <span id="cb46-7"><a href="#cb46-7"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(a)<span class="op">;</span></span>
 <span id="cb46-8"><a href="#cb46-8"></a><span class="co">// 1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</section>
-<section class="slide level2">
-
 </section></section>
 <section>
 <section id="arrow-functions" class="title-slide slide level1 center">
@@ -1381,7 +1375,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="what-are-modules">What are modules?</h4>
+<h3 id="what-are-modules">What are modules?</h3>
 <ul>
 <li>ES6 introduced built-in modules.</li>
 <li>Defined in its own file.</li>
@@ -1393,7 +1387,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="exporting-declarations.">Exporting declarations.</h4>
+<h3 id="exporting-declarations.">Exporting declarations.</h3>
 <p><code>export</code> in front of any variable, function or class export it from the module.</p>
 <div class="sourceCode" id="cb74"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb74-1"><a href="#cb74-1"></a><span class="co">// export data</span></span>
 <span id="cb74-2"><a href="#cb74-2"></a><span class="im">export</span> <span class="kw">let</span> color <span class="op">=</span> <span class="st">"red"</span><span class="op">;</span></span>
@@ -1412,7 +1406,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="exporting-statements-and-renaming.">Exporting statements and renaming.</h4>
+<h3 id="exporting-statements-and-renaming.">Exporting statements and renaming.</h3>
 <p>Declare a variable, function or class and export it later.</p>
 <div class="sourceCode" id="cb75"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb75-1"><a href="#cb75-1"></a><span class="co">// define a function and then export it later</span></span>
 <span id="cb75-2"><a href="#cb75-2"></a><span class="kw">function</span> <span class="fu">multiply</span>(num1<span class="op">,</span> num2) {</span>
@@ -1431,7 +1425,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="re-exporting.">Re-exporting.</h4>
+<h3 id="re-exporting.">Re-exporting.</h3>
 <p>There may be a time when you’d like to re-export something that your module has imported. Use cases: - You’re creating a library out of several small modules. - Modules extend other modules, and partially expose some of their features.</p>
 <div class="sourceCode" id="cb77"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb77-1"><a href="#cb77-1"></a><span class="co">// re-export sum from the module "./example.js"</span></span>
 <span id="cb77-2"><a href="#cb77-2"></a><span class="im">export</span> { sum } <span class="im">from</span> <span class="st">"./example.js"</span><span class="op">;</span></span>
@@ -1445,7 +1439,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="importing-single-multiple-bindings-or-all.">Importing single, multiple bindings or all.</h4>
+<h3 id="importing-single-multiple-bindings-or-all.">Importing single, multiple bindings or all.</h3>
 <p>Once you have a module with exports, you can access the functionality in another module by using the <code>import</code> keyword.</p>
 <div class="sourceCode" id="cb78"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb78-1"><a href="#cb78-1"></a><span class="co">// import just one or multiple bindings</span></span>
 <span id="cb78-2"><a href="#cb78-2"></a><span class="im">import</span> { sum } <span class="im">from</span> <span class="st">"./example.js"</span><span class="op">;</span></span>
@@ -1462,7 +1456,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="renaming-imports.">Renaming imports.</h4>
+<h3 id="renaming-imports.">Renaming imports.</h3>
 <p>If the module importing a variable, function or class wants to use a different name, it can use <code>as</code>.</p>
 <p>Example:</p>
 <div class="sourceCode" id="cb80"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb80-1"><a href="#cb80-1"></a><span class="co">// import the add() function and renames it to sum()</span></span>
@@ -1474,7 +1468,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="exporting-and-importing-default-values.">Exporting and importing default values.</h4>
+<h3 id="exporting-and-importing-default-values.">Exporting and importing default values.</h3>
 <ul>
 <li>The default value for a module is a single variable, function or class as specified by the <code>default</code> keyword,</li>
 <li>only set one default export per module. Examples:</li>
@@ -1492,13 +1486,13 @@
 </section>
 <section class="slide level2">
 
-<h4 id="examples">Examples</h4>
+<h3 id="examples">Examples</h3>
 <div class="sourceCode" id="cb83"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb83-1"><a href="#cb83-1"></a><span class="im">import</span> sum <span class="im">from</span> <span class="st">"./example.js"</span><span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="sourceCode" id="cb84"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb84-1"><a href="#cb84-1"></a><span class="im">import</span> sum<span class="op">,</span> { add } <span class="im">from</span> <span class="st">"./example.js"</span><span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section class="slide level2">
 
-<h4 id="resolving-paths-for-importing.">Resolving paths for importing.</h4>
+<h3 id="resolving-paths-for-importing.">Resolving paths for importing.</h3>
 <p>A module can import things from other modules.</p>
 <ul>
 <li>Relative paths (<code>'../model/user'</code>) relatively to the location of the importing module. The file extension can usually be omitted.</li>
@@ -1508,7 +1502,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="all-supported-syntax-at-a-glance.">All supported syntax at a glance.</h4>
+<h3 id="all-supported-syntax-at-a-glance.">All supported syntax at a glance.</h3>
 <div class="sourceCode" id="cb85"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb85-1"><a href="#cb85-1"></a><span class="co">// import a module without any import bindings</span></span>
 <span id="cb85-2"><a href="#cb85-2"></a><span class="im">import</span> <span class="st">'jquery'</span><span class="op">;</span></span>
 <span id="cb85-3"><a href="#cb85-3"></a><span class="co">// import the default export of a module</span></span>
@@ -1535,7 +1529,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="loading-modules-in-browsers.">Loading modules in browsers.</h4>
+<h3 id="loading-modules-in-browsers.">Loading modules in browsers.</h3>
 <p>To support modules, the <strong>module</strong> value was added as a <code>type</code> option of the <code>script</code> element. Setting type to <strong>module</strong> tells the browser to load any inline code or code contained in the file specified by <code>src</code> as a module.</p>
 <div class="sourceCode" id="cb86"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb86-1"><a href="#cb86-1"></a><span class="op">&lt;!--</span> load a module JavaScript file <span class="op">--&gt;</span></span>
 <span id="cb86-2"><a href="#cb86-2"></a><span class="op">&lt;</span>script type<span class="op">=</span><span class="st">"module"</span> src<span class="op">=</span><span class="st">"module.js"</span><span class="op">&gt;&lt;/</span>script<span class="op">&gt;</span></span>
@@ -1614,7 +1608,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-13.">Default parameters (1/3).</h4>
+<h3 id="default-parameters-13.">Default parameters (1/3).</h3>
 <p>In ECMAScript 5 and earlier, there is the following pattern to create a function with default parameters values:</p>
 <div class="sourceCode" id="cb89"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb89-1"><a href="#cb89-1"></a><span class="kw">function</span> <span class="fu">makeRequest</span>(url<span class="op">,</span> timeout<span class="op">,</span> callback) {</span>
 <span id="cb89-2"><a href="#cb89-2"></a>timeout <span class="op">=</span> timeout <span class="op">||</span> <span class="dv">2000</span><span class="op">;</span></span>
@@ -1628,7 +1622,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-23.">Default parameters (2/3).</h4>
+<h3 id="default-parameters-23.">Default parameters (2/3).</h3>
 <div class="sourceCode" id="cb90"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb90-1"><a href="#cb90-1"></a><span class="kw">function</span> <span class="fu">makeRequest</span>(url<span class="op">,</span> timeout<span class="op">,</span> callback) {</span>
 <span id="cb90-2"><a href="#cb90-2"></a>timeout <span class="op">=</span> (<span class="kw">typeof</span> timeout <span class="op">!==</span> <span class="st">"undefined"</span>) <span class="op">?</span></span>
 <span id="cb90-3"><a href="#cb90-3"></a><span class="dt">timeout</span> <span class="op">:</span> <span class="dv">2000</span><span class="op">;</span></span>
@@ -1647,7 +1641,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-33.">Default parameters (3/3).</h4>
+<h3 id="default-parameters-33.">Default parameters (3/3).</h3>
 <p>Examples how the function can be called:</p>
 <div class="sourceCode" id="cb92"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb92-1"><a href="#cb92-1"></a><span class="co">// uses default timeout and callback</span></span>
 <span id="cb92-2"><a href="#cb92-2"></a><span class="fu">makeRequest</span>(<span class="st">"/foo"</span>)<span class="op">;</span></span>
@@ -1666,7 +1660,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-and-arguments.">Default parameters and arguments.</h4>
+<h3 id="default-parameters-and-arguments.">Default parameters and arguments.</h3>
 <p><code>arguments</code> object remains detached from the named parameters.</p>
 <div class="sourceCode" id="cb94"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb94-1"><a href="#cb94-1"></a><span class="kw">function</span> <span class="fu">doSomething</span>(first<span class="op">,</span> second <span class="op">=</span> <span class="st">"b"</span>) {</span>
 <span id="cb94-2"><a href="#cb94-2"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="kw">arguments</span><span class="op">.</span><span class="at">length</span>)<span class="op">;</span></span>
@@ -1688,7 +1682,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-expressions.">Default parameters expressions.</h4>
+<h3 id="default-parameters-expressions.">Default parameters expressions.</h3>
 <p>The default value need not be a simple value. It can be any valid expression, even a function to retrieve the default parameter value.</p>
 <div class="sourceCode" id="cb96"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb96-1"><a href="#cb96-1"></a><span class="kw">function</span> <span class="fu">getValue</span>() {</span>
 <span id="cb96-2"><a href="#cb96-2"></a><span class="cf">return</span> <span class="dv">5</span><span class="op">;</span></span>
@@ -1704,7 +1698,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-with-cross-usage.">Default parameters with cross-usage.</h4>
+<h3 id="default-parameters-with-cross-usage.">Default parameters with cross-usage.</h3>
 <p>You can use a previous parameter as the default for a later parameter.</p>
 <div class="sourceCode" id="cb97"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb97-1"><a href="#cb97-1"></a><span class="kw">function</span> <span class="fu">add</span>(first<span class="op">,</span> second <span class="op">=</span> first) {</span>
 <span id="cb97-2"><a href="#cb97-2"></a><span class="cf">return</span> first <span class="op">+</span> second<span class="op">;</span></span>
@@ -1725,7 +1719,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="default-parameters-and-scopes.">Default parameters and scopes.</h4>
+<h3 id="default-parameters-and-scopes.">Default parameters and scopes.</h3>
 <p>The formal parameters in a function declaration are in their own scope. A reference to an identifier in a default value expression first matches the formal parameters’ scope before looking to an outer scope. Example:</p>
 <div class="sourceCode" id="cb99"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb99-1"><a href="#cb99-1"></a><span class="kw">var</span> w <span class="op">=</span> <span class="dv">1</span><span class="op">,</span> z <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
 <span id="cb99-2"><a href="#cb99-2"></a></span>
@@ -1739,7 +1733,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="spread-operator-12.">Spread operator (1/2).</h4>
+<h3 id="spread-operator-12.">Spread operator (1/2).</h3>
 <p>ES6 introduces a new <code>...</code> operator that’s typically referred to as the <strong>spread</strong> or <strong>rest</strong> operator, depending on where/how it’s used. When <code>...</code> is used in front of an <em>iterable</em> (Array, Set, Map, …), it acts to “spread” it out into its individual values.</p>
 <p><strong>A typical usage</strong>: Specify an array, split it into items which are passed in as separate arguments to a function.</p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb100-1"><a href="#cb100-1"></a><span class="kw">function</span> <span class="fu">foo</span>(x<span class="op">,</span> y<span class="op">,</span> z) {</span>
@@ -1753,7 +1747,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="spread-operator-22.">Spread operator (2/2).</h4>
+<h3 id="spread-operator-22.">Spread operator (2/2).</h3>
 <p>The spread operator can be used to spread out a value in other contexts as well, such as inside another array declaration:</p>
 <div class="sourceCode" id="cb102"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb102-1"><a href="#cb102-1"></a><span class="kw">var</span> a <span class="op">=</span> [<span class="dv">2</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="dv">4</span>]<span class="op">;</span></span>
 <span id="cb102-2"><a href="#cb102-2"></a><span class="kw">var</span> b <span class="op">=</span> [<span class="dv">1</span><span class="op">,</span> <span class="op">...</span>a<span class="op">,</span> <span class="dv">5</span>]<span class="op">;</span></span>
@@ -1769,7 +1763,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="rest-parameters-13.">Rest parameters (1/3).</h4>
+<h3 id="rest-parameters-13.">Rest parameters (1/3).</h3>
 <p>The other common usage of <code>...</code> can be seen as the opposite - instead of spreading a value out, the <code>...</code> <em>gathers</em> a set of values together into an array.</p>
 <div class="sourceCode" id="cb105"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb105-1"><a href="#cb105-1"></a><span class="kw">function</span> <span class="fu">foo</span>(x<span class="op">,</span> y<span class="op">,</span> <span class="op">...</span>z) {</span>
 <span id="cb105-2"><a href="#cb105-2"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(x<span class="op">,</span> y<span class="op">,</span> z)<span class="op">;</span></span>
@@ -1783,7 +1777,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="rest-parameters-23.">Rest parameters (2/3).</h4>
+<h3 id="rest-parameters-23.">Rest parameters (2/3).</h3>
 <p>ES5</p>
 <div class="sourceCode" id="cb106"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb106-1"><a href="#cb106-1"></a><span class="kw">function</span> <span class="fu">foo</span>() {</span>
 <span id="cb106-2"><a href="#cb106-2"></a><span class="co">// turn arguments into a real array and remove the first element</span></span>
@@ -1803,7 +1797,7 @@
 </section>
 <section class="slide level2">
 
-<h4 id="rest-parameters-33.">Rest parameters (3/3).</h4>
+<h3 id="rest-parameters-33.">Rest parameters (3/3).</h3>
 <p>There are two <strong>restrictions</strong> on rest parameters.</p>
 <p><strong>1.</strong> There can be only one rest parameter, and the rest parameter must be last.</p>
 <div class="sourceCode" id="cb108"><pre class="sourceCode numberSource js number-lines code-with-copy"><code class="sourceCode javascript"><span id="cb108-1"><a href="#cb108-1"></a><span class="co">// Syntax error: Can't have a named parameter after rest parameters</span></span>
