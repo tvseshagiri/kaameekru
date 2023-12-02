@@ -3,7 +3,7 @@
 
 ---
 
-#### Template literals.
+### Template literals.
 
 - __Template literals__ is a new feature in ES6 to make working with strings and string templates easier.
 - Multiline strings without hacks.
@@ -12,7 +12,7 @@
 
 Basic syntax:
 
-```js []
+```js
 let message = `Hello world!`;
 
 console.log(message); // "Hello world!" 
@@ -21,14 +21,14 @@ console.log(typeof message); // "string"
 
 ---
 
-#### Multiline strings (1/3).
+### Multiline strings (1/3).
 
 In ES5, when using double or single quotes, strings must be completely contained on a single line. There are workarounds
 for this shortcoming.
 
 Workarounds with  `join` and `\n`.
 
-```js []
+```js
 var message = "Multiline \
 string";
 
@@ -45,11 +45,11 @@ let message3 = "Multiline \n" +
 
 ---
 
-#### Multiline strings (2/3).
+### Multiline strings (2/3).
 
 In ES6, template literals make multiline strings easy.
 
-```js []
+```js
 let message = `Multiline
 string`;
 
@@ -59,7 +59,7 @@ console.log(message); // "Multiline
 
 All whitespaces inside the backticks are parts of the string, so be careful with indentation.
 
-```js []
+```js
 let message = `Multiline
 string`;
 
@@ -69,13 +69,13 @@ console.log(message); // "Multiline
 
 ---
 
-#### Multiline strings (3/3).
+### Multiline strings (3/3).
 
 
 
 Another Example:
 
-```js []
+```js
 let html = `
 <div>
   <h1>Title</h1>
@@ -84,13 +84,13 @@ let html = `
 
 ---
 
-#### String substitution (1/3).
+### String substitution (1/3).
 
 - Substitutions allow any valid JavaScript expression inside a template literal and output the result as part
 of the string.
 - Substitutions are delimited by an opening `${` and a closing `}` that can have any JavaScript expression inside.
 
-```js []
+```js
 var term = "Keeravani";
 const url = `https://itunes.apple.com/search?term=${term}&media=music&limit=20`;
 console.log(url);
@@ -109,7 +109,7 @@ ${2 * (a + b)} and not ${10 * (a + b)}.`);
 
 The `${}` works fine with any kind of expression, including member expressions, function and method calls.
 
-```js []
+```js
 function fn() {
 return "I am a result. Rarr";
 }
@@ -119,7 +119,7 @@ console.log(`foo ${fn()} bar`);
 // => foo I am a result. Rarr bar.
 ```
 
-```js []
+```js
 var user = {
 name: 'Laxman'
 };
@@ -135,7 +135,7 @@ console.log(`Thanks for helping us, ${user.name.toUpperCase()}.`);
 
 Advanced example of building HTML structures.
 
-```js []
+```js
 var li = (obj) => `<li><a href="${obj.url}">${obj.label}</a></li>`;
 var ul = (arr) => `<ul>${arr.map((obj) => li(obj)).join('\n')}</ul>`;
 var arr = [
@@ -149,7 +149,7 @@ document.getElementById('list').innerHTML = ul(arr);
 
 This will generate the following output:
 
-```js []
+```js
 <ul>
   <li><a href="http://www.twitter.com">Twitter</a></li>
   <li><a href="http://www.linkedin.com">Linked In</a></li>

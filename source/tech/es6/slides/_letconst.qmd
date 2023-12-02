@@ -3,7 +3,7 @@
 
 --- 
 
-#### ES6 Variable types
+### ES6 Variable types
 
 - ES6 introduced three new variable types: __let, const, and var.__
 
@@ -22,7 +22,7 @@ console.log(name); // ReferenceError: name is not defined
 
 ---
 
-#### Const
+### Const
 
 - `const` variables are also block-scoped, but they are also immutable, meaning that their values cannot be changed.
 
@@ -35,7 +35,7 @@ age = 26; // TypeError: Assignment to constant variable.
 
 ---
 
-#### Var
+### Var
 
 - `var` variables are function-scoped, meaning that they can be accessed anywhere within the function in which they are declared, even within nested blocks.
 
@@ -57,7 +57,7 @@ myFunction();
 ---
 
 
-#### Benefits of using `let` and `const`
+### Benefits of using `let` and `const`
 
 - `let` and `const` variables offer several benefits over `var` variables:
 
@@ -68,7 +68,7 @@ myFunction();
 ---
 
 
-#### When to use `let`, `const`, and `var`
+### When to use `let`, `const`, and `var`
 
   - Use `let` to declare a variable that you need to reassign within a block.
   - Use `const` to declare a variable that you do not need to reassign within a block.
