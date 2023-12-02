@@ -8,14 +8,14 @@
 - Destructuring is a convenient way to extract values from data stored in Objects and Arrays (also nested).
  This is an opposite operation to structuring (constructing data).*
 
-```js []
+```js
 var obj = {first: 'Jane', last: 'Leo'};
 ```
 
 Destructuring in ECMAScript 6 enables the same syntax for extracting data. Just as the object literal lets us create
 multiple properties at the same time, the object pattern lets us extract multiple properties at the same time.
     
-```js []
+```js
 var {first: a, last: b} = obj;
 // a = 'Jane', b = 'Leo'
 
@@ -27,7 +27,7 @@ var [x, y] = ['Jane', 'Leo'];
 
 #### Object destructuring.
 
-```js []
+```js
 var foo = {bar: 'pony', baz: 3};
 var {bar: a, baz: b} = foo;
 
@@ -39,7 +39,7 @@ console.log(b)
     
 ES5 equivalent
     
-```js []
+```js
 var foo = {bar: 'pony', baz: 3};
 var a = foo.bar;
 var b = foo.baz;
@@ -52,7 +52,7 @@ var b = foo.baz;
 Only for object literals: If the value of a property is provided via a variable whose name is the same as the property name,
 you can omit the property name.
 
-```js []
+```js
 var {x, y} = {x: 11, y: 8};
     
 console.log(x)
@@ -63,7 +63,7 @@ console.log(y)
     
 This declaration is equivalent to:
 
-```js []
+```js
 var {x: x, y: y} = {x: 11, y: 8};
 ```
 
@@ -73,7 +73,7 @@ var {x: x, y: y} = {x: 11, y: 8};
 
 You can also pull properties as deep as you want.
     
-```js []
+```js
 var foo = {bar: {deep: 'pony', smile: 'lol'}};
 var {bar: {deep, smile: sure}} = foo;
     
@@ -85,7 +85,7 @@ console.log(sure);
 
 ES5 equivalent
     
-```js []
+```js
 var foo = {bar: {deep: 'pony', smile: 'lol'}};
 var deep = foo.bar.deep;
 var sure = foo.bar.smile;
@@ -97,7 +97,7 @@ var sure = foo.bar.smile;
     
 Destructuring works for arrays as well. How? By using square brackets in the destructuring side of the declaration.
     
-```js []
+```js
 var [a, b, c] = [1, 2, 3];
 
 console.log("A is " + a + ", B is " + b + ", C is " + c);
@@ -107,7 +107,7 @@ console.log("A is " + a + ", B is " + b + ", C is " + c);
 The `rest` operator lets you extract the remaining elements of an array into an array.
 You can only use this operator as the last part inside an array.
     
-```js []
+```js
 var [x, ...y] = ['a', 'b', 'c'];
 // x = 'a', y = ['b', 'c']
 ``` 
@@ -120,21 +120,21 @@ Attention: The same syntax (...) is used by the `spread` operator!
     
 If you destructure an object, you mention only those properties that you are interested in.
     
-```js []    
+```js
 var {x} = {x: 7, y: 3, z: 10};
 // x = 7
 ```
 
 If you destructure an array, you can choose to only extract a prefix.
     
-```js [] 
+```js
 var [x, y] = ['a', 'b', 'c'];
 // x = 'a', y = 'b';
 ```
     
 You can also conveniently skip over elements that you don’t care about.
 
-```js []
+```js
 var [, , a, b] = [1, 2, 3, 4, 5];
 // a = 3, b = 4;
     
@@ -150,7 +150,7 @@ var [a, , b] = f();
     
 We can also mix objects and arrays together and use theirs literals.
 
-```js []
+```js
 var mixed = {
   one: 1, two: 2, values: [3, 4, 5]
 };
@@ -163,7 +163,7 @@ console.log(a, b, c, e);
     
 The same with return value of a function:
     
-```js []
+```js
 function mixed () {
   return {
     one: 1, two: 2, values: [3, 4, 5]
@@ -180,7 +180,7 @@ var {one: a, two: b, values: [c, , e]} = mixed();
 If the value of a destructuring assignment isn't match, it evaluates to `undefined`.
 Just like when accessing not defined properties on an object with the dot or bracket notation.
     
-```js []
+```js
 var [x, y] = [];
     
 console.log(x);  // undefined
@@ -202,7 +202,7 @@ console.log(b);  // undefined
     
 Example of deep objects:
     
-```js []
+```js
 var {
   prop1: x,
   prop2: {
@@ -219,7 +219,7 @@ __Question__: What are the values of variables `x` and `y`?
     
 --
     
-```js []
+```js
 console.log(typeof x);  // undefined
 console.log(y);         // 'c'
 ```
@@ -230,7 +230,7 @@ console.log(y);         // 'c'
     
 If you're trying to access a deeply nested property of a parent that doesn't exist, then you'll get an exception.
     
-```js []
+```js
 var {foo: {bar}} = {baz: 'something'};
     
 // Exception: TypeError
@@ -238,7 +238,7 @@ var {foo: {bar}} = {baz: 'something'};
     
 It makes sense if you rewrite destructuring in ES5:
 
-```js []
+```js
 var temp = {baz: 'something'};
 var bar = temp.foo.bar;
     
@@ -256,7 +256,7 @@ If a part (an object property or an array element) has no match in the source, i
     
 Providing a default value is optional. Example with array:
     
-```js []
+```js
 var [x = 3, y] = [];
 // x = 3; y = undefined
 ```
@@ -265,7 +265,7 @@ __Explanation__: The element at index 0 has no match on the right-hand side. The
     
 Example with object:
 
-```js []
+```js
 var {foo: x = 3, bar: y} = {};
 // x = 3; y = undefined
 ```
@@ -276,20 +276,20 @@ var {foo: x = 3, bar: y} = {};
 
 `undefined` triggers default values. Default values are also used if a part does have a match and that match is `undefined`.
     
-```js []
+```js
 var {prop: y = 2} = {prop: undefined};
 // y = 2
 ```    
 
 Default values are computed when they are needed (on demand). This
 
-```js []
+```js
 var {prop: y = someFunc()} = someValue;
 ```
 
 is equivalent to
     
-```js []
+```js
 var y;
 if (someValue.prop === undefined) {
     y = someFunc();
@@ -304,20 +304,20 @@ if (someValue.prop === undefined) {
 
 So far we have only seen default values for variables, but you can also associate them with object itself:
     
-```js []
+```js
 var [{prop: x} = {}] = [];
 ```
     
 What does this mean? The element at index 0 has no match, which is why destructuring continues with:
     
-```js []
+```js
 var {prop: x} = {};
 // x = undefined
 ```
     
 Another example with complex default values:
     
-```js []
+```js
 var [{prop: x} = {prop: 123}] = [];
 // Destructuring continues as follows:
 var {prop: x} = {prop: 123};
@@ -330,7 +330,7 @@ var {prop: x} = {prop: 123};
 
 You can also use destructuring in a function's parameter list.
     
-```js []
+```js
 function greet({name: greeting = 'she', age}) {
   console.log(`${greeting} is ${age} years old.`)
 }
@@ -344,7 +344,7 @@ greet({age: 24});
  
 Next advanced example:
     
-```js []
+```js
 var ajax = function({url = 'sbb.ch', port: p = 80}, ...data) {
   console.log("Url:", url, "Port:", p, "Rest:", data);
 };
@@ -360,7 +360,7 @@ ajax({url: "localhost"}, "more", "data", "hello");
 Computed property names are another object literal feature that also works for destructuring.
 You can specify the name of a property via an expression, if you put it in square brackets.
     
-```js []
+```js
 var KEY = 'z';
 var {[KEY]: foo} = {z: 'bar'};
 
@@ -377,7 +377,7 @@ console.log(foo);
     
 If we try to omit `var`, `let` or `const`, it will throw an error, because block code can't be a destructuring assignment.
     
-```js []
+```js
 let point = {
   x: 1
 };
@@ -387,7 +387,7 @@ let point = {
   
 __Solution:__ We have to wrap it in parentheses.
     
-```js []
+```js
 let point = {
   x: 1
 };
