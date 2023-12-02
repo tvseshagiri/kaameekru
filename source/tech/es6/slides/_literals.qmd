@@ -105,7 +105,7 @@ ${2 * (a + b)} and not ${10 * (a + b)}.`);
 
 ---
 
-#### String substitution (2/3).
+### String substitution (2/3).
 
 The `${}` works fine with any kind of expression, including member expressions, function and method calls.
 
@@ -131,7 +131,7 @@ console.log(`Thanks for helping us, ${user.name.toUpperCase()}.`);
 
 ---
 
-#### String substitution (3/3).
+### String substitution (3/3).
 
 Advanced example of building HTML structures.
 
@@ -157,4 +157,3 @@ This will generate the following output:
 </ul>
 ```
 
----

@@ -3,7 +3,7 @@
 
 ---
 
-#### What is destructuring?
+### What is destructuring?
     
 - Destructuring is a convenient way to extract values from data stored in Objects and Arrays (also nested).
  This is an opposite operation to structuring (constructing data).*
@@ -25,7 +25,7 @@ var [x, y] = ['Jane', 'Leo'];
 
 ---
 
-#### Object destructuring.
+### Object destructuring.
 
 ```js
 var foo = {bar: 'pony', baz: 3};
@@ -47,7 +47,7 @@ var b = foo.baz;
 
 ---
 
-#### Object destructuring, shorthand notation.
+### Object destructuring, shorthand notation.
     
 Only for object literals: If the value of a property is provided via a variable whose name is the same as the property name,
 you can omit the property name.
@@ -69,7 +69,7 @@ var {x: x, y: y} = {x: 11, y: 8};
 
 ---
 
-#### Object destructuring, nested properties.
+### Object destructuring, nested properties.
 
 You can also pull properties as deep as you want.
     
@@ -93,7 +93,7 @@ var sure = foo.bar.smile;
 
 ---
 
-#### Array destructuring.
+### Array destructuring.
     
 Destructuring works for arrays as well. How? By using square brackets in the destructuring side of the declaration.
     
@@ -116,7 +116,7 @@ Attention: The same syntax (...) is used by the `spread` operator!
 
 ---
 
-#### Pick what you need.
+### Pick what you need.
     
 If you destructure an object, you mention only those properties that you are interested in.
     
@@ -146,7 +146,7 @@ var [a, , b] = f();
 
 ---
 
-#### Mix objects and arrays.
+### Mix objects and arrays.
     
 We can also mix objects and arrays together and use theirs literals.
 
@@ -175,7 +175,7 @@ var {one: a, two: b, values: [c, , e]} = mixed();
 
 ---
 
-#### If a part has no match (1/3).
+### If a part has no match (1/3).
     
 If the value of a destructuring assignment isn't match, it evaluates to `undefined`.
 Just like when accessing not defined properties on an object with the dot or bracket notation.
@@ -198,7 +198,7 @@ console.log(b);  // undefined
 
 ---
 
-#### If a part has no match (2/3).
+### If a part has no match (2/3).
     
 Example of deep objects:
     
@@ -223,7 +223,7 @@ console.log(y);         // 'c'
 
 ---
 
-#### If a part has no match (3/3).
+### If a part has no match (3/3).
     
 If you're trying to access a deeply nested property of a parent that doesn't exist, then you'll get an exception.
     
@@ -244,7 +244,7 @@ var bar = temp.foo.bar;
 
 ---
 
-#### Default values (1/3).
+### Default values (1/3).
     
 If a part (an object property or an array element) has no match in the source, it is matched against:
     
@@ -269,7 +269,7 @@ var {foo: x = 3, bar: y} = {};
 
 ---
 
-#### Default values (2/3).
+### Default values (2/3).
 
 `undefined` triggers default values. Default values are also used if a part does have a match and that match is `undefined`.
     
@@ -297,7 +297,7 @@ if (someValue.prop === undefined) {
 
 ---
 
-#### Default values (3/3).
+### Default values (3/3).
 
 So far we have only seen default values for variables, but you can also associate them with object itself:
     
@@ -323,7 +323,7 @@ var {prop: x} = {prop: 123};
 
 ---
 
-#### Destructuring in a function's parameter list.
+### Destructuring in a function's parameter list.
 
 You can also use destructuring in a function's parameter list.
     
@@ -352,7 +352,7 @@ ajax({url: "localhost"}, "more", "data", "hello");
 
 ---
 
-#### Destructuring with computed property names.
+### Destructuring with computed property names.
 
 Computed property names are another object literal feature that also works for destructuring.
 You can specify the name of a property via an expression, if you put it in square brackets.
@@ -367,7 +367,7 @@ console.log(foo);
 
 ---
 
-#### Good to know.
+### Good to know.
     
 If we try to omit `var`, `let` or `const`, it will throw an error, because block code can't be a destructuring assignment.
     
@@ -391,6 +391,4 @@ let point = {
 console.log(a);
 // 1
 ```
-    
----
     

@@ -3,7 +3,7 @@
 
 --- 
 
-#### What are modules?
+### What are modules?
     
 - ES6 introduced built-in modules. 
 - Defined in its own file.
@@ -14,7 +14,7 @@
 
 ---
 
-#### Exporting declarations.
+### Exporting declarations.
     
  `export` in front of any variable, function or class  export it from the module.
     
@@ -38,7 +38,7 @@ export class Rectangle {
 ---
 
 
-#### Exporting statements and renaming.
+### Exporting statements and renaming.
     
 Declare a variable, function or class and export it later.
     
@@ -67,7 +67,7 @@ export { ZipCodeValidator as mainValidator };
 ---
 
 
-#### Re-exporting.
+### Re-exporting.
     
 There may be a time when you'd like to re-export something that your module has imported. Use cases:
 - You're creating a library out of several small modules.
@@ -88,7 +88,7 @@ __Note:__ If you'd like to export everything from another module, you can use th
 
 ---
 
-#### Importing single, multiple bindings or all.
+### Importing single, multiple bindings or all.
     
 Once you have a module with exports, you can access the functionality in another module by using the `import` keyword.
     
@@ -112,7 +112,7 @@ console.log(example.multiply(1, 2));
 
 ---
 
-#### Renaming imports.
+### Renaming imports.
     
 If the module importing a variable, function or class wants to use a different name, it can use `as`.
     
@@ -131,7 +131,7 @@ __Note:__ There is no identifier named `add` in this module.
 ---
 
 
-#### Exporting and importing default values.
+### Exporting and importing default values.
     
 - The default value for a module is a single variable, function or class as specified by the `default` keyword,
 - only set one default export per module. Examples:
@@ -153,7 +153,7 @@ export default sum;
 
 ---
 
-#### Examples
+### Examples
 
 ```js
 import sum from "./example.js";
@@ -165,7 +165,7 @@ import sum, { add } from "./example.js";
 
 ---
 
-#### Resolving paths for importing.
+### Resolving paths for importing.
     
 A module can import things from other modules. 
     
@@ -175,7 +175,7 @@ A module can import things from other modules.
 
 ---
 
-#### All supported syntax at a glance.
+### All supported syntax at a glance.
     
 ```js
 // import a module without any import bindings
@@ -205,7 +205,7 @@ export * from 'crypto';
 
 ---
 
-#### Loading modules in browsers.
+### Loading modules in browsers.
     
 To support modules, the __module__ value was added as a `type` option of the `script` element.
 Setting type to __module__ tells the browser to load any inline code or code contained in the file
