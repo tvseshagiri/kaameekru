@@ -2,11 +2,11 @@
 title: "Introduction to ES6"
 ---
 
-{{< include slides/_arrowfunc.qmd >}}
-{{< include slides/_classes.qmd >}}
-{{< include slides/_destructuring.qmd >}}
 {{< include slides/_letconst.qmd >}}
 {{< include slides/_literals.qmd >}}
+{{< include slides/_destructuring.qmd >}}
+{{< include slides/_arrowfunc.qmd >}}
+{{< include slides/_classes.qmd >}}
 {{< include slides/_modules.qmd >}}
 {{< include slides/_promises.qmd >}}
 {{< include slides/_restspread.qmd >}}
