@@ -9,7 +9,7 @@
 
 `let` variables are block-scoped, meaning that they can only be accessed within the block in which they are declared.
 
-``` js []
+``` js
 
 {
   let name = "Janardhan";
@@ -26,7 +26,7 @@ console.log(name); // ReferenceError: name is not defined
 
 - `const` variables are also block-scoped, but they are also immutable, meaning that their values cannot be changed.
 
-```js []
+```js
 const age = 25;
 
 // Trying to reassign the value of age will result in a TypeError.
@@ -39,7 +39,7 @@ age = 26; // TypeError: Assignment to constant variable.
 
 - `var` variables are function-scoped, meaning that they can be accessed anywhere within the function in which they are declared, even within nested blocks.
 
-```js []
+```js
 function myFunction() {
   var name = "Janardhan";
 

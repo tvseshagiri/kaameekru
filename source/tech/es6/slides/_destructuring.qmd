@@ -212,13 +212,10 @@ var {
   }
 } = {prop: "Hello", prop2: {prop3: {nested: ["a", "b", "c"]}}};
 ```
-
---
-    
+   
 __Question__: What are the values of variables `x` and `y`?
     
---
-    
+   
 ```js
 console.log(typeof x);  // undefined
 console.log(y);         // 'c'
@@ -367,9 +364,6 @@ var {[KEY]: foo} = {z: 'bar'};
 console.log(foo);
 // 'bar'
 ```
-
-[Reference to computed property names](http://droidscript.org/javascript/Operators/Object_initializer.html)
-
 
 ---
 

@@ -20,7 +20,7 @@
     * __then()__ will be called when Promise is fulfilled (success)
     * __catch()__ will be called when something went wrong
 
-``` js []
+``` js
 
 fetch(`https://itunes.apple.com/search?term=${term}&media=music&limit=20`)
   .then(res => {
@@ -38,7 +38,7 @@ fetch(`https://itunes.apple.com/search?term=${term}&media=music&limit=20`)
 
 - await & async simplifies promise handlers handling
 
-``` js []
+``` js
 async function serachiTunes(term) {
   try {
         const resp = await fetch(`https://itunes.apple.com/search?term=${term}&media=music&limit=20`);

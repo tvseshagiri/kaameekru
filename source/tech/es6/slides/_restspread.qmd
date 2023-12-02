@@ -7,7 +7,7 @@
 
 In ECMAScript 5 and earlier, there is the following pattern to create a function with default parameters values:
 
-```js []
+```js
 function makeRequest(url, timeout, callback) {
 timeout = timeout || 2000;
 callback = callback || function() {};
@@ -21,7 +21,7 @@ callback = callback || function() {};
 
 #### Default parameters (2/3).
 
-```js []
+```js
 function makeRequest(url, timeout, callback) {
 timeout = (typeof timeout !== "undefined") ?
 timeout : 2000;
@@ -34,7 +34,7 @@ callback : function() {};
 
 This approach still requires a lot of extra code for a very basic operation. ECMAScript 6 makes it easier!
 
-```js []
+```js
 function makeRequest (
 url, timeout = 2000, callback = function() {}) {
 
@@ -50,7 +50,7 @@ This function only expects the first parameter to always be passed. The other pa
 
 Examples how the function can be called:
 
-```js []
+```js
 // uses default timeout and callback
 makeRequest("/foo");
 
@@ -63,7 +63,7 @@ makeRequest("/foo", 500, function(body) {...});
 
 In the case of default parameter values, a value of `null` is considered to be valid.
 
-```js []
+```js
 // uses default timeout (undefined = missing parameter)
 makeRequest("/foo", undefined, function(body) {...});
 
@@ -77,7 +77,7 @@ makeRequest("/foo", null, function(body) {...});
 
 `arguments` object remains detached from the named parameters.
 
-```js []
+```js
 function doSomething(first, second = "b") {
 console.log(arguments.length);
 console.log(first === arguments[0]);
@@ -93,7 +93,7 @@ doSomething("a");
 
 The outputs:
 
-```js []
+```js
 1 // length is 1 because only one argument was passed
 true // first is equal to arguments[0]
 false // because arguments[1] is undefined
@@ -108,7 +108,7 @@ false // changing second has no effect on arguments
 The default value need not be a simple value. It can be any valid expression,
 even a function to retrieve the default parameter value.
 
-```js []
+```js
 function getValue() {
 return 5;
 }
@@ -130,7 +130,7 @@ __Important__: The default value expressions are lazily evaluated, meaning they'
 
 You can use a previous parameter as the default for a later parameter.
 
-```js []
+```js
 function add(first, second = first) {
 return first + second;
 }
@@ -139,7 +139,7 @@ console.log(add(1, 1)); // 2
 console.log(add(1)); // 2
 ```
 
-```js []
+```js
 function getValue(value) {
 return value + 5;
 }
@@ -160,7 +160,7 @@ The formal parameters in a function declaration are in their own scope.
 A reference to an identifier in a default value expression first matches the formal parameters' scope
 before looking to an outer scope. Example:
 
-```js []
+```js
 var w = 1, z = 2;
 
 function foo(x = w + 1, y = x + 1, z = z + 1) {
@@ -187,7 +187,7 @@ it acts to "spread" it out into its individual values.
 
 __A typical usage__: Specify an array, split it into items which are passed in as separate arguments to a function.
 
-```js []
+```js
 function foo(x, y, z) {
 console.log(x, y, z);
 }
@@ -197,7 +197,7 @@ foo(...[1,2,3]); // 1 2 3
 
 ES5 way:
 
-```js []
+```js
 foo.apply(null, [1,2,3]); // 1 2 3
 ```
 
@@ -210,7 +210,7 @@ That means, the spread operator acts as a simple syntactic replacement for the `
 The spread operator can be used to spread out a value in other contexts as well, such as inside another array
 declaration:
 
-```js []
+```js
 var a = [2, 3, 4];
 var b = [1, ...a, 5];
 
@@ -221,14 +221,14 @@ Here, `...` is replacing `concat()`, as it behaves like `[1].concat(a, [5])`.
 
 Another example for mixing the spread operator with other arguments:
 
-```js []
+```js
 let values = [-25, -50, -75, -100];
 console.log(Math.max(...values, 0)); // 0
 ```
 
 ES5 equivalent:
 
-```js []
+```js
 let values = [-25, -50, -75, -100];
 console.log(Math.max.apply(Math, values.concat([0]))); // 0
 ```
@@ -240,7 +240,7 @@ console.log(Math.max.apply(Math, values.concat([0]))); // 0
 The other common usage of `...` can be seen as the opposite - instead of spreading a value out, the `...` *gathers*
 a set of values together into an array.
 
-```js []
+```js
 function foo(x, y, ...z) {
 console.log(x, y, z);
 }
@@ -263,7 +263,7 @@ Rest parameters were designed to replace `arguments` in ECMAScript.
 
 ES5
 
-```js []
+```js
 function foo() {
 // turn arguments into a real array and remove the first element
 var args = Array.prototype.slice.call(arguments);
@@ -276,7 +276,7 @@ console.log.apply(console, args);
 
 ES6 way (rest parameters and spread operator together)
 
-```js []
+```js
 function foo(...args) {
 // args is already a real array, remove the first element
 args.shift();
@@ -293,7 +293,7 @@ There are two __restrictions__ on rest parameters.
 
 __1.__ There can be only one rest parameter, and the rest parameter must be last.
 
-```js []
+```js
 // Syntax error: Can't have a named parameter after rest parameters
 function doSomething(foo, ...bars, last) {
 ...
@@ -302,7 +302,7 @@ function doSomething(foo, ...bars, last) {
 
 __2.__ Rest parameters cannot be used in an object literal setter.
 
-```js []
+```js
 let object = {
 // Syntax error: Can't use rest param in setter
 set name(...value) {
@@ -314,21 +314,3 @@ set name(...value) {
 Object literal setters are restricted to a single argument and rest parameters have, by definition,
 an infinite number of arguments.
 
----
-class: center, middle, inverse
-
-#### That's all folks, thanks for your attention!
-
-.back[[Back to the homepage](http://ova2.github.io/es6-presentations/)]
-
-Slideshow created with [remark](https://github.com/gnab/remark)
-
-</textarea>
-<script>
-  var slideshow = remark.create({
-    highlightLanguage: 'javascript', highlightStyle: 'idea', navigation: { scroll: false }
-  });
-</script>
-</body>
-
-</html>

@@ -18,7 +18,7 @@
     
  `export` in front of any variable, function or class  export it from the module.
     
-```js []
+```js
 // export data
 export let color = "red";
 
@@ -42,7 +42,7 @@ export class Rectangle {
     
 Declare a variable, function or class and export it later.
     
-```js []
+```js
 // define a function and then export it later
 function multiply(num1, num2) {
   return num1 * num2;
@@ -53,7 +53,7 @@ export { multiply };
     
 Can use the `as` keyword to specify a new name for importing.
     
-```js []
+```js
 class ZipCodeValidator extends StringValidator {
     isAcceptable(value) {
         return value.length === 5 && numberRegexp.test(value);
@@ -73,7 +73,7 @@ There may be a time when you'd like to re-export something that your module has 
 - You're creating a library out of several small modules.
 - Modules extend other modules, and partially expose some of their features.
     
-```js []
+```js
 // re-export sum from the module "./example.js"
 export { sum } from "./example.js";
     
@@ -92,7 +92,7 @@ __Note:__ If you'd like to export everything from another module, you can use th
     
 Once you have a module with exports, you can access the functionality in another module by using the `import` keyword.
     
-```js []
+```js
 // import just one or multiple bindings
 import { sum } from "./example.js";
 import { multiply, magicNumber } from "./example.js";
@@ -102,7 +102,7 @@ console.log(multiply(1, 2));
 ```
 Import the entire module as a single object.
     
-```js []
+```js
 // import everything
 import * as example from "./example.js";
 
@@ -118,7 +118,7 @@ If the module importing a variable, function or class wants to use a different n
     
 Example:
     
-```js []
+```js
 // import the add() function and renames it to sum()
 import { add as sum } from "./example.js";
     
@@ -136,13 +136,13 @@ __Note:__ There is no identifier named `add` in this module.
 - The default value for a module is a single variable, function or class as specified by the `default` keyword,
 - only set one default export per module. Examples:
     
-```js []
+```js
 export default function(num1, num2) {
     return num1 + num2;
 }
 ```
 
-```js []
+```js
 function sum(num1, num2) {return num1 + num2;}
 
 export default sum;
@@ -155,11 +155,11 @@ export default sum;
 
 #### Examples
 
-```js []
+```js
 import sum from "./example.js";
 ```
     
-```js []
+```js
 import sum, { add } from "./example.js";
 ``` 
 
@@ -177,7 +177,7 @@ A module can import things from other modules.
 
 #### All supported syntax at a glance.
     
-```js []
+```js
 // import a module without any import bindings
 import 'jquery';
 // import the default export of a module
@@ -211,7 +211,7 @@ To support modules, the __module__ value was added as a `type` option of the `sc
 Setting type to __module__ tells the browser to load any inline code or code contained in the file
 specified by `src` as a module.
     
-```js []
+```js
 <!-- load a module JavaScript file -->
 <script type="module" src="module.js"></script>
     
