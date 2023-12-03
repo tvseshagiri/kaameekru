@@ -72,5 +72,5 @@ myFunction();
 
   - Use `let` to declare a variable that you need to reassign within a block.
   - Use `const` to declare a variable that you do not need to reassign within a block.
-  - Use `var` to declare a variable that you need to access from outside of a function.
+  - Use `var` to declare a variable that you need to access globally.
 
