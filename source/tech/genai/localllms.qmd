@@ -1,0 +1,387 @@
+---
+title: "Local LLMs"
+---
+
+### The Buzzwords
+
+-   **GenAI**
+    -   Became very common topic
+-   **GPT-4, Gemini etc**
+    -   GPT-3.5 shade away, new service/product coming every day
+-   **OpenAI, Google, Meta**
+    -   No more big companies, even Academias also started releasing (eg.Falcon, LLaVa)
+-   **LLM, LMM, soon LxM**
+    -   No more Language, Vision, Audio and Multi models are coming
+-   **RAG**
+    -   Common Pattern for injecting new knowledge
+-   **Frameworks - LangChain, LlamaIndex, Streamlit, Gradio etc**
+    -   Became defacto frameworks for GenAI app development
+
+------------------------------------------------------------------------
+
+### Cloud Based Services
+
+-   Popular LLMs are available as Commercial & Cloud based services (OpenAI, Google, AWS, IBM)
+
+-   Large Model size & Needs high computation power
+
+-   Offers Trial Versions but with Rate Limits
+
+-   Data Privacy & Security concerns as data go outside
+
+-   There are other Options available
+
+    -   Open Source (freely accessible)
+    -   Commercially Usable
+    -   Self-Hosted
+    -   Deployable on On Commodity Hardware (for prototyping & evaluation)
+
+------------------------------------------------------------------------
+
+### Local/On-Prem LLMs
+
+-   Open Source Models - Llama2, Falcon, T5 etc
+
+-   Model Quantization
+
+    -   reduced model sizes by reducing weights from high precision to lower
+    -   run on commodity hardware
+
+-   Llama.cpp made it possible
+
+-   New model Quantization formats introduced - GGUF and now GGML
+
+-   We can run models on CPUs
+
+    -   No more GPUs needed, they are just a performance boosters
+
+-   Frameworks like Llama.cpp (Python binding), Ollama, GPT4All made it possible
+
+-   But what it takes to run them locally...
+
+    -   will share the experience on Ollama, GPT4All and Llama.cpp
+
+------------------------------------------------------------------------
+
+### Llama.cpp
+
+-   C/C++ interface for running Llama model
+-   binding is available for Python echo system
+-   Runs on most of the platforms (Windows, Linux, MacOS and Docker)
+-   Supports CPU & GPU but need to compile sources for GPU
+-   Plenty of configuration options beyond obvious temp, n_ctx, top_p, top_k etc
+-   Supports 25+ models, 4 multi models, has all major programming language bindings.
+-   [**Observations**]{style="color: maroon;"}
+    -   API based, Easy to use
+    -   No mechanism of auto model download\
+    -   A bit of slow compared to others frameworks
+
+``` python
+from llama_cpp import Llama
+
+llm = Llama(model_path="models/llama-2-7b.Q4_K_M.gguf")
+output = llm("Q: How can you greet someone in Sanskrit? A:")
+print(output)
+
+# Output: {'id': 'cmpl-e9db8788-d78f-4832-beb4-74d4f257be3b', 'object': 'text_completion', 'created': 1705823100, 'model': 'models/llama-2-7b.Q4_K_M.gguf', 'choices': [{'text': ' Namaste. surely one of the most well-known greetings from India', 'index': 0, 'logprobs': None, 'finish_reason': 'length'}], 'usage': {'prompt_tokens': 16, 'completion_tokens': 16, 'total_tokens': 32}}
+```
+
+------------------------------------------------------------------------
+
+### Ollama
+
+-   a tool to run LLMs locally
+-   Runs as a Service and exposes API to interact with models
+-   Provides CLI for managing models
+-   Runs only on Linux and MacOS. Windows support is coming soon
+-   Automatically pulls model through CLI
+-   We fine-tune and create new custom models just like docker images
+-   Need to interact with Models using REST Api served on `localhost:11434`
+-   Supports majority of models and on both CPU and GPUs
+-   Python binding available `ollama-python` along with LangChain
+
+``` bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama2",
+  "prompt":"How to greet someone in Sanskrit?",
+  "stream":false
+}'
+#{"model":"llama2","created_at":"2024-01-21T09:19:18.746918026Z","response":"\nIn Sanskrit, there are several ways to greet someone, depending on the time of day and the level of formality you want to convey. Here are some common Sanskrit greetings:\n\n1. \"Namaskāra\" (नमस्कार): This is a common greeting in Sanskrit, which can be translated to \"I bow to you.\" It is often used as a general greeting, especially during the daytime.\n2. \"Prāpta\" (प्राप्ति): This greeting is used when you want to show respect or gratitude towards someone. It can be translated to \"Blessings upon you.\"\n3. \"Dhanyavaad\" (धन्यवाद): This word means \"Thank you\" in Sanskrit, and it is often used as a greeting, especially when you want to express your gratitude towards someone.\n4. \"Jaya\" (जय): This is a more informal greeting in Sanskrit, which can be translated to \"Victory\" or \"Well done.\" It is often used among friends or peers.\n5. \"Shraddhā\" (श्रद्धा): This word means \"Devotion\" or \"Respect\" in Sanskrit, and it is often used as a greeting when you want to show your devotion or respect towards someone.\n6. \"Maitrī\" (मैत्री): This is a friendly greeting in Sanskrit, which can be translated to \"Friendship\" or \"Blessings.\" It is often used among friends or peers.\n7. \"Vidhāt\" (विधात): This word means \"Wishing you\" in Sanskrit, and it is often used as a greeting when you want to express your good wishes towards someone.\n8. \"Sukhino\" (सुखिनो): This word means \"May you be happy\" in Sanskrit, and it is often used as a greeting when you want to wish someone happiness or well-being.\n9. \"Bhāvya\" (भाव्य): This word means \"Wishing you well\" in Sanskrit, and it is often used as a greeting when you want to express your good wishes towards someone.\n10. \"Satya\" (सत्य): This word means \"Truth\" or \"Reality\" in Sanskrit, and it is often used as a greeting when you want to convey the idea of truthfulness or sincerity towards someone.\n\nRemember that Sanskrit is a rich and complex language, and there are many other words and phrases that can be used as greetings depending on the context and level of formality you want to convey.","done":true,"context":[518,25580,29962,3532,14816,29903,29958,5299,829,14816,29903,6778,13,13,5328,304,1395,300,4856,297,317,12190,768,29973,518,29914,25580,29962,13,13,797,317,12190,768,29892,727,526,3196,5837,304,1395,300,4856,29892,8679,373,278,931,310,2462,322,278,3233,310,883,2877,366,864,304,27769,29889,2266,526,777,3619,317,12190,768,1395,300,886,29901,13,13,29896,29889,376,29940,314,1278,30107,336,29908,313,30424,30485,30489,30296,30444,30269,30316,1125,910,338,263,3619,1395,15133,297,317,12190,768,29892,607,508,367,20512,304,376,29902,12580,304,366,1213,739,338,4049,1304,408,263,2498,1395,15133,29892,7148,2645,278,2462,2230,29889,13,29906,29889,376,4040,30107,28363,29908,313,30621,30296,30316,30269,30621,30296,30475,30436,1125,910,1395,15133,338,1304,746,366,864,304,1510,3390,470,20715,4279,7113,4856,29889,739,508,367,20512,304,376,29933,2222,886,2501,366,1213,13,29941,29889,376,29928,29882,1384,879,328,29908,313,31437,30424,30296,30640,30610,30269,30694,1125,910,1734,2794,376,25271,366,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,29892,7148,746,366,864,304,4653,596,20715,4279,7113,4856,29889,13,29946,29889,376,29967,9010,29908,313,30871,30640,1125,910,338,263,901,1871,284,1395,15133,297,317,12190,768,29892,607,508,367,20512,304,376,29963,919,706,29908,470,376,11284,2309,1213,739,338,4049,1304,4249,7875,470,1236,414,29889,13,29945,29889,376,29903,1092,1202,29882,30107,29908,313,31009,30296,30316,30694,30296,31437,30269,1125,910,1734,2794,376,16618,8194,29908,470,376,1666,1103,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,746,366,864,304,1510,596,2906,8194,470,3390,7113,4856,29889,13,29953,29889,376,29924,1249,29878,30150,29908,313,30485,31678,30475,30296,30316,30580,1125,910,338,263,19780,1395,15133,297,317,12190,768,29892,607,508,367,20512,304,376,27034,355,3527,29908,470,376,29933,2222,886,1213,739,338,4049,1304,4249,7875,470,1236,414,29889,13,29955,29889,376,29963,333,29882,30107,29873,29908,313,30610,30436,31437,30269,30475,1125,910,1734,2794,376,29956,14424,366,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,746,366,864,304,4653,596,1781,28688,7113,4856,29889,13,29947,29889,376,29903,2679,29882,1789,29908,313,30489,30702,31667,30436,30424,30799,1125,910,1734,2794,376,12703,366,367,9796,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,746,366,864,304,6398,4856,22722,470,1532,29899,915,292,29889,13,29929,29889,376,29933,29882,30107,29894,3761,29908,313,31380,30269,30610,30296,30640,1125,910,1734,2794,376,29956,14424,366,1532,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,746,366,864,304,4653,596,1781,28688,7113,4856,29889,13,29896,29900,29889,376,29903,271,3761,29908,313,30489,30475,30296,30640,1125,910,1734,2794,376,2308,2806,29908,470,376,1123,2877,29908,297,317,12190,768,29892,322,372,338,4049,1304,408,263,1395,15133,746,366,864,304,27769,278,2969,310,8760,1319,2264,470,4457,2265,537,7113,4856,29889,13,13,7301,1096,393,317,12190,768,338,263,8261,322,4280,4086,29892,322,727,526,1784,916,3838,322,12216,2129,393,508,367,1304,408,1395,300,886,8679,373,278,3030,322,3233,310,883,2877,366,864,304,27769,29889],"total_duration":163332861673,"load_duration":1284681,"prompt_eval_count":30,"prompt_eval_duration":5579615000,"eval_count":621,"eval_duration":157747330000}
+```
+
+------------------------------------------------------------------------
+
+### GPT4All
+
+-   from Nomic AI
+-   Provides an echo system from training of an LLM to framework to interact
+-   supports major models including their own trained models
+-   Supports Windows, Linux and Mac Platforms
+-   Provides Python framework for interacting with model
+-   Automatically download models from internet
+-   Supports both CPU and GPUs
+-   [**Observations**]{style="color: maroon;"}
+    -   Better performance than Llama.cpp and Ollama
+    -   Needs more GPU memory if we want to load model into GPU
+    -   Easy to use API
+
+``` python
+from gpt4all import GPT4All
+
+llm = GPT4All(model_name="mistral-7b-openorca.Q4_0.gguf", allow_download=False)
+output = llm.generate("Q: How can you greet someone in Sanskrit? A:")
+print(output)
+
+#To greet someone in Sanskrit, you can say "Namaste" (नमस्ते).
+```
+
+------------------------------------------------------------------------
+
+### P&C of local LLMs
+
+-   **Pros**
+    -   No Subscriptions & Rate Limitations
+    -   Privacy & Security in control. Data will not move anywhere
+    -   Quick Prototype and Evaluation
+    -   More control on turning
+-   **Cons**
+    -   Needs to know internals for turning
+    -   On our own for Deployment & Scalability in all aspects
+
+------------------------------------------------------------------------
+
+### Typical Environment used for Evaluation
+
+-   **Hardware**
+    -   GPU - Nvidia GeoForce RTX 4 GB
+    -   Intel i5 Processor, 6 core processor
+    -   32 GB RAM
+-   **Software**
+    -   Ubuntu OS
+    -   CUDA for Nvidia
+    -   Python 3.10
+
+------------------------------------------------------------------------
+
+### Models
+
+-   Llama 2 - Chat & Instructions
+    -   7B & 13B Parameters
+-   CodeLlama 13B - Code generation
+-   Mistral 7B - Chat & Instructions
+-   all-MiniLM-L6-v2-f16 - for Embedding
+-   BakLLaVA - Multi Model for image inferences
+
+------------------------------------------------------------------------
+
+### PoC-1 KnowledgeBase QA Bot (RAG)
+
+::: columns
+::: {.column width="50%"}
+```{=html}
+<style>
+td, th {
+   border: none!important;
+   font-size: 22px
+}
+
+</style>
+```
+| **Objective**    | Creating a QA Bot on local documents using Retrieval Augmented Generation using Local LLM.                             |
+|-----------------------------------------|-------------------------------|
+| **Tools**        | LangChain, Ollama, Streamlit                                                                                           |
+| **Models**       | Llama2 for chat, all-MiniLM-L6-v2-f16 for embedding                                                                    |
+| **Vectorstore**  | FAISS, Chroma                                                                                                          |
+| **Observations** | \- Chroma stores data in SQLite where FAISS persists data in pickle files                                              |
+|                  | \- Chroma has decent persist method to persist data in between the ingestion while FAISS need to only once(at the end) |
+|                  | \- FAISS results are better when copared to Chroma                                                                     |
+
+: {tbl-colwidths="\[25,75\]" .borderless}
+:::
+
+::: {.column width="50%"}
+![](./images/rag.png)
+:::
+:::
+
+------------------------------------------------------------------------
+
+### PoC-2 Code documentation Generation
+
+```{=html}
+<style>
+td, th {
+   border: none!important;
+   font-size: 22px
+}
+
+</style>
+```
+| **Objective**    | Generating JavaDoc for a Legacy undocumented Java Code                                                                                 |
+|-----------------------------------------|-------------------------------|
+| **Tools**        | LangChain, Gpt4All                                                                                                                     |
+| **Models**       | CodeLlama for code interpretation, Forge Roaster for Java Source Code parsing                                                          |
+| **Observations** | \- LLMs tries to modify the source code even though mentioned not to in the prompt                                                     |
+|                  | \- Balancing the JavaDoc documentation is tricky as part of prompt                                                                     |
+|                  | \- A Context about the project purpose, components, architecture able to help to add little more meaning to docs.                      |
+|                  | \- Few Shot Prompting technique helps to give specific instructs like not to generate JavaDoc for Entity accessor and mutator methods. |
+|                  | \- Cant just trust LLM to modify the original code.                                                                                    |
+
+: {tbl-colwidths="\[25,75\]" .borderless}
+
+## ![](./images/codegen.png){width="100%"}
+
+### PoC-3 Data Extraction from PDFs
+
+```{=html}
+<style>
+td, th {
+   border: none!important;
+   font-size: 22px
+}
+
+</style>
+```
+| **Objective**    | Extraction of Data from Documents                                                |
+|-----------------------------------------|-------------------------------|
+| **Tools**        | LangChain, OpenAI, Unstructured                                                  |
+| **Models**       | gpt-3.5                                                                          |
+| **Observations** | \- Extract data from Amazon Invoice PDF files                                    |
+|                  | \- OpenAI Functions works well in this scenario                                  |
+|                  | \- Subsequent process automation can be enabled using Langchain tools and agents |
+|                  | \- Defining JSON schema will become tricky if Document data is complex           |
+|                  |                                                                                  |
+
+: {tbl-colwidths="\[25,75\]" .borderless}
+
+::: columns
+::: {.column width="50%"}
+![](./images/invoice.png){width="50%"}
+:::
+
+::: {.column width="50%"}
+``` json
+{
+   "Billing Address":"Telkapalli Venkata Seshagiri H.No.3-10-21/A, Gokhale Nagar,, Ramanthapur Hyderabad, ANDHRA PRADESH, 500013 IN",
+   "PAN No":"AAPCA6346P",
+   "GST Registration No":"36AAPCA6346P1ZW",
+   "Order Number":"407-9397603-5919514",
+   "Invoice Number":"IN-HYD8-41962",
+   "Invoice Date":"08.04.2020",
+   "orderItems":[
+      {
+         "Sl. No":"1",
+         "Description":"Dark Fantasy Choco Fills, 300g | B01L7A0CU4 ( B01L7A0CU4 )",
+         "HSN":"1905",
+         "Unit Price":"₹83.90",
+         "Qty":"2",
+         "Net Amount":"₹167.80",
+         "Tax Rate":"9%",
+         "Tax Type":"CGST",
+         "Tax Amount":"₹15.10",
+         "Total Amount":"₹198.00"
+      },
+      {
+         "Sl. No":"2",
+         "Description":"Madhur Pure Sugar, 5kg Bag | B01GCF0XEY ( B01GCF0XEY )",
+         "HSN":"1701",
+         "Unit Price":"₹228.58",
+         "Qty":"1",
+         "Net Amount":"₹228.58",
+         "Tax Rate":"2.5%",
+         "Tax Type":"CGST",
+         "Tax Amount":"₹5.71",
+         "Total Amount":"₹240.00"
+      },
+      {
+         "Sl. No":"3",
+         "Description":"Sunfeast Dark Fantasy Choco Fills plus Coffee Fills Combo 75g(Buy 3 Get 1 Free) | B07KGG57RL ( B07KGG57RL )",
+         "HSN":"1905",
+         "Unit Price":"₹76.28",
+         "Qty":"1",
+         "Net Amount":"₹76.28",
+         "Tax Rate":"9%",
+         "Tax Type":"CGST",
+         "Tax Amount":"₹6.86",
+         "Total Amount":"₹90.00"
+      },
+      {
+         "Sl. No":"4",
+         "Description":"McVities Fruit Cookie, 120g | B01NCB1OCV ( B01NCB1OCV )",
+         "HSN":"1905",
+         "Unit Price":"₹33.90",
+         "Qty":"1",
+         "Net Amount":"₹33.90",
+         "Tax Rate":"9%",
+         "Tax Type":"CGST",
+         "Tax Amount":"₹3.05",
+         "Total Amount":"₹40.00"
+      },
+      {
+         "Sl. No":"5",
+         "Description":"Kellogg's Corn Flakes Real Almond and Honey, 1kg |B01H5LBWG2 ( B01H5LBWG2 )",
+         "HSN":"1904",
+         "Unit Price":"₹396.62",
+         "Qty":"1",
+         "Net Amount":"₹396.62",
+         "Tax Rate":"9%",
+         "Tax Type":"CGST",
+         "Tax Amount":"₹35.69",
+         "Total Amount":"₹468.00"
+      }
+   ],
+   "Amount in Words":"One Thousand And Thirty-six only"
+}
+```
+:::
+:::
+
+------------------------------------------------------------------------
+
+### Limitations
+
+-   Need more Hardware for faster response and big models
+-   Though Function calling supported in Llama model, its not as powerful as OpenAI and others
+-   Prompt Format varies between Model, need to get hold of it
+-   Need to get hold of model parameters for fine-tuning
+
+------------------------------------------------------------------------
+
+### LangChain
+
+-   Defacto for LLM orchestration
+-   Very minimal code changes for switching between LLM models
+-   Frequent updates/releases, started with 0.0.34, got new one 0.0.35 and sooner got 0.1.0
+-   Some Code examples refers old modules and classes
+-   Some Examples has issues and will not go quite well if we do on different data
+-   Most of examples are with OpenAI
+-   Most of the documentation is notebooks
+-   One need to have good Python understanding to get hold of source code and code documentation
+-   Debugging with LangSmith is not easy at beginning
+
+------------------------------------------------------------------------
+
+### Skills needed
+
+-   AI/ML background is an optional (very minimal)
+
+-   Good Python programming background is a must
+
+-   If want more adventurous life, sure LangChain NodeJS framework is a best friend
+
+-   Prompt Engineering theory is entirely different from practical scenarios
+
+-   Hence Intro. to Prompt Engineering or GenAI courses may help to understand terms but not in programming
+
+-   
+
+    ## Formulating Prompts and Prompt Engineering techniques needs patience. No sure shot syntax
+
+### Conclusion
+
+-   GenAI programming is fun but not quite easy.
+-   Talking about it is different from doing it.
+-   Showing a real value with it takes a while. (well ChatBot is not really the ones)
+-   But we need to feel it by experience aka by doing it.
+
+🙏🙏🙏
