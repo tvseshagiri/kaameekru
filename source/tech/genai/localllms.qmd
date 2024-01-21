@@ -373,9 +373,9 @@ td, th {
 
 -   Hence Intro. to Prompt Engineering or GenAI courses may help to understand terms but not in programming
 
--   
+- Formulating Prompts and Prompt Engineering techniques needs patience. No sure shot syntax
 
-    ## Formulating Prompts and Prompt Engineering techniques needs patience. No sure shot syntax
+--- 
 
 ### Conclusion
 
