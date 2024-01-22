@@ -229,7 +229,9 @@ td, th {
 
 : {tbl-colwidths="\[25,75\]" .borderless}
 
-## ![](./images/codegen.png){width="100%"}
+![](./images/codegen.png){width="100%"}
+
+---
 
 ### PoC-3 Data Extraction from PDFs
 
