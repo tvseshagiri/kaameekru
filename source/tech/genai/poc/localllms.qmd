@@ -34,7 +34,7 @@ title: "Local LLMs"
     -   Open Source (freely accessible)
     -   Commercially Usable
     -   Self-Hosted
-    -   Deployable on On Commodity Hardware (for prototyping & evaluation)
+    -   Deployable on Commodity Hardware (for prototyping & evaluation)
 
 ------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ print(output)
 -   Provides CLI for managing models
 -   Runs only on Linux and MacOS. Windows support is coming soon
 -   Automatically pulls model through CLI
--   We fine-tune and create new custom models just like docker images
+-   We can fine-tune and create new custom models just like docker images
 -   Need to interact with Models using REST Api served on `localhost:11434`
 -   Supports majority of models and on both CPU and GPUs
 -   Python binding available `ollama-python` along with LangChain
@@ -114,7 +114,7 @@ curl http://localhost:11434/api/generate -d '{
 ### GPT4All
 
 -   from Nomic AI
--   Provides an echo system from training of an LLM to framework to interact
+-   Provides an echo system from training of a LLM to framework to interact
 -   supports major models including their own trained models
 -   Supports Windows, Linux and Mac Platforms
 -   Provides Python framework for interacting with model
@@ -146,11 +146,11 @@ print(output)
     -   More control on turning
 -   **Cons**
     -   Needs to know internals for turning
-    -   On our own for Deployment & Scalability in all aspects
+    -   On our own for Deployment & Scalability aspects
 
 ------------------------------------------------------------------------
 
-### Typical Environment used for Evaluation
+### Environment used for Evaluation
 
 -   **Hardware**
     -   GPU - Nvidia GeoForce RTX 4 GB
@@ -158,7 +158,7 @@ print(output)
     -   32 GB RAM
 -   **Software**
     -   Ubuntu OS
-    -   CUDA for Nvidia
+    -   CUDA Drivers
     -   Python 3.10
 
 ------------------------------------------------------------------------
@@ -225,7 +225,7 @@ td, th {
 |                  | \- Balancing the JavaDoc documentation is tricky as part of prompt                                                                     |
 |                  | \- A Context about the project purpose, components, architecture able to help to add little more meaning to docs.                      |
 |                  | \- Few Shot Prompting technique helps to give specific instructs like not to generate JavaDoc for Entity accessor and mutator methods. |
-|                  | \- Cant just trust LLM to modify the original code.                                                                                    |
+|                  | \- Can't just trust LLM to modify the original code.                                                                                    |
 
 : {tbl-colwidths="\[25,75\]" .borderless}
 
@@ -343,7 +343,7 @@ td, th {
 ### Limitations
 
 -   Need more Hardware for faster response and big models
--   Though Function calling supported in Llama model, its not as powerful as OpenAI and others
+-   Though Function calling supported in Llama based models, its not as powerful as OpenAI and others
 -   Prompt Format varies between Model, need to get hold of it
 -   Need to get hold of model parameters for fine-tuning
 
@@ -359,7 +359,7 @@ td, th {
 -   Most of examples are with OpenAI
 -   Most of the documentation is notebooks
 -   One need to have good Python understanding to get hold of source code and code documentation
--   Debugging with LangSmith is not easy at beginning
+-   Debugging with LangSmith is not easy at beginning and waiting list for getting Access Key
 
 ------------------------------------------------------------------------
 
@@ -369,7 +369,7 @@ td, th {
 
 -   Good Python programming background is a must
 
--   If want more adventurous life, sure LangChain NodeJS framework is a best friend
+-   If want more adventurous life, sure! LangChain NodeJS framework is a best bet
 
 -   Prompt Engineering theory is entirely different from practical scenarios
 
@@ -383,7 +383,7 @@ td, th {
 
 -   GenAI programming is fun but not quite easy.
 -   Talking about it is different from doing it.
--   Showing a real value with it takes a while. (well ChatBot is not really the ones)
--   But we need to feel it by experience aka by doing it.
+-   Showing a real value with it takes a while. (well, ChatBot is not really the ones)
+-   But we need to feel it by experience, aka by doing it.
 
 🙏🙏🙏
