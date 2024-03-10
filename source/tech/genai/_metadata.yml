@@ -1,0 +1,4 @@
+format:
+  revealjs: 
+    slide-number: false
+    theme: dark
