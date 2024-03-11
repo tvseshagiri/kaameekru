@@ -6,7 +6,7 @@
 :::{}
 Generative AI
 : Known as **Gen**erative **A**rtificial **I**ntelligence, is a branch of AI that focuses on creating new content, like text, images, music, and even code.
-::: 
+:::
 
 :::{}
 - **Core functionality:** Generates novel content in various formats (text, images, audio, code) based on learned patterns.
