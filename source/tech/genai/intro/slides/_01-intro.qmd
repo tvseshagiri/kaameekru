@@ -67,13 +67,13 @@ The fundamental part of Generative AI.
 
 ### LLM Common Tasks
 
-![](assets/capabilities.png){fig-align="center"}
+![](../assets/capabilities.png){fig-align="center"}
 
 ---
 
 ### Fine Tuned Models
 
-![](assets/finetunedmodels.png){fig-align="center"}
+![](../assets/finetunedmodels.png){fig-align="center"}
 
 ---
 
@@ -141,7 +141,7 @@ The fundamental part of Generative AI.
 
 ### OpenAI Playground
 
-![](assets/openaiplayground.png)
+![](../assets/openaiplayground.png)
 
 ---
 
@@ -160,7 +160,7 @@ Token
 :::
 
 ::: {.column width="50%"}
-![](assets/tokenscount.png)
+![](../assets/tokenscount.png)
 
 [OpenAI Tokenizer](https://platform.openai.com/tokenizer)
 https://platform.openai.com/tokenizer
@@ -186,7 +186,7 @@ Prompt
 
 ::: {.column width="50%"}
 
-![](assets/prompting.png){fig-align="center" }
+![](../assets/prompting.png){fig-align="center" }
 
 :::
 
@@ -248,11 +248,11 @@ source genaivenv/bin/activate
 
 ::: {layout-ncol=2}
 
-![](assets/openailogin.png)
+![](../assets/openailogin.png)
 
-![](assets/screen3.png)
+![](../assets/screen3.png)
 
-![](assets/screen4.png)
+![](../assets/screen4.png)
 
 ```{.sh}
 
