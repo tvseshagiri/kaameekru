@@ -63,7 +63,7 @@ The fundamental part of Generative AI.
   - learns from the vast amount of data to identify patterns and relationships within language.
 
 ---
-
+ 
 
 ### LLM Common Tasks
 
