@@ -1,0 +1,166 @@
+{
+  "maven/slides/07-multimodule.qmd": {
+    "07-multimodule.html": "48377f76"
+  },
+  "maven/slides/05-profiles.qmd": {
+    "05-profiles.html": "39bb7313"
+  },
+  "maven/slides/pom.qmd": {
+    "pom.html": "031aa069"
+  },
+  "maven/slides/02-mvnbasics.qmd": {
+    "02-mvnbasics.html": "b8554ad1"
+  },
+  "maven/slides/simplewebapp.qmd": {
+    "simplewebapp.html": "772d1ac6"
+  },
+  "maven/slides/04-plugins.qmd": {
+    "04-plugins.html": "cf166a7e"
+  },
+  "maven/slides/09-bestp.qmd": {
+    "09-bestp.html": "96bffad6"
+  },
+  "maven/slides/03-dependencies.qmd": {
+    "03-dependencies.html": "6b9825d1"
+  },
+  "maven/slides/01-whatismaven.qmd": {
+    "01-whatismaven.html": "82a0168c"
+  },
+  "indtrend/trends.qmd": {
+    "trends.html": "378cb567"
+  },
+  "maven/maven.qmd": {
+    "maven.html": "abfc9592"
+  },
+  "courses/spring.md": {
+    "spring.tex": "485d922e"
+  },
+  "courses/javawebapp.md": {
+    "javawebapp.tex": "ba195c98"
+  },
+  "courses/reactjs.md": {
+    "reactjs.tex": "69ee1094"
+  },
+  "courses/maven.md": {
+    "maven.tex": "4ce9a7e4"
+  },
+  "source/courses/spring.md": {
+    "spring.tex": "981ce08e",
+    "spring.html": "041b6eda",
+    "html": "722fe2c0"
+  },
+  "source/courses/javawebapp.md": {
+    "javawebapp.tex": "8f1ee4cc",
+    "javawebapp.html": "d6bd38c5",
+    "html": "0d41140d"
+  },
+  "source/courses/reactjs.md": {
+    "reactjs.tex": "63c10a6b",
+    "reactjs.html": "1cf2f08e",
+    "html": "00cde52d"
+  },
+  "source/courses/maven.md": {
+    "maven.tex": "660c45ba",
+    "maven.html": "9c7cf6a1",
+    "html": "a33ec6ee"
+  },
+  "source/maven/maven.qmd": {
+    "maven.html": "0df86406",
+    "maven.pptx": "75e49f9e"
+  },
+  "source/indtrend/trends.qmd": {
+    "trends.html": "cba8e7f2"
+  },
+  "source/devops/slides/index.md": {
+    "index.html": "9fb3107d"
+  },
+  "source/tech/tech.md": {
+    "tech.html": "40f340ef",
+    "index.html": "bed863ea"
+  },
+  "source/tech/devops/slides/devops.md": {
+    "devops.html": "4c391811"
+  },
+  "source/tech/maven/maven.qmd": {
+    "maven.html": "64c574c9"
+  },
+  "source/index.md": {
+    "index.html": "8db9ed03"
+  },
+  "source/index.qmd": {
+    "index.html": "7d04912e"
+  },
+  "source/tech/es6/slides/arrowfunc/index.md": {
+    "index.html": "bffd8d7c"
+  },
+  "source/tech/es6/slides/arrowfunc/index.qmd": {
+    "index.html": "b2a0900d"
+  },
+  "source/tech/es6/es6.qmd": {
+    "es6.html": "286f8621"
+  },
+  "source/indtrend/trends.md": {
+    "trends.html": "e68a0ea5"
+  },
+  "source/tech/reactjs/slides/01-introtoreactjs.qmd": {
+    "01-introtoreactjs.html": "4a4fd6d2",
+    "html": "d4bb7da0",
+    "revealjs": "6ad05030"
+  },
+  "source/tech/reactjs/slides/02-fundamentals.md": {
+    "02-fundamentals.html": "a5b23373"
+  },
+  "source/tech/reactjs/slides/03-styling.md": {
+    "03-styling.html": "453c901a"
+  },
+  "source/tech/reactjs/slides/04-redux.md": {
+    "04-redux.html": "fa0a8ed2"
+  },
+  "source/tech/reactjs/slides/05-routing.md": {
+    "05-routing.html": "6e4336c5"
+  },
+  "source/tech/reactjs/slides/07-testing.md": {
+    "07-testing.html": "a3632ebf"
+  },
+  "source/tech/reactjs/slides/components.md": {
+    "components.html": "22cfae63"
+  },
+  "source/tech/reactjs/slides/create_react_app.md": {
+    "create_react_app.html": "fe450500"
+  },
+  "source/tech/reactjs/slides/propsnstate.md": {
+    "propsnstate.html": "22469381"
+  },
+  "source/tech/reactjs/slides/propsnstate.qmd": {
+    "propsnstate.html": "19111841"
+  },
+  "source/tech/reactjs/react.qmd": {
+    "react.html": "8c307bf0"
+  },
+  "source/tech/genai/localllms.qmd": {
+    "localllms.html": "290fe334"
+  },
+  "source/tech/genai/index.md": {
+    "index.html": "eb61d2eb"
+  },
+  "source/tech/genai/intro/tp.qmd": {
+    "tp.html": "8dab4e8f"
+  },
+  "source/tech/genai/training.md": {
+    "training.html": "92578453"
+  },
+  "source/tech/genai/intro/index.qmd": {
+    "index.html": "2979db94"
+  },
+  "source/tech/genai/poc/localllms.qmd": {
+    "localllms.html": "c18ea04a"
+  },
+  "source/tech/genai/training.qmd": {
+    "training.html": "cb78d5f5",
+    "html": "dadedb93",
+    "pdf": "6c890cd3"
+  },
+  "source/tech/genai/intro/slides/01-intro.qmd": {
+    "01-intro.html": "d3c57c0a"
+  }
+}
