@@ -429,3 +429,17 @@ response = openai.images.generate(prompt=prompt, model=model)
 print(response)
 
 ```
+
+---
+
+### Google Gemini Model
+
+Create API Key using AI Studio https://aistudio.google.com/
+
+::: {layout-ncol=2}
+
+![](images/genaistudio.png)
+
+![](images/genaistudio-2.png)
+
+:::
