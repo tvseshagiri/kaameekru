@@ -75,7 +75,7 @@ The fundamental part of Generative AI.
 
 ![](../images/finetunedmodels.png){fig-align="center"}
 
----
+--- 
 
 ### Commercial LLMs & Providers - OpenAI 
 
