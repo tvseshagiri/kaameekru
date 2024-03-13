@@ -2,4 +2,4 @@
 title: "Introduction to Generative AI"
 ---
 
-{{< include slides/_01-intro.md >}}
+{{< include slides/_01-intro.qmd >}}
