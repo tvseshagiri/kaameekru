@@ -1,0 +1,118 @@
+
+# Prompt Engineering
+
+---
+
+### Definition
+
+
+**Google Definition:**
+: Prompt engineering is the art of asking the right question to get the best output from an LLM.
+
+---
+
+### Why Prompting is Engineering?
+
+- *Strategic Crafting:* Crafting effective prompts requires understanding how different inputs influence the model's outputs, requires strategic approach to elicit desired responses.
+
+- *Optimization for Specific Tasks:* Prompts must often be optimized for specific tasks or outcomes, such as generating code, writing in a particular style, or providing precise answers to questions.
+
+- *Iterative Testing and Refinement:* Finding the most effective prompt often involves iterative testing and refinement.
+
+- *Adaptation to Model Variations:* Different LLMs or even different versions of the same model may respond differently to the same prompt, requiring adjustments and customizations.
+
+- *Balancing Brevity and Specificity:* Effective prompts balance being concise enough for practical use while providing sufficient specificity to guide the model's output accurately.
+- *Leveraging Known Patterns:* Experienced prompt engineers leverage known patterns and tricks that have been found to improve model responses, such as using certain phrasings or including specific instructions within the prompt.
+- *Understanding of Model Capabilities and Limitations:* Prompt engineers need a deep understanding of what the model can and cannot do, which guides how they frame prompts to avoid common pitfalls or misunderstandings.
+
+---
+
+### Elements of Prompt
+
+- A prompt contains any of the following elements:
+
+  - **Instruction**: a specific task or instruction you want the model to perform
+  - **Context**: external information or additional context that can steer the model to better responses
+  - **Input Data**: the input or question that we are interested to find a response for
+  - **Output Indicator**: the type or format of the output.
+
+::: {.callout-tip title="Example Prompt" icon="false" }
+
+::: {layout-ncol=2}
+
+|
+| Classify the text into neutral, negative, or positive 
+| Text: I think the food was okay.
+| Sentiment:
+|
+
+|
+| **Instruction:**    Classify the text into neutral, negative, or positive
+| **Input:**          I think the food was okay.
+| **Context:** 
+| **Output:**         Sentiment:
+
+:::
+
+:::
+
+---
+
+### Simple Tips for Better Prompting
+
+(@) The more detailed, the better output
+
+::: {.callout}
+::: {layout-ncol=2}
+
+| [*Poor*]{style="color:brown;"}
+| Write code to calculate the Fibonacci sequence
+
+| [*Better*]{style="color:green;"}
+| Write a Python function to efficiently calculate the Fibonacci sequence. Comment the code to explain why it's written that way.
+:::
+
+:::
+
+(@) Explicitly mention the persona to adopt by the model
+
+::: {.callout}
+::: {layout-row=2}
+
+| [*Poor*]{style="color:brown;"}
+| User Message: Suggest medicine to mild seasonal allergies
+
+| [*Better*]{style="color:green;"}
+| System Prompt: "You are a knowledgeable Medical Assistant. Provide advice on managing health concerns, emphasizing natural remedies and lifestyle changes where applicable. Ensure all suggestions are safe and generally recognized as effective by medical professionals. Remind users to consult a healthcare provider for personalized advice." 
+| 
+| User Message: "I've been struggling with mild seasonal allergies and I really prefer not to use over-the-counter medications. Are there any natural remedies or lifestyle adjustments I can try to alleviate my symptoms?"
+:::
+:::
+
+---
+
+### Contd.
+
+(@) Use delimiters to clearly indicate different parts of the input
+
+::: {.callout}
+Summarize the text delimited by triple quotes.
+
+"""A very lengthy text to summarize"""
+:::
+   
+(@) Clearly mention the desired output
+
+::: {.callout}
+Summarize the text delimited by triple quotes in `5 bullet points`.
+
+"""A very lengthy text to summarize"""
+:::
+
+(@) Add context information
+
+::: {.callout}
+Context: A car manufacturer is planning to introduce a new electric vehicle (EV) model targeted at young professionals who are environmentally conscious and prefer tech-savvy vehicles. The car is designed with advanced features such as autonomous driving capabilities, integrated smart home connectivity, and an AI assistant for vehicle diagnostics and personalized driving experiences. The company aims to position this model as a premium yet affordable option in the EV market.
+Task: Write a press release announcing the launch of the new electric vehicle, highlighting its unique features, target audience, and how it sets a new standard in the eco-friendly automotive industry?
+
+:::

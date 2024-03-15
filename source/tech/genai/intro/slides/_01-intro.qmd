@@ -1,45 +1,45 @@
-
 ---
 
 ### Welcome to Generative AI
 
-:::{}
-Generative AI
-: Known as **Gen**erative **A**rtificial **I**ntelligence, is a branch of AI that focuses on creating new content, like text, images, music, and even code.
-:::
+<div>
 
-:::{}
-- **Core functionality:** Generates novel content in various formats (text, images, audio, code) based on learned patterns.
-- **Underlying technology:** Employs machine learning models, often **Large Language Models (LLMs)** trained on vast amounts of data.
-- **Training process:** Typically involves supervised learning, where the model is exposed to paired examples of input data and desired output, enabling it to learn the mapping between them.
-- **Applications:** Diverse applications across various domains, including creative content generation, product design, drug discovery, and data augmentation.
-:::
+Generative AI
+
+:   Known as **Gen**erative **A**rtificial **I**ntelligence, is a branch of AI that focuses on creating new content, like text, images, music, and even code.
+
+</div>
+
+<div>
+
+-   **Core functionality:** Generates novel content in various formats (text, images, audio, code) based on learned patterns.
+-   **Underlying technology:** Employs machine learning models, often **Large Language Models (LLMs)** trained on vast amounts of data.
+-   **Training process:** Typically involves supervised learning, where the model is exposed to paired examples of input data and desired output, enabling it to learn the mapping between them.
+-   **Applications:** Diverse applications across various domains, including creative content generation, product design, drug discovery, and data augmentation.
+
+</div>
 
 ---
 
 ### GenAI Modeling Types
 
-:::: {.columns}
-
+::: columns
 ::: {.column width="50%"}
 ![](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/VAE_Basic.png/425px-VAE_Basic.png)
-
-
 
 ![](https://developers.google.com/static/machine-learning/gan/images/gan_diagram.svg)
 :::
 
 ::: {.column width="50%"}
-- **Variational Autoencoders (VAEs):** Encode data into a latent space and then decode it to generate new samples that maintain the original data's statistical properties.
+-   **Variational Autoencoders (VAEs):** Encode data into a latent space and then decode it to generate new samples that maintain the original data's statistical properties.
 
 ---
 
-- **Generative Adversarial Networks (GANs):** 
-    - a generator that creates new data and 
-    - a discriminator that tries to distinguish real data from generated data. 
+-   **Generative Adversarial Networks (GANs):**
+    -   a generator that creates new data and
+    -   a discriminator that tries to distinguish real data from generated data.
 :::
-
-::::
+:::
 
 ---
 
@@ -47,23 +47,20 @@ Generative AI
 
 The fundamental part of Generative AI.
 
-- ***Large:***
-  - large refers to the massive amount of training data. 
-  - size can range from hundreds of gigabytes to terabytes.
-  - Model weights size also too high
-  - Infrastructure for Training too. 
-
-- ***Language:***
-  - model's ability to understand and process human language. 
-  - aspects like grammar, syntax, semantics, and pragmatics. 
-  -  adept at recognizing patterns and relationships within language.
-
-- ***Model:*** 
-  - kind of neural network architecture called a transformer. 
-  - learns from the vast amount of data to identify patterns and relationships within language.
+-   ***Large:***
+    -   large refers to the massive amount of training data.
+    -   size can range from hundreds of gigabytes to terabytes.
+    -   Model weights size also too high
+    -   Infrastructure for Training too.
+-   ***Language:***
+    -   model's ability to understand and process human language.
+    -   aspects like grammar, syntax, semantics, and pragmatics.
+    -   adept at recognizing patterns and relationships within language.
+-   ***Model:***
+    -   kind of neural network architecture called a transformer.
+    -   learns from the vast amount of data to identify patterns and relationships within language.
 
 ---
- 
 
 ### LLM Common Tasks
 
@@ -75,34 +72,35 @@ The fundamental part of Generative AI.
 
 ![](images/finetunedmodels.png){fig-align="center"}
 
---- 
+---
 
-### Commercial LLMs & Providers - OpenAI 
+### Commercial LLMs & Providers - OpenAI
 
+| MODEL                 | DESCRIPTION                                                                                             |
+|-------------------------------------------|-----------------------------|
+| GPT-4 and GPT-4 Turbo | A set of models that improve on GPT-3.5 and can understand as well as generate natural language or code |
+| GPT-3.5 Turbo         | A set of models that improve on GPT-3.5 and can understand as well as generate natural language or code |
+| DALL·E                | A model that can generate and edit images given a natural language prompt                               |
+| TTS                   | A set of models that can convert text into natural sounding spoken audio                                |
+| Whisper               | A model that can convert audio into text                                                                |
+| Embeddings            | A set of models that can convert text into a numerical form                                             |
+| Moderation            | A fine-tuned model that can detect whether text may be sensitive or unsafe                              |
 
-| MODEL | 	DESCRIPTION |
-| ---|--|
-| GPT-4 and GPT-4 Turbo	| A set of models that improve on GPT-3.5 and can understand as well as generate natural language or code |
-| GPT-3.5 Turbo |	A set of models that improve on GPT-3.5 and can understand as well as generate natural language or code |
-|DALL·E	| A model that can generate and edit images given a natural language prompt |
-|TTS |	A set of models that can convert text into natural sounding spoken audio |
-|Whisper |	A model that can convert audio into text |
-|Embeddings |	A set of models that can convert text into a numerical form |
-|Moderation	| A fine-tuned model that can detect whether text may be sensitive or unsafe |
-: {tbl-colwidths="[25,75]"}
+: {tbl-colwidths="\[25,75\]"}
 
 ---
 
 ### Commercial LLMs & Providers - Google
 
-| MODEL | 	DESCRIPTION |
-| ---|--|
-| Gemini 1.0 Pro | Designed to handle natural language tasks, multiturn text and code chat, and code generation.|
-| Gemini 1.0 Pro Vision |Multimodal model that supports adding image and video in text or chat prompts for a text or code response. |
-| Gemini 1.0 Ultra| Google's most capable multimodal model, optimized for complex tasks including instruction, code, and reasoning, with support for multiple languages. |
-| Gemini 1.0 Ultra Vision | Google's most capable multimodal vision model, optimized to support text, images, videos, and multi-turn chat. |
-| Gemini 1.5 Pro | Google's mid-size multimodal model, optimized for scaling across a wide-range of tasks. Gemini 1.5 Pro supports long-context understanding with up to 1 million tokens. |
-: {tbl-colwidths="[25,75]"}
+| MODEL                   | DESCRIPTION                                                                                                                                                             |
+|-------------------------------------------|-----------------------------|
+| Gemini 1.0 Pro          | Designed to handle natural language tasks, multiturn text and code chat, and code generation.                                                                           |
+| Gemini 1.0 Pro Vision   | Multimodal model that supports adding image and video in text or chat prompts for a text or code response.                                                              |
+| Gemini 1.0 Ultra        | Google's most capable multimodal model, optimized for complex tasks including instruction, code, and reasoning, with support for multiple languages.                    |
+| Gemini 1.0 Ultra Vision | Google's most capable multimodal vision model, optimized to support text, images, videos, and multi-turn chat.                                                          |
+| Gemini 1.5 Pro          | Google's mid-size multimodal model, optimized for scaling across a wide-range of tasks. Gemini 1.5 Pro supports long-context understanding with up to 1 million tokens. |
+
+: {tbl-colwidths="\[25,75\]"}
 
 ---
 
@@ -152,7 +150,7 @@ The fundamental part of Generative AI.
 ::: {.column width="50%"}
 Token
 :  the basic units of data that Large Language Models (LLMs) process.
-: - both input and output data 
+: - both input and output data
 : - Tokenization vary depending on model tokenizer
 : - Every model has limit on max tokens
 : - LLM Providers charge per token and varies by model
@@ -182,45 +180,29 @@ Prompt
 - Prompting is an engineering discipline 
   - as it involves systematic, skillful manipulation of input text to guide LLM to produce desired outputs
 
+:   -   are foundational to interacting with LLMs
+    -   it can contain instructs, context and examples
+    -   Prompting is an engineering discipline
+        -   as it involves systematic, skillful manipulation of input text to guide LLM to produce desired outputs
 :::
 
 ::: {.column width="50%"}
-
-![](images/prompting.png){fig-align="center" }
-
+![](images/prompting.png){fig-align="center"}
+:::
 :::
 
-::::
-
----
-
-### Why Prompting is Engineering?
-
-- *Strategic Crafting:* Crafting effective prompts requires understanding how different inputs influence the model's outputs, requires strategic approach to elicit desired responses.
-
-- *Optimization for Specific Tasks:* Prompts must often be optimized for specific tasks or outcomes, such as generating code, writing in a particular style, or providing precise answers to questions.
-
-- *Iterative Testing and Refinement:* Finding the most effective prompt often involves iterative testing and refinement.
-
-- *Adaptation to Model Variations:* Different LLMs or even different versions of the same model may respond differently to the same prompt, requiring adjustments and customizations.
-
-- *Balancing Brevity and Specificity:* Effective prompts balance being concise enough for practical use while providing sufficient specificity to guide the model's output accurately.
-- *Leveraging Known Patterns:* Experienced prompt engineers leverage known patterns and tricks that have been found to improve model responses, such as using certain phrasings or including specific instructions within the prompt.
-- *Understanding of Model Capabilities and Limitations:* Prompt engineers need a deep understanding of what the model can and cannot do, which guides how they frame prompts to avoid common pitfalls or misunderstandings.
-
-
----
+------------------------------------------------------------------------
 
 ### Environment Setup
 
 #### Software
 
-* VSCode
-* Python 3.1x
+-   VSCode
+-   Python 3.1x
 
 Create Virtual Environment
 
-```{.sh }
+``` sh
 python -m venv genaivenv
 
 #Linux output:
@@ -234,7 +216,8 @@ python -m venv genaivenv
 ```
 
 Activate Virtual Environment
-```{.sh }
+
+``` sh
 #windows 
 genaivenv\Scripts\activate.bat
 
@@ -242,19 +225,18 @@ genaivenv\Scripts\activate.bat
 source genaivenv/bin/activate
 ```
 
----
+------------------------------------------------------------------------
 
 ### Create & export OpenAI API Key
 
-::: {layout-ncol=2}
-
+::: {layout-ncol="2"}
 ![](images/openailogin.png)
 
 ![](images/screen3.png)
 
 ![](images/screen4.png)
 
-```{.sh}
+``` sh
 
 #Export OpenAI Key in command prompt
 
@@ -262,12 +244,11 @@ export OPENAI_API_KEY=
 ```
 :::
 
----
+------------------------------------------------------------------------
 
 ### Hello World! with OpenAI REST API
 
-
-```{.sh code-line-numbers="|5|9"}
+``` {.sh code-line-numbers="|5|9"}
 curl https://api.openai.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -305,27 +286,26 @@ curl https://api.openai.com/v1/chat/completions \
   },
   "system_fingerprint": "fp_4f0b692a78"
 }
-
 ```
----
+
+------------------------------------------------------------------------
 
 ### Using Python SDK
 
 Install OpenAI Python SDK
 
-```{.sh}
+``` sh
 
 # Activate your Virtual Environment before install
 
 pip install openai
-
 ```
 
----
+------------------------------------------------------------------------
 
 ### Text & Code Generation
 
-```{.python}
+``` python
 from openai import OpenAI
 
 
@@ -362,14 +342,13 @@ for chunk in stream:
 
     print(chunk.choices[0].delta.content, end="")
 print()
-
 ```
 
----
+------------------------------------------------------------------------
 
-### OpenAI Speech Model 
+### OpenAI Speech Model
 
-```{.sh}
+``` sh
 curl https://api.openai.com/v1/audio/speech \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H "Content-Type: application/json" \
@@ -383,7 +362,7 @@ curl https://api.openai.com/v1/audio/speech \
 
 Python Code
 
-```{.python}
+``` python
 from pathlib import Path
 import openai
 
@@ -394,13 +373,13 @@ with openai.audio.speech.with_streaming_response.create(
         input="Welcome to Generative AI World!, Seshagiri",
    ) as response:
         response.stream_to_file(speech_file_path)
-
 ```
---- 
+
+------------------------------------------------------------------------
 
 ### OpenAI Image Model
 
-```{.sh}
+``` sh
 curl https://api.openai.com/v1/images/generations \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -414,7 +393,7 @@ curl https://api.openai.com/v1/images/generations \
 
 Python Code
 
-```{.python}
+``` python
 from openai import OpenAI
 
 openai = OpenAI()
@@ -427,19 +406,89 @@ response = openai.images.generate(prompt=prompt, model=model)
 
 # Prints response containing a URL link to image
 print(response)
-
 ```
 
----
+------------------------------------------------------------------------
 
 ### Google Gemini Model
 
 Create API Key using AI Studio https://aistudio.google.com/
 
-::: {layout-ncol=2}
-
+::: {layout="[[1,1], [1]]"}
 ![](images/genaistudio.png)
 
 ![](images/genaistudio-2.png)
 
+``` sh
+# Install Google GenAI Python dependency 
+pip install google-generativeai
+
+# Export Google GenAI API Key
+
+# Linux
+export GOOGLE_API_KEY='API KEY'
+#Windows
+set GOOGLE_API_KEY='API KEY'
+```
 :::
+
+------------------------------------------------------------------------
+
+#### Python Code
+
+``` python
+
+import google.generativeai as genai
+
+model = genai.GenerativeModel('gemini-pro')
+
+prompt =  "How to greet a person in Sanskrit?",
+
+response = model.generate_content(prompt)
+
+print(response.text)
+```
+
+------------------------------------------------------------------------
+
+### Anthropic Claude API
+
+Step 1: Create Claude API
+
+Step 2: Use Anthropic Python SDK
+
+::: {.fragment}
+WAIT....
+
+We are already used OpenAI SDK, Google SDK, now another ... come on
+:::
+
+::: {.fragment}
+Not to worry, we have a saviour "One Framework for all (well most of all) LLMs"
+:::
+
+::: {.fragment}
+LangChain 🦜🔗  - We will learn about it shortly!
+:::
+
+---
+
+### Key Model Attributes
+
+Model Size
+
+:   typically refers to number of parameters the model contains. Example Billion(B) Parameters
+
+Context Window
+
+:   the number of tokens the model can process as input when generating responses.
+
+Max Tokens
+
+:   Maximum tokens allowed by the model (both Input + Output).
+
+Prompt Template
+
+:   Every Vendor model has its prompt template.
+
+---
