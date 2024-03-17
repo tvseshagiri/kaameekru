@@ -1,5 +1,5 @@
 
-# Prompt Engineering
+# Prompt Engineering {#pmpteng}
 
 ---
 
@@ -116,3 +116,107 @@ Context: A car manufacturer is planning to introduce a new electric vehicle (EV)
 Task: Write a press release announcing the launch of the new electric vehicle, highlighting its unique features, target audience, and how it sets a new standard in the eco-friendly automotive industry?
 
 :::
+
+---
+
+### Prompt Techniques 
+
+- #### Zero-shot Prompting
+  - With single prompt instruction, getting the desired output
+  - Also knows as Direct Prompting
+  - Simplest prompt type 
+
+::: {.callout}
+| **Example**
+|     Classify the text into neutral, negative, or positive
+|     Text: I think the food was okay.
+|     Sentiment:
+:::
+
+---
+
+### Few-shot Prompting
+
+- #### Few-shot Prompting
+  - Also knows as Multi-Shot prompting
+  - Need to provide one or more examples of what need to be done 
+  - it enable in-context learning from the provided examples
+
+::: {.callout}
+| **Sentiment Analysis Example**
+|   Crystal clear display, perfect for movies. // Positive
+|    Battery life not as advertised. Disappointed. // Negative
+|    Easy setup, great sound quality. Would recommend! // Positive
+|    Confusing instructions, took forever to install. // Negative
+|    Lightweight and sleek design. Love it! // Positive
+|    It doesn't work! // 
+:::
+
+--- 
+
+### Chain of Thoughts (CoT)
+
+- #### Chain of Thoughts
+  - enables complex reasoning capabilities through intermediate reasoning steps.
+  - Combing with Few-Shot prompting gives better results
+
+::: {.callout}
+| **Example**
+|   The odd numbers in this group add up to an even number: 4, 8, 9, 15, 12, 2, 1.
+|   A: Adding all the odd numbers (9, 15, 1) gives 25. The answer is False.
+|   The odd numbers in this group add up to an even number: 15, 32, 5, 13, 82, 7, 1.
+|   A:
+:::
+
+--- 
+
+### Other Techniques
+
+- Prompt Chaining
+- Tree of Thoughts
+- Retrieval Augmented Generation (RAG)
+- ReAct Prompting
+- Multimodal CoT Prompting
+- Graph Prompting
+
+---
+
+### Model Parameters
+
+Key parameters influence the LLM output
+
+**Temparature**
+: controls the degree of randomness in the token selection
+
+- Value ranges from 0 to 1
+- 0 means the  highest probability tokens are selected
+- 1 means the opposite
+- Select low value for more fact based scenarios
+- Select highest value for more creative content
+
+**top_p**
+: influence how the tokens are selected
+
+- Tokens are selected from the most to least probable until the sum of their probabilities equals the top_p value
+- value is range from 0 to 2
+- for exact and factual outputs, low value is better
+
+---
+
+### Model Parameters contd.
+
+**top_k**
+: number of probable next words, to create a pool of words to choose from
+
+<br/>
+
+**stop sequence**
+: sequence of characters to tell the model to stop generating content.
+
+- on first encounter of these words model will stop generating the output.
+
+<br/>
+
+**max_tokens**
+: specify the maximum number of tokens that can be generated in the response
+
