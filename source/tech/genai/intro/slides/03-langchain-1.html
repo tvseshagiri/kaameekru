@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<script src="../../../../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../../../../site_libs/quarto-html/tabby.min.js"></script>
-<script src="../../../../site_libs/quarto-html/popper.min.js"></script>
-<script src="../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
-<link href="../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../../../site_libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="../../../../site_libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
-<link href="../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+<script src="../../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tabby.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<link href="../../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.4.552">
 
-  <title>devops</title>
+  <title>langchain-1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
-  <link rel="stylesheet" href="../../../../site_libs/revealjs/dist/reset.css">
-  <link rel="stylesheet" href="../../../../site_libs/revealjs/dist/reveal.css">
+  <link rel="stylesheet" href="../../../../../site_libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="../../../../../site_libs/revealjs/dist/reveal.css">
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
@@ -29,12 +29,12 @@
       vertical-align: middle;
     }
   </style>
-  <link rel="stylesheet" href="../../../../site_libs/revealjs/dist/theme/quarto.css">
-  <link rel="stylesheet" href="../../../custom/css/revealjs.css">
-  <link href="../../../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
-  <link href="../../../../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
-  <link href="../../../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
-  <link href="../../../../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../../../../site_libs/revealjs/dist/theme/quarto.css">
+  <link rel="stylesheet" href="../../../../custom/css/revealjs.css">
+  <link href="../../../../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="../../../../../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="../../../../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="../../../../../site_libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
   <style type="text/css">
 
   .callout {
@@ -326,272 +326,47 @@
     <div class="slides">
 
 
-<section class="slide level2">
+<section>
+<section id="langchain-1" class="title-slide slide level1 center">
+<h1>Introduction to LangChain</h1>
 
-<h3 id="devops-loop">DevOps Loop</h3>
-<div class="columns">
-<div class="column" style="width:35%;">
-<p><img data-src="../assets/devopsloop.jpg" style="width:100.0%"></p>
-</div><div class="column" style="width:65%;">
-<table>
-<colgroup>
-<col style="width: 5%">
-<col style="width: 95%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Stage</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Plan</strong></td>
-<td>Define project scope, objectives, and requirements. Collaborate on project planning.</td>
-</tr>
-<tr class="even">
-<td><strong>Code</strong></td>
-<td>Develop and commit code changes to version control. Emphasize code quality and collaboration.</td>
-</tr>
-<tr class="odd">
-<td><strong>Build</strong></td>
-<td>Automate code compilation, artifact creation, and packaging.</td>
-</tr>
-<tr class="even">
-<td><strong>Test</strong></td>
-<td>Execute automated tests, including unit, integration, and end-to-end tests.</td>
-</tr>
-<tr class="odd">
-<td><strong>Release</strong></td>
-<td>Deploy applications to staging environments for testing and validation.</td>
-</tr>
-<tr class="even">
-<td><strong>Deploy</strong></td>
-<td>Deploy applications to production environments. May include manual approval gates.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
 </section>
 <section class="slide level2">
 
-<h3 id="cont.">Cont.</h3>
-<div class="columns">
-<div class="column" style="width:35%;">
-<p><img data-src="https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/devopsloop.jpg"></p>
-</div><div class="column" style="width:65%;">
-<table>
-<colgroup>
-<col style="width: 11%">
-<col style="width: 88%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Stage</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Operate</strong></td>
-<td>Manage and monitor the production environment. Utilize monitoring and alerting tools.</td>
-</tr>
-<tr class="even">
-<td><strong>Monitor</strong></td>
-<td>Continuously monitor application and infrastructure performance. Collect metrics and logs.</td>
-</tr>
-<tr class="odd">
-<td><strong>Feedback</strong></td>
-<td>Analyze data, post-incident reviews, and gather feedback to identify areas for improvement.</td>
-</tr>
-<tr class="even">
-<td><strong>Iterate</strong></td>
-<td>Continuously improve processes and applications based on feedback and insights.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<section class="slide level2">
-
-<h3 id="source-code-management">Source Code Management</h3>
-<div class="columns">
-<div class="column" style="width:50%;">
+<h4 class="center" id="langchain">LangChain 🦜🔗 &nbsp;</h4>
+<p>&nbsp;<br>
+</p>
+<p>A framework for developing<br>
+</p>
 <ul>
-<li>Key DevOps Component
-<ul>
-<li>Central to Collaborative Development</li>
-<li>Supports Agile Practices</li>
-</ul></li>
-<li>Tracks Code Changes
-<ul>
-<li>Maintains a Version History</li>
-<li>Ensures Accountability</li>
-</ul></li>
-<li>Enables Collaboration
-<ul>
-<li>Multiple Developers Work Simultaneously</li>
-<li>Facilitates Conflict Resolution</li>
-</ul></li>
+<li>Context Aware</li>
+<li>Reasoning</li>
 </ul>
-</div><div class="column" style="width:50%;">
-<ul>
-<li>Ensures Version Control
-<ul>
-<li>Efficient Branching and Merging</li>
-<li>Reproducibility of Codebase</li>
-</ul></li>
-<li>Integrates with Git &amp; Platforms
-<ul>
-<li>Git: Distributed Version Control</li>
-<li>Platforms like GitHub and GitLab</li>
-</ul></li>
-<li>Improves Code Quality
-<ul>
-<li>Code Reviews and Collaboration</li>
-<li>Enhanced Code Traceability</li>
-</ul></li>
-</ul>
-</div>
-</div>
-</section>
-<section class="slide level2">
-
-<h3 id="build-management">Build Management</h3>
-<ul>
-<li>Automates Build Processes
-<ul>
-<li>Eliminates Manual Build Tasks</li>
-<li>Ensures Consistency and Reproducibility</li>
-</ul></li>
-<li>Facilitates Continuous Integration
-<ul>
-<li>Integrates Code Changes Regularly</li>
-<li>Runs Automated Tests</li>
-</ul></li>
-<li>Generates Deployable Artifacts
-<ul>
-<li>Builds Software Packages</li>
-<li>Prepares Applications for Deployment</li>
-</ul></li>
-<li>Enhances Code Quality
-<ul>
-<li>Detects and Reports Issues Early</li>
-<li>Supports Efficient Collaboration</li>
-</ul></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="artifact-management-in-devops">Artifact Management in DevOps</h3>
-<ul>
-<li>Efficiently Manage Artifacts
-<ul>
-<li>Store and Retrieve Dependencies</li>
-<li>Version and Track Artifacts</li>
-</ul></li>
-<li>Enhances Reproducibility
-<ul>
-<li>Consistent Deployments</li>
-<li>Rollbacks and Debugging</li>
-</ul></li>
-<li>Facilitates Continuous Integration
-<ul>
-<li>Automate Dependency Resolution</li>
-<li>Improve Build Speed</li>
-</ul></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="code-quality-in-devops">Code Quality in DevOps</h3>
-<ul>
-<li><strong>Key Pillar of DevOps</strong>
-<ul>
-<li>Ensures Reliable Software</li>
-<li>Reduces Technical Debt</li>
-</ul></li>
-<li><strong>Static Code Analysis</strong>
-<ul>
-<li>Automated Code Checks</li>
-<li>Identifies Issues Early</li>
-</ul></li>
-<li><strong>Automated Testing</strong>
-<ul>
-<li>Unit, Integration, E2E Testing</li>
-<li>Validates Code Functionality</li>
-</ul></li>
-<li><strong>Code Reviews</strong>
-<ul>
-<li>Collaborative Peer Reviews</li>
-<li>Enhance Code Quality</li>
-</ul></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="devops-java-toolchain">DevOps Java Toolchain</h3>
-
-<img data-src="https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/devopstoolchain.png" style="width:150.0%" class="r-stretch"></section>
-<section class="slide level2">
-
-<h3 id="devops-implementation-pattern">DevOps Implementation Pattern</h3>
-
-<img data-src="https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/cicd.png" class="r-stretch"></section>
-<section class="slide level2">
-
-<h3 id="devops-pipeline">DevOps Pipeline</h3>
-
-<img data-src="https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/pipeline.png" class="r-stretch"></section>
-<section class="slide level2">
-
-<h3 id="what-is-it-for-us">What is it for Us</h3>
-<ul>
-<li>Focus till Continuos Integration
-<ul>
-<li>Source Code Management</li>
-<li>Build Management</li>
-<li>Test Management (Unit &amp; Integration)</li>
-<li>Code Quality</li>
-<li>Release to Dev</li>
-</ul></li>
-<li>Select the toolchain
-<ul>
-<li>Choose the Platform</li>
-<li>Choose the toolchain</li>
-</ul></li>
-<li>Create Pipeline</li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 class="center" id="how-can-we-help">How can we help</h3>
+<p>LLM applications.</p>
 
 <div class="quarto-auto-generated-content">
 <div class="footer footer-default">
 
 </div>
 </div>
-</section>
+</section></section>
     </div>
   </div>
 
   <script>window.backupDefine = window.define; window.define = undefined;</script>
-  <script src="../../../../site_libs/revealjs/dist/reveal.js"></script>
+  <script src="../../../../../site_libs/revealjs/dist/reveal.js"></script>
   <!-- reveal.js plugins -->
-  <script src="../../../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/quarto-support/support.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/quarto-support/support.js"></script>
   
 
-  <script src="../../../../site_libs/revealjs/plugin/notes/notes.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/search/search.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/zoom/zoom.js"></script>
-  <script src="../../../../site_libs/revealjs/plugin/math/math.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/search/search.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="../../../../../site_libs/revealjs/plugin/math/math.js"></script>
   <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
 
   <script>
