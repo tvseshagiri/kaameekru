@@ -1,4 +1,4 @@
-## LLM-App Development Course
+## Topics {#index}
 
 (@) [Introduction to GenAI](#intgenai)
 (@) [Prompt Engineering](#pmpteng)

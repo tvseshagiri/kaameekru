@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Generative AI"
+title: "LLM App Development"
 ---
 
 {{< include slides/_00-index.qmd >}}
