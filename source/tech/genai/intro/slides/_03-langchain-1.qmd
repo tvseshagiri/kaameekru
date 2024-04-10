@@ -1,0 +1,216 @@
+
+# Introduction to LangChain {#langchain-1}
+
+---
+
+#### LangChain 🦜🔗 \ {.center}
+
+\ 
+\
+
+A framework for developing \
+
+- Context Aware
+- Reasoning
+
+LLM applications.
+
+---
+
+### LangChain Echo System
+
+:::: {.columns}
+
+::: {.column width="50%"}
+![](images/langchain.png)
+:::
+
+::: {.column width="50%"}
+
+- **LangSmith:** platform for debug, test, evaluate, and monitor LLM applications
+- **langserve:** Deploy LangChain chains as REST APIs.
+- **LangChain:** Set of development libraries for developing LLM applications.
+  - **langchain-core**: Base abstractions components and LangChain Expression Language 
+  - **langchain:** Chains, agents, and retrieval strategies components.
+  - **langchain-community**: third party integration components.
+  
+:::
+
+::::
+
+---
+
+### Installation
+
+``` sh
+#  for all langchain components
+pip install langchain
+
+# Only for core
+#pip install langchain-core
+
+# Only for community
+#pip install langchain-community
+
+# installs OpenAI integration module
+pip install langchain-openai
+
+#install Google Gemini Langchain module
+#pip install langchain-google-genai
+
+```
+
+---
+
+### Hello World
+
+``` python
+
+from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import GoogleGenerativeAI
+
+prompt = PromptTemplate.from_template("What is the capital city of Germany?")
+
+llm = GoogleGenerativeAI(model="gemini-pro")
+response = llm.invoke(prompt.format())
+print(response)
+
+
+```
+
+---
+
+### Model IO 
+
+![](images/iocomponents.png)
+
+
+---
+
+### Prompts
+
+* Prompting and Prompts are key for interacting with LLM
+* LangChain provides components  to manage prompt templates well.
+* `langchain_core.prompts` package contains prompt components
+
+
+`PromptTemplate` class is key for basic prompting
+
+
+``` py
+
+from langchain_core.prompts import PromptTemplate
+
+# Instantiation using from_template (recommended)
+prompt = PromptTemplate.from_template("What is the Capital City of {country}?")
+prompt.format(country="India")
+
+
+# Instantiation using initializer
+prompt = PromptTemplate(input_variables=["country"], template="What is the Capital City of {country}?")
+```
+
+---
+
+### ChatPrompts
+
+* chat Prompts going to have content, and also an additional parameter called role.
+
+
+``` python
+
+from langchain_core.prompts import ChatPromptTemplate
+
+chat_template = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful AI bot. Your name is {name}."),
+        ("human", "Hello, how are you doing?"),
+        ("ai", "I'm doing well, thanks!"),
+        ("human", "{user_input}"),
+    ]
+)
+
+messages = chat_template.format_messages(name="Proxima", user_input="What is your name?")
+
+```
+
+---
+
+### FewShotPromptTemplate
+
+
+``` python
+
+from langchain.prompts.few_shot import FewShotPromptTemplate
+
+# Define a list of few-shot examples
+examples = [
+    {"input": "What is the capital of France?", "output": "Paris"},
+    {"input": "What is the largest ocean in the world?", "output": "Pacific Ocean"},
+]
+
+# Create a FewShotPromptTemplate object
+prompt = FewShotPromptTemplate(examples=examples)
+
+# Use the prompt to format an input
+input_text = "What is the capital of Germany?"
+formatted_input = prompt.format(input=input_text)
+
+# Print the formatted input
+print(formatted_input)
+
+```
+
+---
+
+### CoT Example
+
+``` python
+
+rom langchain.prompts.few_shot import FewShotPromptTemplate
+from langchain.prompts.prompt import PromptTemplate
+
+# Create a list of few-shot examples
+examples = [
+    {
+        "question": "Who lived longer, Muhammad Ali or Alan Turing?",
+        "answer": """
+Are follow up questions needed here: Yes.
+Follow up: How old was Muhammad Ali when he died?
+Intermediate answer: Muhammad Ali was 74 years old when he died.
+Follow up: How old was Alan Turing when he died?
+Intermediate answer: Alan Turing was 41 years old when he died.
+So the final answer is: Muhammad Ali
+""",
+    },
+    {
+        "question": "When was the founder of craigslist born?",
+        "answer": """
+Are follow up questions needed here: Yes.
+Follow up: Who was the founder of craigslist?
+Intermediate answer: Craigslist was founded by Craig Newmark.
+Follow up: When was Craig Newmark born?
+Intermediate answer: Craig Newmark was born on December 6, 1952.
+So the final answer is: December 6, 1952
+""",
+    },
+    # Add more examples here
+]
+
+# Create a formatter for the few-shot examples
+example_prompt = PromptTemplate(
+    input_variables=["question", "answer"], template="Question: {question}\n{answer}"
+)
+
+# Create a FewShotPromptTemplate object
+prompt = FewShotPromptTemplate(
+    examples=examples,
+    example_prompt=example_prompt,
+    suffix="Question: {input}",
+    input_variables=["input"],
+)
+
+# Format and print the prompt
+print(prompt.format(input="Who was the father of Mary Ball Washington?"))
+
+```
