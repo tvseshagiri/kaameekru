@@ -1,33 +1,5 @@
 [
   {
-    "objectID": "source/tech/reactjs/react.html#lets-create-react-app-with-cra",
-    "href": "source/tech/reactjs/react.html#lets-create-react-app-with-cra",
-    "title": "Introduction to ReactJS",
-    "section": "Let’s Create React App with CRA",
-    "text": "Let’s Create React App with CRA"
-  },
-  {
-    "objectID": "source/tech/reactjs/react.html#building-an-itunes-search-app-with-redux-toolkit",
-    "href": "source/tech/reactjs/react.html#building-an-itunes-search-app-with-redux-toolkit",
-    "title": "Introduction to ReactJS",
-    "section": "Building an iTunes Search App with Redux Toolkit",
-    "text": "Building an iTunes Search App with Redux Toolkit"
-  },
-  {
-    "objectID": "source/tech/genai/intro/index.html#index",
-    "href": "source/tech/genai/intro/index.html#index",
-    "title": "LLM App Development",
-    "section": "Topics",
-    "text": "Topics\n\nIntroduction to GenAI\nPrompt Engineering"
-  },
-  {
-    "objectID": "source/tech/maven/maven.html#lets-create-a-sample-maven-project-for-this-purpose",
-    "href": "source/tech/maven/maven.html#lets-create-a-sample-maven-project-for-this-purpose",
-    "title": "Introduction to Maven",
-    "section": "Let’s create a sample Maven project for this purpose",
-    "text": "Let’s create a sample Maven project for this purpose"
-  },
-  {
     "objectID": "source/index.html",
     "href": "source/index.html",
     "title": "",
@@ -42,10 +14,38 @@
     "text": "Course Title\nMaven: A Comprehensive Training Course\n\n\n\n\nDescription\nThe “Maven: A Comprehensive Training Course” consists of two main sections. In the first section, “Fundamentals,” students will establish a solid foundation in Maven. They will learn what Maven is, how to create and manage Maven projects, and understand key concepts such as the Project Object Model (POM), dependencies, and build lifecycle. The second section, “Advanced Maven Topics,” delves into more advanced aspects, covering topics like profiles and customization, advanced dependency management, working with multi-module projects, best practices, and optimization. Students will gain expertise in optimizing build performance, managing dependencies effectively, and ensuring security and best practices in Maven usage. This course equips learners with the skills needed for proficient Maven project management and Java application building.\n\n\nCourse Title\nDevOps\n\n\nDescription\nIntroduction to DevOps\n\n\nCourse Title\nES6\n\n\nDescription\nIntroduction to ES6\n\n\nCourse Title\nReactJS\n\n\nDescription\nIntroduction to ReactJS, Redux & Router"
   },
   {
+    "objectID": "source/tech/genai/intro/index.html#index",
+    "href": "source/tech/genai/intro/index.html#index",
+    "title": "LLM App Development",
+    "section": "Topics",
+    "text": "Topics\n\nIntroduction to GenAI\nPrompt Engineering"
+  },
+  {
+    "objectID": "source/tech/reactjs/react.html#lets-create-react-app-with-cra",
+    "href": "source/tech/reactjs/react.html#lets-create-react-app-with-cra",
+    "title": "Introduction to ReactJS",
+    "section": "Let’s Create React App with CRA",
+    "text": "Let’s Create React App with CRA"
+  },
+  {
+    "objectID": "source/tech/reactjs/react.html#building-an-itunes-search-app-with-redux-toolkit",
+    "href": "source/tech/reactjs/react.html#building-an-itunes-search-app-with-redux-toolkit",
+    "title": "Introduction to ReactJS",
+    "section": "Building an iTunes Search App with Redux Toolkit",
+    "text": "Building an iTunes Search App with Redux Toolkit"
+  },
+  {
     "objectID": "source/tech/genai/index.html#generative-ai-material",
     "href": "source/tech/genai/index.html#generative-ai-material",
     "title": "",
     "section": "Generative AI Material",
     "text": "Generative AI Material\n\nLocal LLM PoC\nIntroduction to GenAI"
+  },
+  {
+    "objectID": "source/tech/maven/maven.html#lets-create-a-sample-maven-project-for-this-purpose",
+    "href": "source/tech/maven/maven.html#lets-create-a-sample-maven-project-for-this-purpose",
+    "title": "Introduction to Maven",
+    "section": "Let’s create a sample Maven project for this purpose",
+    "text": "Let’s create a sample Maven project for this purpose"
   }
 ]
