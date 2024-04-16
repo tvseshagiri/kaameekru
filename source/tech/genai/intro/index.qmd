@@ -6,3 +6,4 @@ title: "LLM App Development"
 {{< include slides/_01-intro.qmd >}}
 {{< include slides/_02-pmtengg.qmd >}}
 {{< include slides/_03-langchain-1.qmd >}}
+{{< include slides/_04-langchain-2.qmd >}}

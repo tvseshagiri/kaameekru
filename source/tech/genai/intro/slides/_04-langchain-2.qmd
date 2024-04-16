@@ -1,0 +1,224 @@
+# Advanced LangChain {#langchain-2}
+
+---
+
+### LangChain Components
+
+![](images/langchaincomp.png)
+
+---
+
+### Model IO
+
+We already covered following components
+
+* Prompts
+  - `PromptTemplate`
+  - `ChatPromptTemplate`
+  - etc
+* LLMs 
+  - Chat Model
+  - Instruct Model
+
+---
+
+### Output Parsers
+
+* responsible for  transforming LLM output to a more suitable format.
+* Useful for generating structured output
+
+* Some Popular Output Parsers:
+
+| Name | Output Type | Description |
+|---- |----|---|
+| JSON | JSON |Returns a JSON object as specified. Pydantic and JSON schema can be used.|
+| CSV | List[str] |returns list of comma separated values|
+|Pydantic|pydantic.BaseModel|Takes a user defined Pydantic model and returns data in that format.|
+|YAML|pydantic.BaseModel|Takes a user defined Pydantic model and returns data in that format. Uses YAML to encode it.|
+: Output Parsers {tbl-colwidths="[10,25,65]"}
+
+---
+
+### JSON
+
+* Define the desired JSON Output Schema
+
+``` python
+class Country(BaseModel):
+country: str = Field(description="Name of the country")
+capital_city: str = Field(description="Capital City of Country")
+
+```
+
+* Specify the schema to JSONOutputParser
+
+``` python
+from langchain_core.output_parsers import JsonOutputParser
+
+parser = JsonOutputParser(pydantic_object=Country)
+```
+
+* Define the prompt template
+
+``` python
+
+prompt = PromptTemplate(
+    template="{format_instructions}\n What is the capital city of {country}\n",
+    input_variables=["query"],
+    partial_variables={"format_instructions": parser.get_format_instructions()},
+)
+
+```
+
+* create and invoke the chain with input
+
+``` python
+chain = prompt | llm | parser
+
+resp = chain.invoke({"country": "India"})
+```
+
+---
+
+### Complete Code
+
+``` python
+
+from typing import List
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(temperature=0)
+
+
+# Pydantic Model
+class Country(BaseModel):
+    country: str = Field(description="Name of the country")
+    capital_city: str = Field(description="Capital City of Country")
+
+
+# Model parser
+parser = JsonOutputParser(pydantic_object=Country)
+
+prompt = PromptTemplate(
+    template="{format_instructions}\n What is the capital city of {country}\n",
+    input_variables=["query"],
+    partial_variables={"format_instructions": parser.get_format_instructions()},
+)
+
+chain = prompt | llm | parser
+
+resp = chain.invoke({"country": "India"})
+
+print(resp)
+
+```
+
+---
+
+#### Observation
+
+* Print `parser.get_format_instructions()` and observe the output
+
+``` python
+print(parser.get_format_instructions())
+```
+
+---
+
+### CSV Output Parser
+
+``` python
+
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import CommaSeparatedListOutputParser
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(temperature=0)
+
+
+output_parser = CommaSeparatedListOutputParser()
+
+format_instructions = output_parser.get_format_instructions()
+prompt = PromptTemplate(
+    template="List last Cricket One day World cup winning team details.\n{format_instructions}",
+    partial_variables={"format_instructions": format_instructions},
+    input_variables=[],
+)
+
+model = ChatOpenAI(temperature=0)
+
+chain = prompt | model | output_parser
+
+resp = chain.invoke({})
+
+print(resp)
+
+
+```
+
+---
+
+### Retrievals
+
+* LLM Models data is snapshot based 
+* Latest or new knowledge will not be updated
+* RAG compensate the gap
+* external data is retrieved and then passed to the LLM for generation.
+* Typical RAG process will have following steps.
+
+
+![](images/recomp.png)
+
+---
+
+### Components
+
+* For each step, LangChain provides components:
+
+- **Document loaders**: document loaders loads data from a (external) source as `Document`
+  - LangChain provides a general purpose `Document` Model with content and metadata about the data.
+- **Text Splitters**: splits (or chunking) a large document into smaller chunks
+- **Text embedding models**: helps in create vector embedding for a given text
+- **Vector stores**: abstracts all Vector store operations
+- **Retrievers**: different retrieval algorithms for retrieving data
+
+---
+
+###  Chains
+
+* Chains are sequences of calls - to an LLM, or a tool, or a data preprocessing step. 
+* two types of off-the-shelf chains that LangChain supports.
+  - Chains that are built with LCEL. 
+  - Legacy Chains constructed by subclassing from a legacy Chain class.
+* The primary way to do  is with LCEL.
+
+* We already seen a simple LCEL chain earlier 
+
+``` python
+  prompt | llm | parser
+```
+
+* We will use legacy chain like `RetrievalQA` in RAG example
+
+---
+
+### Agents
+
+* LLM Agents are designed to act as reasoning engines by leveraging LLM Model
+* Instead of doing tasks sequentially like Chains,  they decide next action and order by reasoning
+
+---
+
+### Tools 
+
+* Tools are used to define a custom task
+* Each tool will have
+  - name
+  - description
+  - JSON schema to define the inputs
+  - function call
+  - how result should be returned
+* `Toolkits` are a set of tools which can be used by agents
