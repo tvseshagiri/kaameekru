@@ -118,7 +118,7 @@ print(resp)
 
 ---
 
-#### Observation
+### Observation
 
 * Print `parser.get_format_instructions()` and observe the output
 
@@ -222,3 +222,7 @@ print(resp)
   - function call
   - how result should be returned
 * `Toolkits` are a set of tools which can be used by agents
+
+---
+
+[Back to Index](#index)

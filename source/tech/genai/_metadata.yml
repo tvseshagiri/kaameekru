@@ -1,4 +1,5 @@
 format:
   revealjs: 
     slide-number: false
-    theme: dark
+    theme: default
+    multiplex: true

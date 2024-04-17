@@ -1,0 +1,26 @@
+# Conclusion {#end}
+
+---
+
+### So Far
+
+* We have learn only Fundamentals
+* Explored only one Framework - LangChain
+* Covered High Level Components & APIs
+
+---
+
+### Way Forward
+
+* Deep Dive into Prompt Engineering & LangChain
+* Explore other frameworks like:
+  - LlamaIndex
+  - Haystack
+  - DSPy
+* Explore other Vector Stores
+* LLM App Development needs more experimentation
+
+---
+
+# Thank You
+

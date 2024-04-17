@@ -8,3 +8,5 @@ title: "LLM App Development"
 {{< include slides/_03-langchain-1.qmd >}}
 {{< include slides/_04-langchain-2.qmd >}}
 {{< include slides/_05-vectordb.qmd >}}
+{{< include slides/_06-risksnsecurity.qmd >}}
+{{< include slides/_07-conclusion.qmd >}}
