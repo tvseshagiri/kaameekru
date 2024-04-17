@@ -2,34 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/source/index.html</loc>
-    <lastmod>2024-04-16T16:19:18.535Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/devops/slides/devops.html</loc>
-    <lastmod>2024-04-16T16:19:18.539Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/genai/intro/index.html</loc>
-    <lastmod>2024-04-16T16:19:18.559Z</lastmod>
+    <lastmod>2024-04-17T03:04:31.710Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/source/tech/genai/poc/localllms.html</loc>
-    <lastmod>2024-04-16T16:19:18.563Z</lastmod>
+    <lastmod>2024-04-17T03:04:31.734Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/source/tech/reactjs/react.html</loc>
-    <lastmod>2024-04-16T16:19:18.567Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/genai/index.html</loc>
-    <lastmod>2024-04-16T16:19:18.539Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/maven/maven.html</loc>
-    <lastmod>2024-04-16T16:19:18.563Z</lastmod>
+    <lastmod>2024-04-17T03:04:31.734Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/source/tech/es6/es6.html</loc>
-    <lastmod>2024-04-16T16:19:18.539Z</lastmod>
+    <lastmod>2024-04-17T03:04:31.710Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/maven/maven.html</loc>
+    <lastmod>2024-04-17T03:04:31.734Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/devops/slides/devops.html</loc>
+    <lastmod>2024-04-17T03:04:31.710Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/genai/index.html</loc>
+    <lastmod>2024-04-17T03:04:31.714Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/source/tech/genai/intro/index.html</loc>
+    <lastmod>2024-04-17T03:04:31.730Z</lastmod>
   </url>
 </urlset>
