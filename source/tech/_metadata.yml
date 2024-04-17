@@ -2,9 +2,10 @@ output-dir: .
 format:
   revealjs: 
     slide-number: false
-    theme: dark
+    theme: default
     css: ../custom/css/revealjs.css
     smaller: true
+    multiplex: true
   
     
 
