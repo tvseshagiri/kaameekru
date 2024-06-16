@@ -10,7 +10,7 @@
 <link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.4.555">
 
-  <title>index</title>
+  <title>Introduction to Python Programming</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -28,6 +28,71 @@
       margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
       vertical-align: middle;
     }
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #f8f8f2;  }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #f8f8f2; } /* Normal */
+    code span.al { color: #f07178; background-color: #2a0f15; font-weight: bold; } /* Alert */
+    code span.an { color: #d4d0ab; } /* Annotation */
+    code span.at { color: #00e0e0; } /* Attribute */
+    code span.bn { color: #d4d0ab; } /* BaseN */
+    code span.bu { color: #abe338; } /* BuiltIn */
+    code span.cf { color: #ffa07a; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #abe338; } /* Char */
+    code span.cn { color: #ffd700; } /* Constant */
+    code span.co { color: #f8f8f2; font-style: italic; } /* Comment */
+    code span.cv { color: #ffd700; } /* CommentVar */
+    code span.do { color: #f8f8f2; } /* Documentation */
+    code span.dt { color: #ffa07a; } /* DataType */
+    code span.dv { color: #d4d0ab; } /* DecVal */
+    code span.er { color: #f07178; text-decoration: underline; } /* Error */
+    code span.ex { color: #00e0e0; font-weight: bold; } /* Extension */
+    code span.fl { color: #d4d0ab; } /* Float */
+    code span.fu { color: #ffa07a; } /* Function */
+    code span.im { color: #abe338; } /* Import */
+    code span.in { color: #d4d0ab; } /* Information */
+    code span.kw { color: #ffa07a; font-weight: bold; } /* Keyword */
+    code span.op { color: #ffa07a; } /* Operator */
+    code span.ot { color: #00e0e0; } /* Other */
+    code span.pp { color: #dcc6e0; } /* Preprocessor */
+    code span.re { color: #00e0e0; background-color: #f8f8f2; } /* RegionMarker */
+    code span.sc { color: #abe338; } /* SpecialChar */
+    code span.ss { color: #abe338; } /* SpecialString */
+    code span.st { color: #abe338; } /* String */
+    code span.va { color: #00e0e0; } /* Variable */
+    code span.vs { color: #abe338; } /* VerbatimString */
+    code span.wa { color: #dcc6e0; } /* Warning */
   </style>
   <link rel="stylesheet" href="../../../site_libs/revealjs/dist/theme/quarto.css">
   <link rel="stylesheet" href="../../custom/css/revealjs.css">
@@ -325,20 +390,263 @@
   <div class="reveal">
     <div class="slides">
 
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Introduction to Python Programming</h1>
 
-<section id="generative-ai-material" class="slide level2">
-<h2>Generative AI Material</h2>
+<div class="quarto-title-authors">
+</div>
+
+</section>
+<section>
+<section id="regular-expressions-in-python" class="title-slide slide level1 center">
+<h1>Regular Expressions in Python</h1>
+
+</section>
+<section class="slide level2">
+
+<h3 id="introduction">Introduction</h3>
 <ul>
-<li><a href="poc/localllms.html">Local LLM PoC</a></li>
-<li><a href="">Introduction to GenAI</a></li>
+<li><strong>What are Regular Expressions?</strong>
+<ul>
+<li>A sequence of characters that define a search pattern.</li>
+<li>Used for string matching and manipulation.</li>
+</ul></li>
+<li><strong>Why Use Regular Expressions?</strong>
+<ul>
+<li>Powerful tool for searching, replacing, and parsing text.</li>
+<li>Efficient for complex string operations.</li>
+</ul></li>
 </ul>
+</section>
+<section class="slide level2">
+
+<h3 id="basic-syntax">Basic Syntax</h3>
+<h5 id="basic-syntax-of-regular-expressions">Basic Syntax of Regular Expressions</h5>
+<ul>
+<li><strong>Literals:</strong> Match the exact characters (e.g., <code>a</code>, <code>1</code>, <code>@</code>).</li>
+<li><strong>Metacharacters:</strong> Special characters that have special meanings:
+<ul>
+<li><code>.</code> : Matches any character except a newline.</li>
+<li><code>^</code> : Matches the start of the string.</li>
+<li><code>$</code> : Matches the end of the string.</li>
+<li><code>*</code> : Matches 0 or more repetitions.</li>
+<li><code>+</code> : Matches 1 or more repetitions.</li>
+<li><code>?</code> : Matches 0 or 1 repetition.</li>
+<li><code>{}</code> : Matches a specific number of repetitions.</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level2">
+
+<p><strong>Code Example:</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a></a><span class="im">import</span> re</span>
+<span id="cb1-2"><a></a></span>
+<span id="cb1-3"><a></a>pattern <span class="op">=</span> <span class="vs">r'a.b'</span>  <span class="co"># . matches any character</span></span>
+<span id="cb1-4"><a></a>text <span class="op">=</span> <span class="st">"acb aab abb"</span></span>
+<span id="cb1-5"><a></a></span>
+<span id="cb1-6"><a></a>matches <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb1-7"><a></a><span class="bu">print</span>(matches)  <span class="co"># Output: ['acb', 'aab', 'abb']</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h3 id="character-classes">Character Classes</h3>
+<h4 id="character-classes-1">Character Classes</h4>
+<ul>
+<li>Definition: A set of characters enclosed in square brackets []:
+<ul>
+<li>[abc] : Matches any one of the characters a, b, or c.</li>
+<li>[a-z] : Matches any one lowercase letter from a to z.</li>
+<li>[^abc] : Matches any character except a, b, or c.</li>
+</ul></li>
+<li>Predefined Character Classes:
+<ul>
+<li> Matches any digit (equivalent to [0-9]).</li>
+<li>: Matches any non-digit.</li>
+<li>: Matches any word character (alphanumeric plus underscore).</li>
+<li>: Matches any non-word character.</li>
+<li>: Matches any whitespace character.</li>
+<li>: Matches any non-whitespace character.</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level2">
+
+<div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'\d+'</span>  <span class="co"># \d matches digits, + matches one or more</span></span>
+<span id="cb2-2"><a></a>text <span class="op">=</span> <span class="st">"There are 42 apples and 7 oranges."</span></span>
+<span id="cb2-3"><a></a></span>
+<span id="cb2-4"><a></a>matches <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb2-5"><a></a><span class="bu">print</span>(matches)  <span class="co"># Output: ['42', '7']</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="anchors">Anchors</h4>
+<ul>
+<li>Anchors in Regular Expressions
+<ul>
+<li>^ : Matches the start of a string.</li>
+<li>$ : Matches the end of a string.</li>
+<li>\b : Matches a word boundary.</li>
+<li>\B : Matches a non-word boundary.</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'\bword\b'</span>  <span class="co"># \b matches word boundary</span></span>
+<span id="cb3-2"><a></a>text <span class="op">=</span> <span class="st">"This word is in a sentence with the word word."</span></span>
+<span id="cb3-3"><a></a></span>
+<span id="cb3-4"><a></a>matches <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb3-5"><a></a><span class="bu">print</span>(matches)  <span class="co"># Output: ['word', 'word', 'word']</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="groups-and-ranges">Groups and Ranges</h4>
+<ul>
+<li>Groups:
+<ul>
+<li>Parentheses () to group patterns.</li>
+<li>(abc) matches the exact sequence “abc”.</li>
+</ul></li>
+<li>Ranges:
+<ul>
+<li>{n} : Matches exactly n occurrences.</li>
+<li>{n,} : Matches n or more occurrences.</li>
+<li>{n,m} : Matches between n and m occurrences.</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'(\d</span><span class="sc">{3}</span><span class="vs">)-(\d</span><span class="sc">{2}</span><span class="vs">)-(\d</span><span class="sc">{4}</span><span class="vs">)'</span>  <span class="co"># Groups for different parts of SSN</span></span>
+<span id="cb4-2"><a></a>text <span class="op">=</span> <span class="st">"My SSN is 123-45-6789."</span></span>
+<span id="cb4-3"><a></a></span>
+<span id="cb4-4"><a></a>match <span class="op">=</span> re.search(pattern, text)</span>
+<span id="cb4-5"><a></a><span class="cf">if</span> match:</span>
+<span id="cb4-6"><a></a>    <span class="bu">print</span>(match.groups())  <span class="co"># Output: ('123', '45', '6789')</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="special-sequences">Special Sequences</h4>
+<ul>
+<li>Escaping Special Characters:
+<ul>
+<li>Use &nbsp;to escape special characters (e.g., . to match a literal period).</li>
+</ul></li>
+<li>Lookahead and Lookbehind:
+<ul>
+<li>Positive Lookahead (?=…) : Matches if … matches next.</li>
+<li>Negative Lookahead (?!…) : Matches if … does not match next.</li>
+<li>Positive Lookbehind (?&lt;=…) : Matches if … matches before.</li>
+<li>Negative Lookbehind (?&lt;!…) : Matches if … does not match before.</li>
+</ul></li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'(?&lt;=@)\w+'</span>  <span class="co"># Positive lookbehind for characters after @</span></span>
+<span id="cb5-2"><a></a>text <span class="op">=</span> <span class="st">"Contact us at support@example.com."</span></span>
+<span id="cb5-3"><a></a></span>
+<span id="cb5-4"><a></a>match <span class="op">=</span> re.search(pattern, text)</span>
+<span id="cb5-5"><a></a><span class="cf">if</span> match:</span>
+<span id="cb5-6"><a></a>    <span class="bu">print</span>(match.group())  <span class="co"># Output: 'example'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="python-re-module">Python <code>re</code> Module</h4>
+<ul>
+<li>Importing the Module:</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a></a><span class="im">import</span> re</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ul>
+<li>Common Functions:
+<ul>
+<li><code>re.search(pattern, string)</code> : Searches for the pattern within the string.</li>
+<li><code>re.match(pattern, string)</code> : Matches the pattern at the start of the string.</li>
+<li><code>re.findall(pattern, string)</code> : Returns a list of all matches.</li>
+<li><code>re.finditer(pattern, string)</code> : Returns an iterator yielding match objects.</li>
+<li><code>re.sub(pattern, repl, string)</code> : Replaces the matches with repl.</li>
+</ul></li>
+</ul>
+</section>
+<section class="slide level2">
+
+<div class="sourceCode" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a></a><span class="co"># re.search example</span></span>
+<span id="cb7-2"><a></a>pattern <span class="op">=</span> <span class="vs">r'Python'</span></span>
+<span id="cb7-3"><a></a>text <span class="op">=</span> <span class="st">"I am learning Python programming."</span></span>
+<span id="cb7-4"><a></a>match <span class="op">=</span> re.search(pattern, text)</span>
+<span id="cb7-5"><a></a><span class="cf">if</span> match:</span>
+<span id="cb7-6"><a></a>    <span class="bu">print</span>(match.group())  <span class="co"># Output: 'Python'</span></span>
+<span id="cb7-7"><a></a></span>
+<span id="cb7-8"><a></a><span class="co"># re.match example</span></span>
+<span id="cb7-9"><a></a>pattern <span class="op">=</span> <span class="vs">r'I am'</span></span>
+<span id="cb7-10"><a></a>text <span class="op">=</span> <span class="st">"I am learning Python."</span></span>
+<span id="cb7-11"><a></a>match <span class="op">=</span> re.match(pattern, text)</span>
+<span id="cb7-12"><a></a><span class="cf">if</span> match:</span>
+<span id="cb7-13"><a></a>    <span class="bu">print</span>(match.group())  <span class="co"># Output: 'I am'</span></span>
+<span id="cb7-14"><a></a></span>
+<span id="cb7-15"><a></a><span class="co"># re.findall example</span></span>
+<span id="cb7-16"><a></a>pattern <span class="op">=</span> <span class="vs">r'\d+'</span></span>
+<span id="cb7-17"><a></a>text <span class="op">=</span> <span class="st">"There are 3 cats, 4 dogs, and 5 birds."</span></span>
+<span id="cb7-18"><a></a>matches <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb7-19"><a></a><span class="bu">print</span>(matches)  <span class="co"># Output: ['3', '4', '5']</span></span>
+<span id="cb7-20"><a></a></span>
+<span id="cb7-21"><a></a><span class="co"># re.sub example</span></span>
+<span id="cb7-22"><a></a>pattern <span class="op">=</span> <span class="vs">r'(\d+)'</span></span>
+<span id="cb7-23"><a></a>text <span class="op">=</span> <span class="st">"There are 3 cats, 4 dogs, and 5 birds."</span></span>
+<span id="cb7-24"><a></a>new_text <span class="op">=</span> re.sub(pattern, <span class="vs">r'\1 animals'</span>, text)</span>
+<span id="cb7-25"><a></a><span class="bu">print</span>(new_text)  <span class="co"># Output: 'There are 3 animals cats, 4 animals dogs, and 5 animals birds.'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="practical-examples">Practical Examples</h4>
+<h4 id="example-1-validating-an-email-address">Example 1: Validating an Email Address:</h4>
+<div class="sourceCode" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a></a></span>
+<span id="cb8-2"><a></a>pattern <span class="op">=</span> <span class="vs">r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'</span></span>
+<span id="cb8-3"><a></a>email <span class="op">=</span> <span class="st">"example@example.com"</span></span>
+<span id="cb8-4"><a></a>match <span class="op">=</span> re.match(pattern, email)</span>
+<span id="cb8-5"><a></a><span class="bu">print</span>(<span class="bu">bool</span>(match))  <span class="co"># Output: True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<h5 id="example-2-extracting-phone-numbers">Example 2: Extracting Phone Numbers:</h5>
+<div class="sourceCode" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'\b\d</span><span class="sc">{3}</span><span class="vs">[-.]?\d</span><span class="sc">{3}</span><span class="vs">[-.]?\d</span><span class="sc">{4}</span><span class="vs">\b'</span></span>
+<span id="cb9-2"><a></a>text <span class="op">=</span> <span class="st">"Contact us at 123-456-7890 or 987.654.3210"</span></span>
+<span id="cb9-3"><a></a>phone_numbers <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb9-4"><a></a><span class="bu">print</span>(phone_numbers)  <span class="co"># Output: ['123-456-7890', '987.654.3210']</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h4 id="example-3-parsing-a-log-file">Example 3: Parsing a Log File:</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'(\d</span><span class="sc">{4}</span><span class="vs">-\d</span><span class="sc">{2}</span><span class="vs">-\d</span><span class="sc">{2}</span><span class="vs">) (\d</span><span class="sc">{2}</span><span class="vs">:\d</span><span class="sc">{2}</span><span class="vs">:\d</span><span class="sc">{2}</span><span class="vs">),(\d+) - (\w+): (.+)'</span></span>
+<span id="cb10-2"><a></a>log <span class="op">=</span> <span class="st">"2024-06-15 14:23:45,123 - INFO: Server started."</span></span>
+<span id="cb10-3"><a></a>match <span class="op">=</span> re.match(pattern, log)</span>
+<span id="cb10-4"><a></a><span class="cf">if</span> match:</span>
+<span id="cb10-5"><a></a>    date, time, ms, level, message <span class="op">=</span> match.groups()</span>
+<span id="cb10-6"><a></a>    <span class="bu">print</span>(<span class="ss">f"Date: </span><span class="sc">{</span>date<span class="sc">}</span><span class="ss">, Time: </span><span class="sc">{</span>time<span class="sc">}</span><span class="ss">, Milliseconds: </span><span class="sc">{</span>ms<span class="sc">}</span><span class="ss">, Level: </span><span class="sc">{</span>level<span class="sc">}</span><span class="ss">, Message: </span><span class="sc">{</span>message<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb10-7"><a></a>    <span class="co"># Output: Date: 2024-06-15, Time: 14:23:45, Milliseconds: 123, Level: INFO, Message: Server started.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<h4 id="extracting-urls-from-text">Extracting URLs from Text:</h4>
+<div class="sourceCode" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a></a>pattern <span class="op">=</span> <span class="vs">r'https?://(?:[-\w.]|(?:%[\da-fA-F]</span><span class="sc">{2}</span><span class="vs">))+'</span></span>
+<span id="cb11-2"><a></a>text <span class="op">=</span> <span class="st">"Check out https://example.com and http://test.com for more info."</span></span>
+<span id="cb11-3"><a></a>urls <span class="op">=</span> re.findall(pattern, text)</span>
+<span id="cb11-4"><a></a><span class="bu">print</span>(urls)  <span class="co"># Output: ['https://example.com', 'http://test.com']</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section class="slide level2">
+
+<h3 id="tips-and-best-practices">Tips and Best Practices</h3>
+<ul>
+<li>Write Readable Regex: Use comments and whitespace (with re.VERBOSE).</li>
+<li>Test Your Regex: Use online tools like regex101.com.</li>
+<li>Avoid Over-Complexity: Keep your regular expressions simple and understandable.</li>
+<li>Know When to Use Regex: Not always the best tool for every text processing task.</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a></a></span>
+<span id="cb12-2"><a></a>pattern <span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">r"""</span></span>
+<span id="cb12-3"><a></a><span class="vs">    ^                   # Start of the string</span></span>
+<span id="cb12-4"><a></a><span class="vs">    [a-zA-Z0-9_.+-]+    # Username part</span></span>
+<span id="cb12-5"><a></a><span class="vs">    @                   # @ symbol</span></span>
+<span id="cb12-6"><a></a><span class="vs">    [a-zA-Z0-9-]+       # Domain name part</span></span>
+<span id="cb12-7"><a></a><span class="vs">    \.                  # Dot</span></span>
+<span id="cb12-8"><a></a><span class="vs">    [a-zA-Z0-9-.]+$     # Domain suffix</span></span>
+<span id="cb12-9"><a></a><span class="vs">    """</span>, re.VERBOSE)</span>
+<span id="cb12-10"><a></a></span>
+<span id="cb12-11"><a></a>email <span class="op">=</span> <span class="st">"example@example.com"</span></span>
+<span id="cb12-12"><a></a>match <span class="op">=</span> pattern.match(email)</span>
+<span id="cb12-13"><a></a><span class="bu">print</span>(<span class="bu">bool</span>(match))  <span class="co"># Output: True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 <div class="quarto-auto-generated-content">
 <div class="footer footer-default">
 
 </div>
 </div>
-</section>
+</section></section>
     </div>
   </div>
 
