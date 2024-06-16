@@ -1,0 +1,258 @@
+# Regular Expressions in Python
+
+
+------------------------------------------------------------------------
+
+### Introduction
+
+-   **What are Regular Expressions?**
+    -   A sequence of characters that define a search pattern.
+    -   Used for string matching and manipulation.
+-   **Why Use Regular Expressions?**
+    -   Powerful tool for searching, replacing, and parsing text.
+    -   Efficient for complex string operations.
+
+------------------------------------------------------------------------
+
+### Basic Syntax
+
+##### Basic Syntax of Regular Expressions
+
+-   **Literals:** Match the exact characters (e.g., `a`, `1`, `@`).
+-   **Metacharacters:** Special characters that have special meanings:
+    -   `.` : Matches any character except a newline.
+    -   `^` : Matches the start of the string.
+    -   `$` : Matches the end of the string.
+    -   `*` : Matches 0 or more repetitions.
+    -   `+` : Matches 1 or more repetitions.
+    -   `?` : Matches 0 or 1 repetition.
+    -   `{}` : Matches a specific number of repetitions.
+
+---
+
+**Code Example:**
+
+``` python
+import re
+
+pattern = r'a.b'  # . matches any character
+text = "acb aab abb"
+
+matches = re.findall(pattern, text)
+print(matches)  # Output: ['acb', 'aab', 'abb']
+```
+
+------------------------------------------------------------------------
+
+### Character Classes
+
+#### Character Classes
+
+-   Definition: A set of characters enclosed in square brackets \[\]:
+    -   \[abc\] : Matches any one of the characters a, b, or c.
+    -   \[a-z\] : Matches any one lowercase letter from a to z.
+    -   \[\^abc\] : Matches any character except a, b, or c.
+-   Predefined Character Classes:
+    -   \d : Matches any digit (equivalent to \[0-9\]).
+    -   \D : Matches any non-digit.
+    -   \w : Matches any word character (alphanumeric plus underscore).
+    -   \W : Matches any non-word character.
+    -    \s : Matches any whitespace character.
+    -   \S : Matches any non-whitespace character.
+
+------------------------------------------------------------------------
+
+``` python
+pattern = r'\d+'  # \d matches digits, + matches one or more
+text = "There are 42 apples and 7 oranges."
+
+matches = re.findall(pattern, text)
+print(matches)  # Output: ['42', '7']
+
+```
+
+---
+
+#### Anchors
+* Anchors in Regular Expressions
+    - ^ : Matches the start of a string.
+    - $ : Matches the end of a string.
+    - \\b : Matches a word boundary.
+    - \\B : Matches a non-word boundary.
+
+``` python
+pattern = r'\bword\b'  # \b matches word boundary
+text = "This word is in a sentence with the word word."
+
+matches = re.findall(pattern, text)
+print(matches)  # Output: ['word', 'word', 'word']
+
+```
+
+---
+
+#### Groups and Ranges
+
+* Groups:
+    - Parentheses () to group patterns.
+    - (abc) matches the exact sequence "abc".
+* Ranges:
+    - {n} : Matches exactly n occurrences.
+    - {n,} : Matches n or more occurrences.
+    - {n,m} : Matches between n and m occurrences.
+
+``` python 
+pattern = r'(\d{3})-(\d{2})-(\d{4})'  # Groups for different parts of SSN
+text = "My SSN is 123-45-6789."
+
+match = re.search(pattern, text)
+if match:
+    print(match.groups())  # Output: ('123', '45', '6789')
+```
+
+---
+
+####  Special Sequences
+
+* Escaping Special Characters:
+    - Use \ to escape special characters (e.g., \. to match a literal period).
+* Lookahead and Lookbehind:
+    - Positive Lookahead (?=...) : Matches if ... matches next.
+    - Negative Lookahead (?!...) : Matches if ... does not match next.
+    - Positive Lookbehind (?<=...) : Matches if ... matches before.
+    - Negative Lookbehind (?<!...) : Matches if ... does not match before.
+
+``` python
+pattern = r'(?<=@)\w+'  # Positive lookbehind for characters after @
+text = "Contact us at support@example.com."
+
+match = re.search(pattern, text)
+if match:
+    print(match.group())  # Output: 'example'
+
+```
+
+---
+
+#### Python `re` Module
+
+* Importing the Module:
+
+``` python
+import re
+```
+
+* Common Functions:
+    - `re.search(pattern, string)` : Searches for the pattern within the string.
+    - `re.match(pattern, string)` : Matches the pattern at the start of the string.
+    - `re.findall(pattern, string)` : Returns a list of all matches.
+    - `re.finditer(pattern, string)` : Returns an iterator yielding match objects.
+    - `re.sub(pattern, repl, string)` : Replaces the matches with repl.
+
+---
+
+``` python
+# re.search example
+pattern = r'Python'
+text = "I am learning Python programming."
+match = re.search(pattern, text)
+if match:
+    print(match.group())  # Output: 'Python'
+
+# re.match example
+pattern = r'I am'
+text = "I am learning Python."
+match = re.match(pattern, text)
+if match:
+    print(match.group())  # Output: 'I am'
+
+# re.findall example
+pattern = r'\d+'
+text = "There are 3 cats, 4 dogs, and 5 birds."
+matches = re.findall(pattern, text)
+print(matches)  # Output: ['3', '4', '5']
+
+# re.sub example
+pattern = r'(\d+)'
+text = "There are 3 cats, 4 dogs, and 5 birds."
+new_text = re.sub(pattern, r'\1 animals', text)
+print(new_text)  # Output: 'There are 3 animals cats, 4 animals dogs, and 5 animals birds.'
+
+```
+
+---
+
+#### Practical Examples
+
+#### Example 1: Validating an Email Address:
+
+``` python
+
+pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+email = "example@example.com"
+match = re.match(pattern, email)
+print(bool(match))  # Output: True
+
+```
+
+##### Example 2: Extracting Phone Numbers:
+
+``` python
+pattern = r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+text = "Contact us at 123-456-7890 or 987.654.3210"
+phone_numbers = re.findall(pattern, text)
+print(phone_numbers)  # Output: ['123-456-7890', '987.654.3210']
+
+```
+
+---
+
+#### Example 3: Parsing a Log File:
+
+``` python
+pattern = r'(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}),(\d+) - (\w+): (.+)'
+log = "2024-06-15 14:23:45,123 - INFO: Server started."
+match = re.match(pattern, log)
+if match:
+    date, time, ms, level, message = match.groups()
+    print(f"Date: {date}, Time: {time}, Milliseconds: {ms}, Level: {level}, Message: {message}")
+    # Output: Date: 2024-06-15, Time: 14:23:45, Milliseconds: 123, Level: INFO, Message: Server started.
+```
+
+
+#### Extracting URLs from Text:
+
+``` python
+pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+text = "Check out https://example.com and http://test.com for more info."
+urls = re.findall(pattern, text)
+print(urls)  # Output: ['https://example.com', 'http://test.com']
+
+```
+
+---
+
+### Tips and Best Practices
+
+* Write Readable Regex: Use comments and whitespace (with re.VERBOSE).
+* Test Your Regex: Use online tools like regex101.com.
+* Avoid Over-Complexity: Keep your regular expressions simple and understandable.
+* Know When to Use Regex: Not always the best tool for every text processing task.
+
+``` python
+
+pattern = re.compile(r"""
+    ^                   # Start of the string
+    [a-zA-Z0-9_.+-]+    # Username part
+    @                   # @ symbol
+    [a-zA-Z0-9-]+       # Domain name part
+    \.                  # Dot
+    [a-zA-Z0-9-.]+$     # Domain suffix
+    """, re.VERBOSE)
+
+email = "example@example.com"
+match = pattern.match(email)
+print(bool(match))  # Output: True
+
+```
+

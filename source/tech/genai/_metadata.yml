@@ -2,4 +2,4 @@ format:
   revealjs: 
     slide-number: false
     theme: dark
-    multiplex: true
+    #multiplex: true

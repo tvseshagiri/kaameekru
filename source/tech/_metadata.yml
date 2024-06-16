@@ -5,7 +5,7 @@ format:
     theme: dark
     css: ../custom/css/revealjs.css
     smaller: true
-    multiplex: true
+    #multiplex: true
   
     
 
