@@ -53,12 +53,12 @@ print(matches)  # Output: ['acb', 'aab', 'abb']
     -   \[a-z\] : Matches any one lowercase letter from a to z.
     -   \[\^abc\] : Matches any character except a, b, or c.
 -   Predefined Character Classes:
-    -   \d : Matches any digit (equivalent to \[0-9\]).
-    -   \D : Matches any non-digit.
-    -   \w : Matches any word character (alphanumeric plus underscore).
-    -   \W : Matches any non-word character.
-    -    \s : Matches any whitespace character.
-    -   \S : Matches any non-whitespace character.
+    -   \\d : Matches any digit (equivalent to \[0-9\]).
+    -   \\D : Matches any non-digit.
+    -   \\w : Matches any word character (alphanumeric plus underscore).
+    -   \\W : Matches any non-word character.
+    -   \\s : Matches any whitespace character.
+    -   \\S : Matches any non-whitespace character.
 
 ------------------------------------------------------------------------
 
