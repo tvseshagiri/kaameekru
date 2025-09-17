@@ -421,14 +421,14 @@ Create API Key using AI Studio https://aistudio.google.com/
 
 ``` sh
 # Install Google GenAI Python dependency 
-pip install google-generativeai
+pip install -q -U google-genai
 
 # Export Google GenAI API Key
 
 # Linux
-export GOOGLE_API_KEY='API KEY'
+export GEMINI_API_KEY='API KEY'
 #Windows
-set GOOGLE_API_KEY='API KEY'
+set GEMINI_API_KEY='API KEY'
 ```
 :::
 
@@ -438,14 +438,13 @@ set GOOGLE_API_KEY='API KEY'
 
 ``` python
 
-import google.generativeai as genai
+from google import genai
 
-model = genai.GenerativeModel('gemini-pro')
+client = genai.Client()
 
-prompt =  "How to greet a person in Sanskrit?",
-
-response = model.generate_content(prompt)
-
+response = client.models.generate_content(
+    model="gemini-2.5-flash", contents="How do you greet a person in Sanskrit?"
+)
 print(response.text)
 ```
 
