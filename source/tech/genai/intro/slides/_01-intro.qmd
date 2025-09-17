@@ -504,6 +504,51 @@ for part in response.candidates[0].content.parts:
 
 ------------------------------------------------------------------------
 
+#### Groq API
+
+Let us Create API Key from here: [https://console.groq.com/keys](https://console.groq.com/keys)
+
+export the Key using **GROQ_API_KEY** Environment Variable
+
+``` bash
+Install Groq Python Library
+
+pip install groq
+
+```
+
+------------------------------------------------------------------------
+
+#### Python Code 
+
+``` python
+
+import os
+
+from groq import Groq
+
+client = Groq(
+    api_key=os.environ.get("GROQ_API_KEY"),
+)
+
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Explain the importance of fast language models",
+        }
+    ],
+    model="llama-3.3-70b-versatile",
+)
+
+print(chat_completion.choices[0].message.content)
+
+```
+
+
+------------------------------------------------------------------------
+
+
 ### Anthropic Claude API
 
 Step 1: Create Claude API
