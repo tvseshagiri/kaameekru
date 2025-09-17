@@ -433,6 +433,29 @@ set GEMINI_API_KEY='API KEY'
 :::
 
 ------------------------------------------------------------------------
+#### REST API Call
+
+``` sh
+
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
+  -H "x-goog-api-key: $GEMINI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -X POST \
+  -d '{
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "How does AI work?"
+          }
+        ]
+      }
+    ]
+  }'
+
+```
+
+------------------------------------------------------------------------
 
 #### Python Code
 
@@ -446,6 +469,36 @@ response = client.models.generate_content(
     model="gemini-2.5-flash", contents="How do you greet a person in Sanskrit?"
 )
 print(response.text)
+```
+
+------------------------------------------------------------------------
+
+#### Python Code
+
+``` python
+
+from google import genai
+from google.genai import types
+from PIL import Image
+from io import BytesIO
+
+client = genai.Client()
+
+prompt = (
+    "An early morning long drive in Ferrari car with clear visibility of Ferrari logo and sun"
+)
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash-image-preview",
+    contents=[prompt],
+)
+
+for part in response.candidates[0].content.parts:
+    if part.text is not None:
+        print(part.text)
+    elif part.inline_data is not None:
+        image = Image.open(BytesIO(part.inline_data.data))
+        image.save("generated_image.png")
 ```
 
 ------------------------------------------------------------------------
