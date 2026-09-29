@@ -1,4 +1,7 @@
-## Java Web Application Development with Servlets, JSP
+---
+title: "Java Web Application Development"
+subtitle: "Servlets and JSP"
+---
 
 1. **Introduction to Web Applications:**
    - **Objective**: Understand the fundamentals of web applications and how they function in a client-server architecture.

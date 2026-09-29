@@ -4,7 +4,7 @@
 :::: {.columns}
 
 ::: {.column width="35%"}
-![](../assets/devopsloop.jpg){width=100%}
+![](assets/devopsloop.jpg){width=100%}
 :::
 
 ::: {.column width="65%"}
@@ -27,7 +27,7 @@
 :::: {.columns}
 
 ::: {.column width="35%"}
-![](https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/devopsloop.jpg)
+![](assets/devopsloop.jpg)
 :::
 
 ::: {.column width="65%"}
@@ -123,19 +123,19 @@
 
 ### DevOps Java Toolchain
 
-![](https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/devopstoolchain.png){width=150%}
+![](assets/devopstoolchain.png){width=150%}
 
 ---
 
 ### DevOps Implementation Pattern
 
-![](https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/cicd.png)
+![](assets/cicd.png)
 
 ---
 
 ### DevOps Pipeline
 
-![](https://tvseshagiri.github.io/meekaakaru/docs/devops/assets/pipeline.png)
+![](assets/pipeline.png)
 
 ---
 

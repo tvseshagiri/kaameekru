@@ -1,5 +1,8 @@
+---
+title: "Apache Maven Training Course"
+---
 
-## Maven: A Comprehensive Training Course
+## Overview
 
 ### Section 1: Fundamentals
 

@@ -1,0 +1,8 @@
+---
+title: "Generative AI"
+---
+
+## Generative AI Material
+
+- [LLM Application Development](intro/index.html)
+- [Local LLM PoC](poc/localllms.html)

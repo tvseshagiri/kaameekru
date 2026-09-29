@@ -1,7 +1,52 @@
 project:
   type: website
   output-dir: docs
-  execute-dir: project
+
+website:
+  title: "Kaameekru"
+  description: "Technical training courses and presentation slide decks"
+  site-url: "https://tvseshagiri.github.io/kaameekru"
+  navbar:
+    title: "Kaameekru"
+    left:
+      - href: index.qmd
+        text: Home
+      - text: "Presentations"
+        menu:
+          - href: tech/maven/maven.qmd
+            text: "Maven"
+          - href: tech/reactjs/react.qmd
+            text: "ReactJS"
+          - href: tech/es6/es6.qmd
+            text: "ES6"
+          - href: tech/devops/devops.qmd
+            text: "DevOps"
+          - href: tech/genai/intro/index.qmd
+            text: "GenAI: LLM Apps"
+          - href: tech/genai/poc/localllms.qmd
+            text: "GenAI: Local LLMs"
+          - href: tech/python/index.qmd
+            text: "Python"
+      - text: "Courses"
+        menu:
+          - href: courses/spring.qmd
+            text: "Spring Framework"
+          - href: courses/maven.qmd
+            text: "Maven Curriculum"
+          - href: courses/javawebapp.qmd
+            text: "Java Web Apps"
+          - href: courses/reactjs.qmd
+            text: "ReactJS Curriculum"
+    right:
+      - icon: github
+        href: https://github.com/tvseshagiri/kaameekru
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
 
 
    

@@ -1,0 +1,29 @@
+---
+title: "Technical Training Portal"
+subtitle: "Interactive Presentations & Course Curricula"
+---
+
+## Presentations
+
+| Course Title | Description |
+| :--- | :--- |
+| [Maven: A Comprehensive Training Course](tech/maven/maven.qmd) | Establishes a solid foundation in Apache Maven fundamentals (POM, lifecycle, dependency management) and advanced topics (profiles, multi-module projects, optimization, security). |
+| [DevOps Essentials](tech/devops/devops.qmd) | Overview of modern DevOps practices, CI/CD pipelines, automation toolchains, and collaborative workflows. |
+| [Modern JavaScript (ES6+)](tech/es6/es6.qmd) | Comprehensive overview of ES6 features: let/const, arrow functions, destructuring, template literals, modules, promises, and rest/spread. |
+| [ReactJS & State Management](tech/reactjs/react.qmd) | Deep dive into React fundamentals, component design, state & props, styling, Redux, React Router, and unit testing. |
+| [GenAI: LLM Application Development](tech/genai/intro/index.qmd) | Architecture of LLM-powered applications, prompt engineering, LangChain components, vector databases, and security considerations. |
+| [GenAI: Local LLMs PoC](tech/genai/poc/localllms.qmd) | Exploring self-hosted, quantized local open-source models, quantization techniques, and privacy-preserving prototyping. |
+| [Python Programming](tech/python/index.qmd) | Introduction to core Python programming concepts and regular expression processing. |
+
+: {tbl-colwidths="[30,70]"}
+
+## Course Curricula & Syllabi
+
+| Course Syllabus | Focus Area |
+| :--- | :--- |
+| [Spring Framework](courses/spring.qmd) | Inversion of Control (IoC), Dependency Injection (DI), Spring Bean lifecycle, JDBC Template, and transaction management. |
+| [Apache Maven Training](courses/maven.qmd) | Structured syllabus covering basic to advanced build management, plugin lifecycles, and multi-module configurations. |
+| [Java Web Application Development](courses/javawebapp.qmd) | Complete curriculum covering Servlets, JSP, MVC architecture, session management, and enterprise integration. |
+| [ReactJS Full Course](courses/reactjs.qmd) | Structured training program covering React from initial setup to enterprise-grade state management and testing. |
+
+: {tbl-colwidths="[30,70]"}

@@ -1,0 +1,5 @@
+---
+title: "Introduction to DevOps"
+---
+
+{{< include slides/_devops.qmd >}}

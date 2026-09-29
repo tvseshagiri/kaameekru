@@ -1,8 +1,4 @@
-output-dir: .
 format:
   revealjs: 
     smaller: false
-    
-  
-    
 

@@ -1,4 +1,6 @@
-Course Title: Web Application Development using ReactJS
+---
+title: "Web Application Development using ReactJS"
+---
 
 Course Description:
 This comprehensive course on Web Application Development using ReactJS is designed to provide students with a strong foundation in building modern, responsive web applications. ReactJS is a popular JavaScript library for building user interfaces, and this course will cover the essential concepts, tools, and best practices for developing web applications with React.
