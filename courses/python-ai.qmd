@@ -1,0 +1,125 @@
+---
+title: "Python for AI Engineers Curriculum"
+subtitle: "Prerequisite Bootcamp for Agent Frameworks (LangGraph, Strands, ADK)"
+---
+
+### Course Description
+
+This intensive, hands-on bootcamp is engineered for developers, software engineers, and data scientists transitioning into AI Engineering. Modern agentic frameworks like **LangGraph**, **Strands**, and **ADK** demand advanced language idioms: strict static typing, Pydantic data boundary contracts, high-throughput cooperative async I/O, event-driven pattern design, and rock-solid test harnesses.
+
+This course bridges the gap from standard scripting Python to production-grade agent runtime engineering.
+
+- **Format:** 5 Days &middot; 10 Modules &middot; 9 Hands-on Labs &middot; 1 Capstone Project
+- **Pacing:** 20% Theory & Design Principles, 80% Practical Implementation
+- **Interactive Slide Deck:** [Launch Python for AI Engineers Presentation](../tech/python-ai/index.html){target="_blank"}
+
+---
+
+### Prerequisites
+
+1. Working familiarity with core Python syntax (variables, lists, dictionaries, functions, and basic OOP).
+2. Comfort running CLI commands in a terminal environment.
+3. Foundational Git knowledge (cloning, branching, committing).
+
+---
+
+### Bootcamp Syllabus by Day
+
+#### Day 1 &middot; Foundation & Tooling
+- **Module 1: Tooling with uv**
+  - Unified workflow: replacing `pip`, `pipx`, `poetry`, `pyenv`, and `virtualenv`.
+  - The 7 lifecycle commands: `uv init`, `uv add`, `uv sync`, `uv run`, `uv lock`.
+  - Dependency groups (`--dev`), CI frozen installs, and PEP 723 single-file scripts.
+  - Project layout: the `src` layout, `ruff` linting/formatting, and static type checking.
+  - *Lab 1:* Build a professional, reproducible project skeleton with CI quality gates.
+- **Module 2: Core Language Fluency**
+  - Object references, mutability, and the mutable default argument bug.
+  - Signatures in depth: positional-only `/`, keyword-only `*`, and runtime tool specs.
+  - Lazy pipelines with generators, iterators, and `itertools.batched`.
+  - Exception hierarchy, chaining (`raise ... from`), and `ExceptionGroup` (Python 3.11+).
+  - Context managers, tool registration decorators (`@functools.wraps`), and `match ... case`.
+  - *Lab 2:* Build a lazy text-pipeline library with timing context managers and error chaining.
+
+---
+
+#### Day 2 &middot; Types & Data Modeling
+- **Module 3: Type Hints in Depth**
+  - Why types matter: runtime schema reflection and preventing costly model API failures.
+  - Modern annotations, `Annotated[T, metadata]`, and LangGraph state reducers.
+  - `TypedDict` with `NotRequired` and Python 3.13 `ReadOnly`.
+  - High-performance dataclasses (`slots=True`, `frozen=True`).
+  - Structural typing (`Protocol`) for test seams vs nominal inheritance (`ABC`).
+  - PEP 695 generics (`def first[T]()`), `ParamSpec` typed decorators, and `assert_never`.
+  - *Lab 3:* Implement a typed state machine and automatic JSON Schema extractor from Python functions.
+- **Module 4: Pydantic Validation & Schemas**
+  - Validation at the boundary: untrusted model outputs and external APIs.
+  - `BaseModel` essentials: coercion rules, `ValidationError`, and JSON Schema generation.
+  - Field constraints, `@field_validator`, and cross-field `@model_validator`.
+  - Tagged / discriminated unions (`Annotated[A | B, Field(discriminator="kind")]`).
+  - 12-factor configuration with `pydantic-settings` and `SecretStr` credential masking.
+  - `TypeAdapter` and building self-healing LLM error-feedback retry loops.
+  - *Lab 4:* Model an agent contract with multimodal inputs, settings, and JSON error repair.
+
+---
+
+#### Day 3 &middot; Async & Architecture
+- **Module 5: Async & Concurrency**
+  - Mental model: `asyncio` vs `threading` vs `multiprocessing`.
+  - Tasks, coroutines, and `await`; `asyncio.gather` vs Python 3.11+ `TaskGroup`.
+  - Timeouts with `asyncio.timeout` and safe cancellation handling (never swallow `CancelledError`).
+  - Task coordination: `Semaphore` rate limiting, producer-consumer `Queue` backpressure.
+  - Token streaming with async generators (`yield` & `async for`).
+  - Connection pooling with `httpx.AsyncClient` and MCP client lifecycles.
+  - Offloading blocking I/O (`to_thread`) and CPU bottlenecks (`ProcessPoolExecutor`).
+  - Tracing multi-step agent turns with `contextvars`.
+  - *Lab 5:* Build a concurrent, cancellable, rate-limited fetcher with streaming output.
+- **Module 6: Framework Design Patterns**
+  - Event bus architectures with async lifecycle hooks (`before_tool`, `after_tool`).
+  - Auto-registration plugin registries via `__init_subclass__`.
+  - Dependency injection and context containers (`Deps`).
+  - Functional state reducers and immutable state transitions.
+  - DAG execution with `graphlib.TopologicalSorter` and dictionary dispatch routing.
+  - Resiliency: exponential backoff with full jitter and idempotency keys.
+  - *Lab 6:* Build a mini graph execution runtime.
+
+---
+
+#### Day 4 &middot; Real-World Engineering
+- **Module 7: I/O, Data & Observability**
+  - Streaming HTTP responses (SSE) with `httpx.stream()` and `aiter_lines()`.
+  - JSON serialization boundaries, datetime handling, and round-trip tests.
+  - Modern `pathlib` with atomic file swapping (`tempfile` + `os.replace`).
+  - Hierarchical logging and correlation tracking with `extra={"run_id": ...}`.
+  - SQLite persistence with transactional context managers and parameterized queries.
+  - *Lab 7:* Build a concurrent API client with Pydantic validation, SQLite storage, and structured logs.
+- **Module 8: Testing & Quality**
+  - `pytest` fixtures, test parametrization, and exception assertion.
+  - High-fidelity in-memory fakes over brittle mocks; `AsyncMock`.
+  - Testing LLM code: deterministic model fakes, golden snapshot files, and Hypothesis property tests.
+  - Quality gates: GitHub Actions matrix testing with `astral-sh/setup-uv`, `ruff`, and `mypy`.
+  - *Lab 8:* Put the agent graph runtime under a 100% offline unit test suite and CI workflow.
+
+---
+
+#### Day 5 &middot; Performance, Shipping & Capstone
+- **Module 9: Performance & Memory**
+  - Profiling wall time vs CPU time (`cProfile`, `tracemalloc`); distributed tracing first.
+  - Caching and memory: bounded `@lru_cache`, `slots=True`, and generator pipelines.
+  - Concurrency model decision framework.
+  - Agent optimization tactics: parallel tool calls, streaming, connection reuse, and token budgeting.
+- **Module 10: Packaging, Security & Shipping**
+  - Semantic versioning, `uv build` wheels and source distributions, and `uv publish`.
+  - Command-line interfaces with `argparse` and single async-to-sync boundaries.
+  - Lean multi-stage Dockerfiles with `ghcr.io/astral-sh/uv` and non-root users.
+  - Security hygiene: prompt injection defense, banning `eval` and `pickle`, vulnerability auditing (`uv audit`).
+  - Serving agents with FastAPI: modular `APIRouter`, streaming SSE endpoints, `lifespan`, and middleware.
+  - *Lab 9:* Package the runtime as an installable CLI, containerize in Docker, and run security audits.
+- **Capstone Project: Build a Mini Agent Runtime**
+  - Construct an end-to-end autonomous agent runtime uniting:
+    1. Typed state channels with reducers
+    2. Validated tool contracts generated dynamically from Python functions
+    3. Asynchronous DAG orchestration engine with timeouts
+    4. Lifecycle observability hooks and dependency injection
+    5. Retries with backoff and atomic persistence
+    6. Complete test suite and containerized packaging
+  - Evaluation Rubric: Correctness (30), Architecture (20), Async Reliability (20), CI & Tests (15), Shipping & Packaging (15).

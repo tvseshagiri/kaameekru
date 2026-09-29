@@ -266,7 +266,7 @@ type Result[T] = tuple[bool, T]
 
 ::: {.column width="34%"}
 #### Pydantic
-```python
+```text
 class M(BaseModel): ...
 Field(ge=0, le=100)
 @field_validator("x")
@@ -280,7 +280,7 @@ TypeAdapter(list[M])
 ::: columns
 ::: {.column width="33%"}
 #### Async
-```python
+```text
 async def / await
 asyncio.create_task()
 async with TaskGroup() as tg:
@@ -293,7 +293,7 @@ await asyncio.to_thread(fn)
 
 ::: {.column width="33%"}
 #### Testing
-```python
+```text
 @pytest.fixture
 @pytest.mark.parametrize
 @pytest.mark.asyncio

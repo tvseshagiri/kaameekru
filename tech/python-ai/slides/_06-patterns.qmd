@@ -288,36 +288,46 @@ class MiniGraphEngine:
             else:
                 new_state[k] = v
         return new_state
+
+    async def execute(self, initial_state: dict) -> dict:
+        sorter = TopologicalSorter(self._deps)
+        state = dict(initial_state)
+        for node_name in sorter.static_order():
+            for hook in self._hooks["before"]:
+                await hook(node_name, state)
+            update = await self._nodes[node_name](state)
+            state = self._apply_reducers(state, update)
+            for hook in self._hooks["after"]:
+                await hook(node_name, state)
+        return state
 ```
 :::
 
 ::: {.column width="45%"}
 ```python
-    async def execute(self, initial_state: dict) -> dict:
-        sorter = TopologicalSorter(self._deps)
-        state = dict(initial_state)
+# Execution Pipeline Demo
+engine = MiniGraphEngine()
 
-        for node_name in sorter.static_order():
-            # Before hook
-            for hook in self._hooks["before"]:
-                await hook(node_name, state)
+async def log_step(name: str, state: dict):
+    print(f"[HOOK] Executing node: {name}")
 
-            # Node execution (pure non-mutating update)
-            node_fn = self._nodes[node_name]
-            update = await node_fn(state)
-            state = self._apply_reducers(state, update)
+engine.register_hook("before", log_step)
 
-            # After hook
-            for hook in self._hooks["after"]:
-                await hook(node_name, state)
+# Define async graph nodes
+async def fetch_step(s):
+    return {"messages": ["fetched doc"]}
 
-        return state
+async def summarize_step(s):
+    return {"summary": "Document summarized"}
 
-# Demo:
-graph = MiniGraphEngine()
-graph.add_node("fetch", lambda s: {"messages": ["fetched doc"]})
-graph.add_node("summarize", lambda s: {"summary": "Doc summary"}, depends_on={"fetch"})
-# result = asyncio.run(graph.execute({"messages": []}))
+engine.add_node("fetch", fetch_step)
+engine.add_node("summarize", summarize_step, depends_on={"fetch"})
+
+async def main():
+    final = await engine.execute({"messages": []})
+    print(final)
+
+# asyncio.run(main())
 ```
 :::
 :::

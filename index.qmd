@@ -26,5 +26,6 @@ subtitle: "Interactive Presentations & Course Curricula"
 | [Apache Maven Training](courses/maven.qmd) | Structured syllabus covering basic to advanced build management, plugin lifecycles, and multi-module configurations. |
 | [Java Web Application Development](courses/javawebapp.qmd) | Complete curriculum covering Servlets, JSP, MVC architecture, session management, and enterprise integration. |
 | [ReactJS Full Course](courses/reactjs.qmd) | Structured training program covering React from initial setup to enterprise-grade state management and testing. |
+| [Python for AI Engineers](courses/python-ai.qmd) | 5-day comprehensive prerequisite bootcamp covering uv, deep typing, Pydantic, async concurrency, design patterns, testing, performance, and the mini agent runtime capstone. |
 
 : {tbl-colwidths="[30,70]"}
