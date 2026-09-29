@@ -1,0 +1,278 @@
+
+# Session 3: Agentic System Types & Patterns {#session-3}
+
+---
+
+### What Are Agentic System Types?
+
+::: columns
+::: {.column width="50%"}
+#### Categorized by How They Live & Work
+Agents are not one-size-fits-all. In modern software engineering, they fall into **four operational types**:
+
+1. **Conversational Agents (Surface / Copilot)**
+2. **Workflow Agents (Process Automation)**
+3. **Deep Agents (Long-Horizon Solvers)**
+4. **Ambient Agents (Proactive Monitors)**
+:::
+
+::: {.column width="50%"}
+```mermaid
+graph TD
+    A["Agentic System Types"] --> C["1. Conversational<br>(Interactive Copilot)"]
+    A --> W["2. Workflow<br>(Event Pipeline)"]
+    A --> D["3. Deep Agent<br>(Autonomous Solver)"]
+    A --> AM["4. Ambient<br>(Proactive Monitor)"]
+    style C fill:#4285f4,color:#fff
+    style W fill:#34a853,color:#fff
+    style D fill:#ea4335,color:#fff
+    style AM fill:#fbbc04,color:#000
+```
+:::
+:::
+
+---
+
+### The 4 Operational System Types
+
+| System Type | Trigger & Interaction | Primary Objective | Engineering Example |
+| :--- | :--- | :--- | :--- |
+| **Conversational** | Synchronous; human-prompted | Interactive guidance & tool actions | IDE coding copilot, helpdesk bot |
+| **Workflow** | Event/API/Webhook-triggered | Automated multi-step pipelines | CI/CD build triage, data validation |
+| **Deep Agent** | High-level goal; long-running | Multi-hour autonomous problem-solving | Claude Code, complex migration agent |
+| **Ambient** | Always-on; continuous sensing | Proactive background observation | Infrastructure anomaly monitor |
+
+: {tbl-colwidths="[20,28,26,26]"}
+
+---
+
+### System Topology: Single vs. Multi-Agent
+
+::: columns
+::: {.column width="50%"}
+#### Single-Agent Architecture
+- One model managing one set of tools.
+- **Pros:** Simple to build, fast, inexpensive, easy to trace and debug.
+- **Cons:** Fails when tasks require conflicting personas or large tool lists (>20 tools).
+- **Rule of Thumb:** Always start here first!
+:::
+
+::: {.column width="50%"}
+#### Multi-Agent Architecture
+- Multiple specialized agents coordinating to solve a complex objective.
+- **Pros:** Separation of concerns, smaller focused contexts, modular testing.
+- **Cons:** High token cost, coordination overhead, harder to debug.
+- **Use when:** Tasks require distinct roles (e.g. Coder vs. Tester).
+:::
+:::
+
+---
+
+### Agent Integration Patterns: How Agents Connect
+
+```mermaid
+graph LR
+    subgraph P1["1. Sequential (Pipeline)"]
+        A1[Agent A] --> B1[Agent B] --> C1[Agent C]
+    end
+    subgraph P2["2. Parallel (Fan-Out / Fan-In)"]
+        D2[Input] --> E2[Agent A]
+        D2 --> F2[Agent B]
+        E2 --> G2[Aggregator]
+        F2 --> G2
+    end
+    style P1 fill:#f0f8ff,stroke:#1a73e8
+    style P2 fill:#f0fff0,stroke:#34a853
+```
+
+- **Sequential Pattern:** Output of Agent A directly feeds Agent B (e.g. Spec Writer $\rightarrow$ Code Generator $\rightarrow$ Test Writer).
+- **Parallel Pattern:** Multiple agents run concurrently on the same input (e.g. Security Auditor & Performance Auditor run together).
+
+---
+
+### Integration Patterns: Hierarchical & Debate
+
+```mermaid
+graph TD
+    subgraph Hierarchical["3. Hierarchical (Supervisor / Orchestrator)"]
+        Lead[Supervisor / Tech Lead] -->|Assigns| W1[Worker A: Backend]
+        Lead -->|Assigns| W2[Worker B: Database]
+        W1 -->|Reports| Lead
+        W2 -->|Reports| Lead
+    end
+    subgraph Debate["4. Collaborative / Critique (Debate)"]
+        Gen[Generator Agent] <-->|Drafts & Critiques| Rev[Reviewer Agent]
+    end
+    style Hierarchical fill:#fdf7e7,stroke:#fbbc04
+    style Debate fill:#fbf0f0,stroke:#ea4335
+```
+
+- **Hierarchical:** A supervisor breaks down a complex goal, delegates sub-tasks, and aggregates outputs.
+- **Collaborative / Debate:** Two agents challenge each other until quality criteria are met (e.g. Generator $\leftrightarrow$ Judge).
+
+---
+
+### Human-in-the-Loop Integration Pattern
+
+::: columns
+::: {.column width="55%"}
+#### The Pull Request Approval Model
+Agents should not execute state-modifying actions autonomously without human review:
+
+- **Safe Actions (Read-Only):** Agent queries database, analyzes logs, drafts fixes.
+- **Sensitive Actions (Write/Mutate):** Agent pauses execution at a **Checkpoint Gate**.
+- **Human Decision:** The human approves, rejects, or provides feedback to steer the agent.
+:::
+
+::: {.column width="45%"}
+```mermaid
+graph TD
+    A[Agent Analyzes PR] --> B[Drafts Hotfix]
+    B --> Gate{Human Approval}
+    Gate -- Approved --> C[Merge & Deploy]
+    Gate -- Rejected --> D[Agent Revises]
+    D --> Gate
+    style Gate fill:#ea4335,color:#fff
+    style C fill:#34a853,color:#fff
+```
+:::
+:::
+
+---
+
+### Choosing the Right Pattern
+
+| Requirement | Recommended Pattern | Why? |
+| :--- | :--- | :--- |
+| Step-by-step code transformation | **Sequential Pipeline** | 100% predictable handoffs; zero coordination confusion |
+| Multi-expert code audit | **Parallel (Fan-Out)** | Fast execution via `asyncio.gather`; independent domains |
+| Large, open-ended project build | **Hierarchical (Supervisor)** | Breaks dynamic goals into managed sub-tasks |
+| High-precision code generation | **Collaborative / Debate** | Adversarial review loop catches subtle edge cases |
+| Production database migrations | **Human-in-the-Loop** | Critical safety boundary against irreversible data loss |
+
+: {tbl-colwidths="[30,30,40]"}
+
+---
+
+### Lab 3 Scenario: Code Review System
+
+::: columns
+::: {.column width="55%"}
+#### Architectural Comparison
+We will build and compare two integration patterns for automated code review using **Gemini 2.5 Flash**:
+
+1. **Pattern 1: Sequential Handoff**
+   - Bug Detector Agent $\rightarrow$ Review Formatter Agent.
+2. **Pattern 2: Parallel Specialist Team**
+   - Supervisor fans out to a **Security Specialist** and a **Performance Specialist** concurrently, then synthesizes.
+:::
+
+::: {.column width="45%"}
+```python
+# Sample student submission to analyze
+STUDENT_CODE = """
+def get_user_orders(user_id):
+    # SQL Injection risk & O(N^2) loop
+    sql = f"SELECT * FROM users WHERE id = '{user_id}'"
+    user = db.query(sql)
+    for u in user:
+        for order in db.all_orders():
+            if order.uid == u.id:
+                yield order
+"""
+```
+:::
+:::
+
+---
+
+### Lab 3: Pattern 1 — Sequential Pipeline
+
+```python
+"""Lab 3 - Pattern 1: Sequential Handoff."""
+from google import genai
+
+client = genai.Client()
+
+def run_sequential_pipeline(code: str) -> str:
+    # Agent 1: Technical Bug Detection
+    p1 = f"Identify all security vulnerabilities and performance bugs in:\n{code}"
+    tech_findings = client.models.generate_content(
+        model="gemini-2.5-flash", contents=p1
+    ).text
+
+    # Agent 2: Junior Developer Coach (Handoff)
+    p2 = f"Rewrite these technical findings as an encouraging PR review:\n{tech_findings}"
+    friendly_review = client.models.generate_content(
+        model="gemini-2.5-flash", contents=p2
+    ).text
+    return friendly_review
+```
+
+---
+
+### Lab 3: Pattern 2 — Parallel Specialists
+
+```python
+"""Lab 3 - Pattern 2: Parallel Specialist Fan-Out."""
+import asyncio
+from google import genai
+
+client = genai.Client()
+
+async def security_auditor(code: str) -> str:
+    prompt = f"Audit ONLY for security risks (SQLi, secrets) in:\n{code}"
+    resp = await client.aio.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    return resp.text
+
+async def performance_auditor(code: str) -> str:
+    prompt = f"Audit ONLY for runtime performance (O(N^2), memory) in:\n{code}"
+    resp = await client.aio.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    return resp.text
+
+async def run_parallel_team(code: str) -> str:
+    # Fan-out concurrently
+    sec, perf = await asyncio.gather(security_auditor(code), performance_auditor(code))
+    
+    # Fan-in to lead synthesizer
+    synth_prompt = f"Combine these audit reports into a final PR review:\nSecurity:\n{sec}\nPerformance:\n{perf}"
+    lead = await client.aio.models.generate_content(model="gemini-2.5-flash", contents=synth_prompt)
+    return lead.text
+```
+
+---
+
+### Lab 3: Architectural Trade-Off Analysis
+
+| Architectural Metric | Pattern 1: Sequential Pipeline | Pattern 2: Parallel Specialists |
+| :--- | :--- | :--- |
+| **Complexity** | Low (linear flow, easy to debug) | Medium (requires concurrency management) |
+| **Latency** | Slower (sum of Turn 1 + Turn 2) | **Faster** (runs specialists simultaneously) |
+| **Audit Depth** | Generalist coverage | **Specialist depth** (isolated prompt focus) |
+| **Failure Modes** | If Step 1 fails, Step 2 is poisoned | One specialist failing doesn't block the other |
+| **Best Production Fit** | Data transformation pipelines | Multi-faceted code or document reviews |
+
+: {tbl-colwidths="[22,38,40]"}
+
+---
+
+### Session 3 Review & Self-Check
+
+::: columns
+::: {.column width="50%"}
+#### Key Insights
+- **4 System Types:** Conversational, Workflow, Deep, and Ambient.
+- **Topologies:** Single-Agent (start simple) vs. Multi-Agent (specialization).
+- **Integration Patterns:** Sequential, Parallel, Hierarchical, and Debate.
+- **Human Gates:** Mandatory for state-modifying actions.
+:::
+
+::: {.column width="50%"}
+::: {.callout-tip}
+### Self-Check Questions
+1. *What distinguishes a Deep Agent (like Claude Code) from a Conversational Copilot?*
+2. *Why does the Parallel (Fan-Out) pattern reduce overall latency compared to Sequential?*
+3. *When is a Single-Agent architecture preferred over a Multi-Agent system?*
+:::
+:::
+:::

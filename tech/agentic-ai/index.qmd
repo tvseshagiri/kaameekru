@@ -1,0 +1,12 @@
+---
+title: "Agentic AI Engineering Bootcamp"
+subtitle: "3-Day Hands-on Intensive: Architecture, Orchestration, Tooling & Production Governance"
+author: "Seshagiri Telkapalli"
+slide-number: true
+---
+
+{{< include slides/_00-overview.qmd >}}
+{{< include slides/_01-what-is-agentic-ai.qmd >}}
+{{< include slides/_02-anatomy-of-agent.qmd >}}
+{{< include slides/_03-patterns-and-types.qmd >}}
+{{< include slides/_04-framework-landscape.qmd >}}

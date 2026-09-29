@@ -1,0 +1,131 @@
+
+# Bootcamp Overview {#overview}
+
+---
+
+### Agentic AI Engineering
+
+::: columns
+::: {.column width="55%"}
+#### 3-Day Intensive Bootcamp
+**From single-turn LLM prompts to production-grade, stateful, tool-using agent runtimes.**
+
+- **Target Audience:** Entry-level software engineers and computer science students with LLM programming fundamentals.
+- **Scope:** 3 Days &middot; 12 Sessions &middot; 10 Hands-on Labs &middot; 1 Capstone Project.
+- **Pacing:** 40% Architecture & Design Principles, 60% Practical Guided Labs.
+- **Core Model:** Google Gemini (`gemini-2.5-flash` / `gemini-1.5-pro`) via `google-genai`.
+:::
+
+::: {.column width="45%"}
+::: {.callout-note}
+### Core Focus Pillars
+- **Foundations:** Perceive-Reason-Act loop, tool schemas, context engineering
+- **Orchestration:** LangGraph stateful graphs & Google Gen AI ADK
+- **Ecosystem:** Model Context Protocol (MCP) & modular Agent Skills
+- **Trust & Ship:** LLM-as-a-judge eval, local OTel tracing & guardrails
+:::
+:::
+:::
+
+---
+
+### Three Days, Twelve Sessions
+
+| Day | Theme | Sessions Included | Hands-on Labs |
+| :--- | :--- | :--- | :--- |
+| **Day 1** | **Foundations & Architecture** | **1:** What is Agentic AI?<br>**2:** Anatomy of an Agent<br>**3:** System Types & Patterns<br>**4:** Framework Landscape | **Lab 1:** Tool-using ReAct loop<br>**Lab 2:** Scratch agent runtime<br>**Lab 3:** Chaining vs. Orchestrator<br>**Activity 1:** Decision matrix |
+| **Day 2** | **Depth, Ecosystem & Tooling** | **5:** LangGraph & Google Gen AI ADK<br>**6:** Model Context Protocol (MCP)<br>**7:** Agent Skills & Disclosure<br>**8:** Coding Agents in Practice | **Lab 5:** Stateful graph + ADK agent<br>**Lab 6:** Custom MCP server<br>**Lab 7:** Packaging reusable skills<br>**Lab 8:** Spec-driven coding agent |
+| **Day 3** | **Trust, Production & Governance** | **9:** Evaluation & Testing<br>**10:** Observability & Telemetry<br>**11:** Security & Guardrails<br>**12:** Enterprise Governance | **Lab 9:** 20-case eval harness<br>**Lab 10:** Zero-friction local tracing<br>**Lab 11:** Red-team peer hardening<br>**Capstone:** Production Showcase |
+
+: {tbl-colwidths="[12,28,35,25]"}
+
+---
+
+### Target Audience & Prerequisites
+
+::: columns
+::: {.column width="50%"}
+#### Who This Bootcamp is For
+- **Entry-Level Software Engineers** expanding from web/backend into AI engineering.
+- **Computer Science Students & Researchers** with basic LLM API experience looking to build real systems.
+- **Technical Leads & Architects** establishing agent evaluation, telemetry, and security guardrails.
+:::
+
+::: {.column width="50%"}
+#### Required Prerequisites
+- **Python Fluency:** Functions, classes, dictionaries, and virtual environments.
+- **LLM Fundamentals:** Working understanding of prompts, completions, tokens, temperature, and API calls.
+- **CLI & Git:** Basic command line navigation and GitHub cloning/branching.
+:::
+:::
+
+---
+
+### Technology Stack & Architecture
+
+::: columns
+::: {.column width="50%"}
+#### Model & Tooling
+- **Foundation Model:** Google Gemini (`gemini-2.5-flash` / `gemini-1.5-pro`).
+- **Python Management:** **`uv`** (`uv sync`, `uv run`) for rapid environments.
+- **Service & Web Layer:** **FastAPI** with async endpoints & SSE streaming.
+- **Client Tooling:** Python stdlib, `pydantic` v2, and Node.js 22 LTS.
+:::
+
+::: {.column width="50%"}
+#### Frameworks & Protocols
+- **Stateful Graphs:** **LangGraph** (nodes, conditional edges, persistence).
+- **Agent SDK:** **Google Gen AI Agent Development Kit (ADK)**.
+- **Interoperability:** **Model Context Protocol (MCP)** via Python **FastMCP & FastAPI**.
+- **Zero-Friction Telemetry:** Local OpenTelemetry & lightweight SQLite trace logger.
+:::
+:::
+
+---
+
+### Lab Progression & Capstone Project
+
+::: columns
+::: {.column width="55%"}
+#### Capstone Project Deliverable
+At 16:00 on Day 3, every participant or pair presents a working, production-grade agent:
+
+1. **Stateful Graph Topology:** Multi-step graph built in LangGraph or ADK.
+2. **Standard Interop:** Powered by at least one custom MCP tool or resource.
+3. **Approval Gate:** Deterministic human interrupt before executing state mutations.
+4. **Local Telemetry:** Clean OpenTelemetry trace demonstrating the execution path.
+5. **Quality Benchmark:** Pass score across a 5-case regression test suite.
+:::
+
+::: {.column width="45%"}
+::: {.callout-tip}
+### 30-Day Follow-Up Support
+- **Week 1:** Full lab solutions, recordings & dedicated Q&A channel.
+- **Week 2:** Virtual debugging office hours for agent implementations.
+- **Week 4:** Virtual pilot showcase and organizational adoption check-in.
+:::
+:::
+:::
+
+---
+
+### Environment Setup & Verification
+
+```bash
+# 1. Clone the bootcamp repository
+git clone <bootcamp-repo-url> agentic-bootcamp
+cd agentic-bootcamp
+
+# 2. Synchronize dependencies using uv
+uv sync
+
+# 3. Configure your Google Gemini API key
+cp .env.example .env
+# Set GEMINI_API_KEY="AIzaSy..." in .env
+
+# 4. Run the pre-flight verification script
+uv run python scripts/check_env.py
+```
+
+> [!NOTE]
+> The `check_env.py` script verifies Python 3.11+, package imports, Node.js 22 LTS availability, and sends an authenticated ping to the Google Gemini API.

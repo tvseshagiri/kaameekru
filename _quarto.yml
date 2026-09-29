@@ -29,6 +29,8 @@ website:
             text: "Python"
           - href: tech/python-ai/index.qmd
             text: "Python for AI Engineers"
+          - href: tech/agentic-ai/index.qmd
+            text: "Agentic AI Bootcamp"
       - text: "Courses"
         menu:
           - href: courses/spring.qmd
@@ -41,6 +43,8 @@ website:
             text: "ReactJS Curriculum"
           - href: courses/python-ai.qmd
             text: "Python for AI Engineers"
+          - href: courses/agentic-ai.qmd
+            text: "Agentic AI Engineering"
     right:
       - icon: github
         href: https://github.com/tvseshagiri/kaameekru

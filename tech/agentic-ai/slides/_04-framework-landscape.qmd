@@ -1,0 +1,193 @@
+
+# Session 4: Framework Landscape & Decision Matrix {#session-4}
+
+---
+
+### The Framework Dilemma
+
+::: columns
+::: {.column width="50%"}
+#### Framework Fatigue
+The open-source AI ecosystem moves fast:
+- Every week brings a "revolutionary" new agent library.
+- Beginners often think: *"I must use a heavy framework to build a real agent."*
+- **The Reality:** Heavy frameworks often add bloated abstractions, opaque prompt wrappers, and debugging nightmares.
+:::
+
+::: {.column width="50%"}
+::: {.callout-important}
+### The Golden Engineering Rule
+**Never adopt a framework for what standard Python can do in 20 lines.**
+
+Adopt a framework only when it solves hard production problems: **state persistence**, **complex cyclic graphs**, or **human interrupt resumption**.
+:::
+:::
+:::
+
+---
+
+### The Major Contenders in 2026
+
+```mermaid
+graph TD
+    subgraph LowLevel["Low-Level Control & Production Graphs"]
+        LG["LangGraph<br>(State Graphs & Persistence)"]
+        ADK["Google Gen AI ADK<br>(Gemini Native & Cloud Run)"]
+    end
+    subgraph HighLevel["High-Level Role-Playing & Rapid Prototyping"]
+        Crew["CrewAI<br>(Roles, Backstories, Tasks)"]
+        AG["AutoGen / AG2<br>(Multi-Agent Conversational Chat)"]
+    end
+    subgraph Native["Provider-Native & Zero-Framework"]
+        SDK["OpenAI / Claude SDKs<br>(Vendor-native handoffs)"]
+        Raw["Raw Python + FastAPI<br>(Pure stdlib, zero lock-in)"]
+    end
+    style LowLevel fill:#f0f8ff,stroke:#1a73e8
+    style HighLevel fill:#fdf7e7,stroke:#fbbc04
+    style Native fill:#efe,stroke:#34a853
+```
+
+---
+
+### 1. LangGraph & Google Gen AI ADK
+
+::: columns
+::: {.column width="50%"}
+#### LangGraph (Production Anchor)
+- **Mental Model:** Directed Cyclic Graphs (State, Nodes, Edges).
+- **Key Superpower:** Checkpointing & state resumption (`SqliteSaver`).
+- **Best for:** Complex enterprise workflows, loops, and human-in-the-loop gates.
+- **Trade-off:** Steeper learning curve; explicit schema wiring.
+:::
+
+::: {.column width="50%"}
+#### Google Gen AI ADK (Agent Development Kit)
+- **Mental Model:** Declarative agent definitions for Gemini.
+- **Key Superpower:** Seamless Gemini multimodal grounding & Cloud Run scaling.
+- **Best for:** Cloud-native agents and sub-agent delegation.
+- **Trade-off:** Optimized primarily for the Google ecosystem.
+:::
+:::
+
+---
+
+### 2. CrewAI & AutoGen (AG2)
+
+::: columns
+::: {.column width="50%"}
+#### CrewAI
+- **Mental Model:** Role-playing team (Senior Researcher, Writer).
+- **Key Superpower:** Extremely fast to prototype (working demo in 15 mins).
+- **Best for:** Brainstorming, hackathons, content generation.
+- **Trade-off:** Opaque prompt injection; hard to force strict determinism.
+:::
+
+::: {.column width="50%"}
+#### AutoGen / AG2 (Microsoft)
+- **Mental Model:** Conversational group chat between agents.
+- **Key Superpower:** Dynamic back-and-forth debate and code execution.
+- **Best for:** Simulation, automated bug hunting, research experiments.
+- **Trade-off:** High token consumption; risk of endless conversational loops.
+:::
+:::
+
+---
+
+### The 5 Decision Criteria
+
+::: columns
+::: {.column width="50%"}
+1. **Control & Determinism:**
+   - Can you guarantee the exact sequence of critical steps?
+2. **Speed to Prototype:**
+   - How many lines of code to build a working prototype?
+3. **Debugging & Observability:**
+   - Can you trace errors back to standard Python stack traces?
+:::
+
+::: {.column width="50%"}
+4. **State Persistence:**
+   - If the server restarts mid-run, can the agent resume where it left off?
+5. **Ecosystem & Vendor Lock-In:**
+   - Does the framework bind you to a single model provider or cloud?
+:::
+:::
+
+---
+
+### Framework Evaluation Scorecard
+
+| Dimension | Raw Python | LangGraph | Google ADK | CrewAI | AutoGen |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Control & Predictability** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| **Speed to Prototype** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Debugging Simplicity** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
+| **Stateful Persistence** | DIY | Built-in | Cloud-native | Limited | Limited |
+| **Production Fit** | High | **Very High** | **Very High** | Moderate | Moderate |
+
+: {tbl-colwidths="[26,14,15,15,15,15]"}
+
+---
+
+### Framework Selection Decision Flowchart
+
+```mermaid
+graph TD
+    Start["New Project Idea"] --> Q1{"Is flow predictable<br>with 1-3 fixed steps?"}
+    Q1 -- "Yes" --> Raw["Use Raw Python + FastAPI<br>(No Framework Needed!)"]
+    Q1 -- "No" --> Q2{"Need fast prototype<br>or team simulation?"}
+    Q2 -- "Yes" --> Crew["Use CrewAI or AutoGen"]
+    Q2 -- "No" --> Q3{"Building on Gemini<br>& Cloud Run?"}
+    Q3 -- "Yes" --> ADK["Use Google Gen AI ADK"]
+    Q3 -- "No" --> LG["Use LangGraph<br>(Stateful cyclic graphs)"]
+    style Raw fill:#efe,stroke:#34a853,stroke-width:2px
+    style LG fill:#f0f8ff,stroke:#1a73e8,stroke-width:2px
+    style ADK fill:#fdf7e7,stroke:#fbbc04,stroke-width:2px
+```
+
+---
+
+### Group Activity: Framework Defense
+
+::: columns
+::: {.column width="55%"}
+#### Real-World Case Studies
+Pick the best architectural approach for each scenario and defend your choice:
+
+1. **Case A: Automated PR CI/CD Fixer**
+   - Must run linters, fix unit tests, and pause for tech lead approval before committing.
+2. **Case B: Marketing Brainstorming Team**
+   - Copywriter, SEO Specialist, and Creative Director debating slogan ideas.
+3. **Case C: Real-Time Customer Order Status API**
+   - High-throughput endpoint looking up order tracking in a Postgres DB.
+:::
+
+::: {.column width="45%"}
+::: {.callout-tip}
+### Discussion Hints
+- *Case A:* Requires strict cyclic state & human gates $\rightarrow$ **LangGraph**.
+- *Case B:* Thrives on conversational personas $\rightarrow$ **CrewAI**.
+- *Case C:* Simple tool lookup requiring lowest latency $\rightarrow$ **Raw Python + FastAPI**.
+:::
+:::
+:::
+
+---
+
+### Day 1 Synthesis: Foundations Complete!
+
+```mermaid
+graph LR
+    S1["S1: What is Agentic AI?<br>(Autonomy & ReAct)"] --> S2["S2: Anatomy of Agent<br>(Persona, Tools, Memory)"]
+    S2 --> S3["S3: Types & Patterns<br>(Single/Multi, Workflows)"]
+    S3 --> S4["S4: Framework Matrix<br>(Build vs. Buy)"]
+    style S1 fill:#1a73e8,color:#fff
+    style S2 fill:#34a853,color:#fff
+    style S3 fill:#fbbc04,color:#000
+    style S4 fill:#8e24aa,color:#fff
+```
+
+::: {.callout-note}
+### Ready for Day 2: Depth & Ecosystem
+Tomorrow morning at 09:00, we dive deep into **LangGraph & Google Gen AI ADK**, building stateful graphs with real persistence and human approval gates!
+:::
