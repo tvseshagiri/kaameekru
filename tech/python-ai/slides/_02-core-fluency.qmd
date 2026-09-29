@@ -389,3 +389,71 @@ Build a lazy text processing pipeline with decorators, timing context managers, 
 - [x] **Stretch Goal:** Add structural `match ... case` routing of records to specialized branch stages.
 :::
 :::
+
+---
+
+### Lab 2: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+import functools
+import time
+from collections import Counter
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
+
+class PipelineError(Exception):
+    """Raised when a text processing stage fails."""
+
+STAGES: dict[str, Callable] = {}
+
+def stage(name: str) -> Callable:
+    """Decorator registering pipeline processing steps."""
+    def decorator(fn: Callable) -> Callable:
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            return fn(*args, **kwargs)
+        STAGES[name] = wrapper
+        return wrapper
+    return decorator
+
+@contextmanager
+def stage_timer(label: str):
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        print(f"[{label}] Elapsed: {time.perf_counter() - start:.4f}s")
+```
+:::
+
+::: {.column width="45%"}
+```python
+@stage("clean_tokens")
+def stream_cleaned(
+    lines: Generator[str, None, None]
+) -> Generator[str, None, None]:
+    for line in lines:
+        for word in line.lower().split():
+            cleaned = word.strip(".,!?:;\"'()[]")
+            if cleaned:
+                yield cleaned
+
+def execute_pipeline(raw_lines: list[str]) -> Counter:
+    with stage_timer("token_aggregation"):
+        try:
+            line_generator = (line for line in raw_lines)
+            tokens = stream_cleaned(line_generator)
+            return Counter(tokens)
+        except Exception as exc:
+            raise PipelineError("Stage failure") from exc
+
+# Run pipeline:
+results = execute_pipeline(["Agent workflows require async.", "Async is fast."])
+print(results)
+# Counter({'async': 2, 'agent': 1, 'workflows': 1, ...})
+```
+:::
+:::
+

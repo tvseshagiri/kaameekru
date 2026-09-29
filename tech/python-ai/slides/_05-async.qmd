@@ -460,3 +460,64 @@ Build a high-performance concurrent fetcher with rate limiting, timeouts, cancel
 - [x] **Stretch Goal:** Add a `request_id` `ContextVar` and inject it automatically into all log outputs.
 :::
 :::
+
+---
+
+### Lab 5: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+from contextvars import ContextVar
+from collections.abc import AsyncGenerator
+
+trace_id_var: ContextVar[str] = ContextVar("trace_id", default="anon")
+
+async def fetch_endpoint(url: str, sem: asyncio.Semaphore) -> str:
+    async with sem:
+        try:
+            async with asyncio.timeout(1.5):
+                await asyncio.sleep(0.1)  # Simulate network latency
+                return f"[{trace_id_var.get()}] {url} -> 200 OK"
+        except asyncio.CancelledError:
+            print(f"Aborting {url} safely...")
+            raise
+
+async def stream_cancellable_fetches(
+    urls: list[str]
+) -> AsyncGenerator[str, None]:
+    sem = asyncio.Semaphore(5)
+    async with asyncio.TaskGroup() as tg:
+        tasks = [tg.create_task(fetch_endpoint(u, sem)) for u in urls]
+
+    for t in tasks:
+        yield t.result()
+```
+:::
+
+::: {.column width="45%"}
+```python
+async def main():
+    trace_id_var.set("trace_req_8812")
+    urls = [f"https://agent.api/items/{i}" for i in range(12)]
+
+    try:
+        async with asyncio.timeout(3.0):
+            async for item in stream_cancellable_fetches(urls):
+                print(f"Streamed: {item}")
+    except TimeoutError:
+        print("Batch fetch timed out cleanly after 3.0s")
+
+    # Offload CPU-heavy file save to worker thread
+    def save_checkpoint(data: str):
+        with open("last_fetch.txt", "w") as f:
+            f.write(data)
+
+    await asyncio.to_thread(save_checkpoint, "Run completed successfully")
+
+# asyncio.run(main())
+```
+:::
+:::
+

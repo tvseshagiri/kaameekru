@@ -197,3 +197,64 @@ Bring the Module 6 agent graph runtime under a comprehensive test suite and cont
 - [x] **Stretch Goal:** Enforce an automated code coverage threshold (e.g. 85%) on `src/`.
 :::
 :::
+
+---
+
+### Lab 8: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+# tests/test_runtime_suite.py
+import pytest
+from unittest.mock import AsyncMock
+from hypothesis import given, strategies as st
+from operator import add
+
+# 1. Testing reducers with parametrize
+@pytest.mark.parametrize("initial,update,expected", [
+    ([], ["msg1"], ["msg1"]),
+    (["m1"], ["m2", "m3"], ["m1", "m2", "m3"]),
+    (["m1"], [], ["m1"]),
+])
+def test_reducer_merge(initial, update, expected):
+    assert add(initial, update) == expected
+
+# 2. Testing hooks with AsyncMock
+@pytest.mark.asyncio
+async def test_hooks_invocation():
+    mock_hook = AsyncMock()
+    # Simulate execution hook
+    await mock_hook("node_fetch", {"data": 123})
+    mock_hook.assert_awaited_once_with("node_fetch", {"data": 123})
+```
+:::
+
+::: {.column width="45%"}
+```python
+# 3. Flaky retry test without real sleeping
+@pytest.mark.asyncio
+async def test_retry_flaky_node(monkeypatch):
+    import asyncio
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+
+    attempts = 0
+    async def flaky_call():
+        nonlocal attempts
+        attempts += 1
+        if attempts < 3:
+            raise ConnectionError("503 Service Unavailable")
+        return "recovered"
+
+    result = await retry_with_backoff(flaky_call, attempts=4)
+    assert result == "recovered"
+    assert attempts == 3
+
+# 4. Hypothesis property test: Associativity
+@given(st.lists(st.text()), st.lists(st.text()), st.lists(st.text()))
+def test_reducer_associativity(a, b, c):
+    assert add(add(a, b), c) == add(a, add(b, c))
+```
+:::
+:::
+

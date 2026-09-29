@@ -253,3 +253,72 @@ Write a lightweight asynchronous agent runtime featuring typed state, functional
 - [x] **Stretch Goal:** Execute independent topological nodes concurrently using `asyncio.TaskGroup`.
 :::
 :::
+
+---
+
+### Lab 6: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+from graphlib import TopologicalSorter
+from operator import add
+from collections.abc import Callable
+
+class MiniGraphEngine:
+    def __init__(self):
+        self._nodes: dict[str, Callable] = {}
+        self._deps: dict[str, set[str]] = {}
+        self._reducers = {"messages": add}
+        self._hooks: dict[str, list[Callable]] = {"before": [], "after": []}
+
+    def add_node(self, name: str, fn: Callable, depends_on: set[str] | None = None):
+        self._nodes[name] = fn
+        self._deps[name] = depends_on or set()
+
+    def register_hook(self, stage: str, fn: Callable):
+        self._hooks[stage].append(fn)
+
+    def _apply_reducers(self, state: dict, update: dict) -> dict:
+        new_state = dict(state)
+        for k, v in update.items():
+            if k in self._reducers:
+                new_state[k] = self._reducers[k](state.get(k, []), v)
+            else:
+                new_state[k] = v
+        return new_state
+```
+:::
+
+::: {.column width="45%"}
+```python
+    async def execute(self, initial_state: dict) -> dict:
+        sorter = TopologicalSorter(self._deps)
+        state = dict(initial_state)
+
+        for node_name in sorter.static_order():
+            # Before hook
+            for hook in self._hooks["before"]:
+                await hook(node_name, state)
+
+            # Node execution (pure non-mutating update)
+            node_fn = self._nodes[node_name]
+            update = await node_fn(state)
+            state = self._apply_reducers(state, update)
+
+            # After hook
+            for hook in self._hooks["after"]:
+                await hook(node_name, state)
+
+        return state
+
+# Demo:
+graph = MiniGraphEngine()
+graph.add_node("fetch", lambda s: {"messages": ["fetched doc"]})
+graph.add_node("summarize", lambda s: {"summary": "Doc summary"}, depends_on={"fetch"})
+# result = asyncio.run(graph.execute({"messages": []}))
+```
+:::
+:::
+

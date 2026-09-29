@@ -259,3 +259,68 @@ Define, validate, and document the complete data exchange contract for an autono
 - [x] **Stretch Goal:** Benchmark validation speed of `TypedDict` via `TypeAdapter` vs `BaseModel`.
 :::
 :::
+
+---
+
+### Lab 4: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+from typing import Annotated, Literal
+from pydantic import BaseModel, Field, SecretStr, TypeAdapter, ValidationError, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# 1. Discriminated union of multimodal parts
+class TextPart(BaseModel):
+    kind: Literal["text"]
+    content: str
+
+class ToolPart(BaseModel):
+    kind: Literal["tool_call"]
+    tool_name: str
+    args: dict
+
+Part = Annotated[TextPart | ToolPart, Field(discriminator="kind")]
+
+# 2. Tool Contract with validation
+class ToolRequest(BaseModel):
+    request_id: str
+    parts: list[Part]
+    max_retries: int = Field(ge=1, le=5, default=3)
+
+    @model_validator(mode="after")
+    def ensure_non_empty(self):
+        if not self.parts:
+            raise ValueError("parts cannot be empty")
+        return self
+```
+:::
+
+::: {.column width="45%"}
+```python
+# 3. Settings configuration with SecretStr
+class AgentConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    api_key: SecretStr = SecretStr("mock_secret_key")
+    environment: str = "production"
+
+# 4. TypeAdapter self-healing validation loop
+adapter = TypeAdapter(ToolRequest)
+
+def robust_parse(json_str: str) -> ToolRequest:
+    try:
+        return adapter.validate_json(json_str)
+    except ValidationError as err:
+        # Structured errors to send back to model
+        error_hints = [f"{e['loc']}: {e['msg']}" for e in err.errors()]
+        raise RuntimeError(f"Model error hints: {error_hints}") from err
+
+# Example valid JSON:
+payload = '{"request_id": "r1", "parts": [{"kind": "text", "content": "run audit"}]}'
+validated = robust_parse(payload)
+print(validated.model_dump())
+```
+:::
+:::
+

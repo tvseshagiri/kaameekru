@@ -194,3 +194,58 @@ Transform the agent runtime into a deployable, containerized CLI application and
 - [x] **Stretch Goal:** Publish the distribution wheel to a private or test package registry.
 :::
 :::
+
+---
+
+### Lab 9: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+# src/my_agent/cli.py
+import argparse
+import asyncio
+from my_agent.engine import run_pipeline
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="agent-cli",
+        description="Autonomous AI Engineering Task Runner"
+    )
+    parser.add_argument("task", help="Objective prompt")
+    parser.add_argument("--retries", type=int, default=3)
+    args = parser.parse_args()
+
+    result = asyncio.run(run_pipeline(args.task, retries=args.retries))
+    print(f"Task Output:\n{result}")
+
+if __name__ == "__main__":
+    main()
+```
+:::
+
+::: {.column width="45%"}
+```bash
+# Packaging & Verification Pipeline:
+
+# 1. Bump version
+uv version --bump patch
+
+# 2. Build wheel & sdist
+uv build
+
+# 3. Test installation in clean isolated venv
+uv venv /tmp/test-venv
+uv pip install dist/*.whl --python /tmp/test-venv/bin/python
+/tmp/test-venv/bin/agent-cli "Run system healthcheck"
+
+# 4. Security vulnerability scan
+uv audit
+
+# 5. Build lean Docker image
+docker build -t my-agent:latest .
+docker run --rm my-agent:latest "Scan logs"
+```
+:::
+:::
+

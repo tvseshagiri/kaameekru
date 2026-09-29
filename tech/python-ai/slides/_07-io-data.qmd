@@ -205,3 +205,75 @@ Fetch data concurrently across multiple endpoints, validate responses with Pydan
 - [x] **Stretch Goal:** Add a streaming SSE reader using `aiter_lines()` for real-time progress.
 :::
 :::
+
+---
+
+### Lab 7: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+import logging
+import sqlite3
+from contextvars import ContextVar
+from pydantic import BaseModel, Field
+
+run_id_var: ContextVar[str] = ContextVar("run_id", default="init")
+
+class DocumentRecord(BaseModel):
+    doc_id: str
+    content: str
+    score: float = Field(ge=0.0, le=1.0)
+
+def init_db(db_path: str = "agent_records.db"):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS docs (
+                doc_id TEXT PRIMARY KEY,
+                content TEXT,
+                score REAL,
+                run_id TEXT
+            )
+        """)
+
+def persist_doc(doc: DocumentRecord, db_path: str = "agent_records.db"):
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO docs VALUES (?, ?, ?, ?)",
+            (doc.doc_id, doc.content, doc.score, run_id_var.get())
+        )
+```
+:::
+
+::: {.column width="45%"}
+```python
+async def fetch_and_save(doc_id: str, sem: asyncio.Semaphore):
+    async with sem:
+        # Simulate network fetch & Pydantic validation
+        await asyncio.sleep(0.05)
+        doc = DocumentRecord(
+            doc_id=doc_id,
+            content=f"Content for {doc_id}",
+            score=0.92
+        )
+        persist_doc(doc)
+        logging.info(
+            f"Stored {doc_id}",
+            extra={"run_id": run_id_var.get()}
+        )
+
+async def main():
+    init_db()
+    run_id_var.set("batch_2026_09")
+    sem = asyncio.Semaphore(5)
+
+    async with asyncio.TaskGroup() as tg:
+        for i in range(10):
+            tg.create_task(fetch_and_save(f"doc_{i}", sem))
+
+# asyncio.run(main())
+```
+:::
+:::
+

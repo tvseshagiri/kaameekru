@@ -52,6 +52,156 @@ Managed via `uv`, linted with `ruff`, strictly checked with `mypy`, with a CLI e
 
 ---
 
+### Capstone: Complete Reference Implementation
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+from graphlib import TopologicalSorter
+from operator import add
+from typing import Annotated, TypedDict
+from pydantic import BaseModel, Field
+
+class AgentState(TypedDict):
+    task: str
+    messages: Annotated[list[str], add]
+    completed: bool
+
+class AgentRuntime:
+    def __init__(self):
+        self.nodes = {}
+        self.deps = {}
+        self.hooks = []
+
+    def node(self, name: str, depends_on: set[str] | None = None):
+        def decorator(fn):
+            self.nodes[name] = fn
+            self.deps[name] = depends_on or set()
+            return fn
+        return decorator
+
+    async def invoke(self, state: AgentState) -> AgentState:
+        sorter = TopologicalSorter(self.deps)
+        current = dict(state)
+        for name in sorter.static_order():
+            for h in self.hooks: await h(name, current)
+            async with asyncio.timeout(5.0):
+                update = await self.nodes[name](current)
+                current["messages"] = current.get("messages", []) + update.get("messages", [])
+                current.update({k: v for k, v in update.items() if k != "messages"})
+        return current
+```
+:::
+
+::: {.column width="45%"}
+```python
+# Executable Application Demonstration:
+runtime = AgentRuntime()
+
+@runtime.node("plan")
+async def plan_step(state: AgentState):
+    await asyncio.sleep(0.05)
+    return {"messages": [f"Plan for: {state['task']}"]}
+
+@runtime.node("execute", depends_on={"plan"})
+async def execute_step(state: AgentState):
+    await asyncio.sleep(0.05)
+    return {"messages": ["Execution succeeded"], "completed": True}
+
+async def main():
+    initial: AgentState = {
+        "task": "Analyze vector embeddings",
+        "messages": [],
+        "completed": False
+    }
+    final_state = await runtime.invoke(initial)
+    print("Final State Messages:")
+    for msg in final_state["messages"]:
+        print(f" - {msg}")
+
+# asyncio.run(main())
+```
+:::
+:::
+
+---
+
+### Serving Agents with FastAPI: Industry Best Practices
+
+::: columns
+::: {.column width="55%"}
+```python
+# src/my_agent/api/routes.py (Modular APIRouter + Streaming SSE)
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from my_agent.engine import stream_agent_reasoning
+
+router = APIRouter(prefix="/v1/agent", tags=["Agent"])
+
+class QueryRequest(BaseModel):
+    prompt: str
+    temperature: float = 0.7
+
+async def verify_bearer_token(authorization: str = Header(...)):
+    if not authorization.startswith("Bearer sk-"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials"
+        )
+    return authorization
+
+@router.post("/stream")
+async def stream_agent(
+    req: QueryRequest,
+    token: str = Depends(verify_bearer_token)
+):
+    """Industry standard streaming route with Pydantic contract."""
+    async def sse_event_generator():
+        async for chunk in stream_agent_reasoning(req.prompt):
+            yield f"data: {chunk}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        sse_event_generator(),
+        media_type="text/event-stream"
+    )
+```
+:::
+
+::: {.column width="45%"}
+```python
+# src/my_agent/main.py (Lifespan + Middleware)
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import time
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: initialize pooled HTTP clients & database
+    app.state.db_pool = init_connection_pool()
+    yield
+    # Shutdown: cleanly drain connections
+    await app.state.db_pool.close()
+
+app = FastAPI(title="Agent Service", lifespan=lifespan)
+
+# Global Observability Middleware
+@app.middleware("http")
+async def add_timing_and_trace(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration = time.perf_counter() - start
+    response.headers["X-Response-Time"] = f"{duration:.3f}s"
+    return response
+
+app.include_router(router)
+```
+:::
+:::
+
 ### From These Skills to the Framework Bootcamps
 
 | Python Skill | How It Translates Directly to Frameworks |
