@@ -1,0 +1,131 @@
+
+# Module 9: Performance & Memory {#mod-perf}
+
+---
+
+### Measure Before You Optimize
+
+::: columns
+::: {.column width="55%"}
+```python
+import timeit
+import cProfile
+import pstats
+import tracemalloc
+
+# 1. Micro-benchmarking syntax
+timeit.timeit("sum(range(1000))", number=10_000)
+
+# 2. Memory leak detection
+tracemalloc.start()
+run_agent_pipeline()
+current, peak = tracemalloc.get_traced_memory()
+print(f"RAM Peak: {peak / 1024 / 1024:.2f} MB")
+tracemalloc.stop()
+
+# 3. CPU profiling
+cProfile.run("main()", "agent.prof")
+stats = pstats.Stats("agent.prof")
+stats.sort_stats("cumtime").print_stats(10)
+```
+:::
+
+::: {.column width="45%"}
+#### Profiling Strategy
+- **Wall Time vs CPU Time:** In agent runtimes, 95% of wall-clock time is spent waiting on external model sockets. Standard CPU profilers can be misleading.
+- **Distributed Traces First:** Inspect request traces and network spans before refactoring Python loops.
+- **Golden Rule:** Measure, identify the bottleneck, optimize that specific hotspot, and benchmark again to verify.
+:::
+:::
+
+---
+
+### Caching and Memory Optimization
+
+::: columns
+::: {.column width="55%"}
+```python
+from functools import cache, lru_cache
+from dataclasses import dataclass
+
+# Unbounded memoization for immutable static schemas
+@cache
+def load_tool_json_schema(tool_name: str) -> dict:
+    ...
+
+# Bounded LRU cache for document embeddings
+@lru_cache(maxsize=1024)
+def compute_text_hash(text: str) -> str:
+    ...
+
+# Memory-efficient dataclasses with __slots__
+@dataclass(slots=True, frozen=True)
+class StreamMessage:
+    role: str
+    content: str
+```
+:::
+
+::: {.column width="45%"}
+#### Memory Best Practices
+- **Bounded Caches:** Unbounded caches (`@cache`) on unbounded user inputs cause catastrophic memory leaks in 24/7 agent servers. Always bound with `@lru_cache(maxsize=N)`.
+- **Hashable Arguments:** Functions memoized by `@cache` require all arguments to be hashable (strings, tuples, frozen dataclasses).
+- **Never Cache Side Effects:** Never memoize functions that write to databases, trigger emails, or alter agent state.
+:::
+:::
+
+---
+
+### Choosing a Concurrency Model
+
+| Workload Type | Recommended Architecture | Engineering Rationale |
+| :--- | :--- | :--- |
+| **Many network I/O calls** | **`asyncio`** | Low-overhead tasks waiting on remote sockets |
+| **Blocking legacy libraries** | **`threads` / `to_thread`** | Keeps main asyncio loop responsive |
+| **CPU-heavy parsing / vector math** | **`multiprocessing`** | Bypasses GIL; distributes compute over CPU cores |
+| **Isolated parallel Python** | **`subinterpreters` (3.14)** | Isolated memory and interpreter states in one process |
+| **Threaded parallel compute** | **Free-threaded (3.14)** | True multi-core execution on modern hardware |
+
+> **Default Stance:** Always start with **`asyncio`** for agent systems. Reach for processes or threads only after measuring a clear CPU bottleneck.
+
+---
+
+### Performance in Agent Applications
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-note}
+### Parallel Tool Calls
+Run independent model tool calls concurrently using `asyncio.TaskGroup` instead of sequentially.
+:::
+
+::: {.callout-tip}
+### Stream Everything
+Stream tokens immediately to reduce user-perceived latency (TTFT) from seconds to milliseconds.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-important}
+### Reuse Connections
+Maintain a shared `httpx.AsyncClient` connection pool to eliminate repeat TLS handshakes.
+:::
+
+::: {.callout-caution}
+### Budget Tokens
+Prune conversational history, truncate repetitive tool outputs, and enforce strict token ceilings.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-note}
+### Cache Pure Lookups
+Memoize unchanging prompt templates, tool schemas, and document embeddings.
+:::
+
+::: {.callout-tip}
+### Monitor Tail Latency
+Track **p95 and p99 latency** metrics; average latency hides stalling agent tasks.
+:::
+:::
+:::

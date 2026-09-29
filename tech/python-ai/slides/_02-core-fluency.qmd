@@ -1,0 +1,391 @@
+
+# Module 2: Core Language Fluency {#mod-fluency}
+
+---
+
+### Names, Mutability and Copies
+
+::: columns
+::: {.column width="50%"}
+```python
+# Shared references can lead to unintended mutations
+a = [1, 2]
+b = a          # Same list in memory, two names
+b.append(3)
+print(a)       # [1, 2, 3]!
+
+# Making an independent copy
+import copy
+c = copy.deepcopy(a)
+print(a is b)   # True (same identity)
+print(a is c)   # False (different objects)
+print(a == c)   # True (equal values)
+```
+:::
+
+::: {.column width="50%"}
+```python
+# The Mutable Default Argument Trap (BUG)
+def add_to_history(msg, history=[]):
+    history.append(msg)
+    return history  # Shared across all calls!
+
+# Safe Idiomatic Pattern (FIX)
+def add_to_history(msg, history=None):
+    if history is None:
+        history = []
+    history.append(msg)
+    return history
+```
+:::
+:::
+
+::: {.callout-important}
+### In Agent Frameworks
+State updates in LangGraph, Strands, and ADK **must return new values rather than mutating shared state in place**. In-place mutations corrupt replay checkpoints, break parallel branches, and invalidate rollbacks.
+:::
+
+---
+
+### Functions in Depth: Signatures Matter
+
+::: columns
+::: {.column width="55%"}
+```python
+def invoke_tool(
+    tool_name: str,      # Positional or keyword
+    /,                   # Positional-only boundary
+    query: str,          # Positional or keyword
+    *,                   # Keyword-only boundary
+    timeout: float = 30.0,
+    retries: int = 3,
+    **kwargs
+) -> dict:
+    """Execute an agent tool with strict parameter rules."""
+    return {"tool": tool_name, "query": query, "timeout": timeout}
+
+# Valid call:
+invoke_tool("search", "python agent", timeout=10.0)
+
+# Invalid: invoke_tool(tool_name="search", query="...") raises TypeError
+```
+:::
+
+::: {.column width="45%"}
+#### Why Signatures Matter for Agents
+- **Functions are First-Class:** Agent architectures pass functions as tools, store them in handler registries, and return closures.
+- **Keyword-Only `*`:** Forces caller clarity for options (`timeout`, `model`), preventing accidental parameter swapping.
+- **Framework Introspection:** LLM agent frameworks parse parameter names, type hints, and docstrings directly into the **JSON Tool Spec** given to the model.
+:::
+:::
+
+---
+
+### Iterators, Generators & Comprehensions
+
+::: columns
+::: {.column width="55%"}
+```python
+# Comprehensions: eager memory allocation
+squares = [n * n for n in range(10) if n % 2 == 0]
+lookup = {u.id: u for u in users}
+
+# Generator Expression: lazy, constant memory
+total = sum(n * n for n in range(10**7))
+
+# Generator Function: streams lines one at a time
+def stream_dataset(path: str):
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            yield line.rstrip()
+
+# Python 3.12+ batching
+from itertools import batched, islice
+first_five = list(islice(stream_dataset("corpus.jsonl"), 5))
+batches = list(batched(range(10), 3))  # [(0,1,2), (3,4,5), (6,7,8), (9,)]
+```
+:::
+
+::: {.column width="45%"}
+#### Foundations of Streaming
+- **Yield Lazily:** Process gigabyte-scale datasets or unlimited event streams in $O(1)$ memory.
+- **Iterator Protocol:** Objects implementing `__iter__()` and `__next__()`.
+- **Token Streams:** Asynchronous generators (Module 5) build directly on this foundation to stream LLM tokens to users in real time.
+:::
+:::
+
+---
+
+### Exceptions: Raise, Catch, Propagate
+
+::: columns
+::: {.column width="55%"}
+```python
+class AgentToolError(Exception):
+    """Recoverable tool failure that can be fed back to LLM."""
+
+try:
+    response = call_external_service()
+except TimeoutError as exc:
+    # Preserve root traceback via 'from'
+    raise AgentToolError("Search provider timed out") from exc
+finally:
+    cleanup_resources()
+
+# Python 3.11+ ExceptionGroup for concurrent tasks
+try:
+    ...
+except* AgentToolError as eg:
+    for e in eg.exceptions:
+        log.warning(f"Tool failed: {e}")
+```
+:::
+
+::: {.column width="45%"}
+#### Error Handling Hygiene
+- **`raise ... from exc`:** Chains exceptions cleanly, giving the LLM or operator the complete causal story.
+- **Targeted Catches:** Never write `except BaseException:` or bare `except:`.
+- **Why?** Bare except catches `KeyboardInterrupt` and `asyncio.CancelledError`, preventing the runtime from gracefully stopping hanging agent runs.
+:::
+:::
+
+---
+
+### Context Managers: Deterministic Cleanup
+
+::: columns
+::: {.column width="55%"}
+```python
+# 1. Standard protocol (__enter__ and __exit__)
+with open("checkpoint.json", "r") as f:
+    data = json.load(f)
+
+# 2. Generator-based with contextlib
+import time
+from contextlib import contextmanager
+
+@contextmanager
+def execution_timer(label: str):
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
+        print(f"[{label}] Elapsed: {elapsed:.3f}s")
+
+with execution_timer("Vector Search"):
+    results = perform_search("query")
+```
+:::
+
+::: {.column width="45%"}
+#### Where It Appears in Frameworks
+- **Guaranteed Cleanup:** `__exit__` executes even when unhandled exceptions occur.
+- **Session Management:** LangGraph checkpointer transactions, SQLite connections, and MCP client sessions.
+- **`contextlib.ExitStack`:** Dynamically manage an arbitrary number of open resources (e.g. dynamic MCP tool servers).
+:::
+:::
+
+---
+
+### Decorators: The Tool Registration Pattern
+
+::: columns
+::: {.column width="55%"}
+```python
+import functools
+from collections.abc import Callable
+
+TOOL_REGISTRY: dict[str, Callable] = {}
+
+def agent_tool(func: Callable) -> Callable:
+    """Decorator registering functions as agent tools."""
+    @functools.wraps(func)  # Crucial: preserves name & docstring!
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    TOOL_REGISTRY[func.__name__] = wrapper
+    return wrapper
+
+@agent_tool
+def calculate_tax(amount: float, rate: float) -> float:
+    """Calculate the sales tax for an invoice."""
+    return amount * rate
+
+# The registry now has calculate_tax registered with its docstring intact
+```
+:::
+
+::: {.column width="45%"}
+#### Key Decorator Concepts
+- **Functions as Arguments:** Decorators accept a callable and return an enhanced callable.
+- **`functools.wraps`:** Without this, `calculate_tax.__name__` becomes `wrapper` and `__doc__` is lost, breaking tool schema generation.
+- **Decorator Factories:** Adding arguments (`@retry(times=3)`) requires an extra nesting layer that returns the actual decorator.
+:::
+:::
+
+---
+
+### Pattern Matching & Specialized Collections
+
+::: columns
+::: {.column width="55%"}
+```python
+# Structural Pattern Matching (Python 3.10+)
+match agent_event:
+    case {"type": "text", "content": str(text)}:
+        display_message(text)
+    case {"type": "tool_call", "name": name, "args": dict(args)}:
+        execute_tool(name, args)
+    case {"type": "error", "code": int(c)} if c >= 500:
+        trigger_fallback()
+    case _:
+        pass
+
+# Modern unpacking & merging
+first, *rest = message_history
+config = default_config | user_overrides
+```
+:::
+
+::: {.column width="45%"}
+#### Choosing the Right Collection
+- **`collections.deque(maxlen=100)`:**
+  Perfect for sliding conversational memory windows where old tokens drop off automatically.
+- **`collections.defaultdict(list)`:**
+  Grouping tool calls by provider or status without boilerplate key existence checks.
+- **`collections.Counter`:**
+  Counting token usages and tool call frequencies.
+:::
+:::
+
+---
+
+### Enums and Modern Strings
+
+::: columns
+::: {.column width="50%"}
+```python
+from enum import StrEnum
+
+class StopReason(StrEnum):
+    END_TURN = "end_turn"
+    TOOL_USE = "tool_use"
+    MAX_TOKENS = "max_tokens"
+    STOP_SEQUENCE = "stop_sequence"
+
+# Comparing StrEnums
+reason = StopReason("tool_use")
+if reason is StopReason.TOOL_USE:
+    execute_tools()
+```
+:::
+
+::: {.column width="50%"}
+```python
+# String Formatting & Templates
+name, count = "Claude", 42
+print(f"{name=}, {count=}")  # Debug form
+
+from textwrap import dedent
+system_prompt = dedent(f"""\
+    You are an AI assistant named {name}.
+    Active tools: {count}.
+""").strip()
+
+# Python 3.14 Preview: PEP 750 t-strings
+# t"SELECT * FROM agents WHERE name = {name}"
+# Allows safe template parsing without SQL injection.
+```
+:::
+:::
+
+> **Enums over Magic Strings:** String typos like `"tool_ues"` fail silently; `StopReason.tool_ues` raises an immediate `AttributeError`.
+
+---
+
+### Modules, Imports, and Packages
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Absolute Imports
+Always prefer absolute imports:
+```python
+from my_agent.tools.search import web_search
+```
+Clear, refactor-friendly, and avoids confusing relative dot syntax.
+:::
+
+::: {.callout-tip}
+### Clean Public API
+Use `__init__.py` and `__all__`:
+```python
+# my_agent/tools/__init__.py
+from .search import web_search
+from .math import calculator
+
+__all__ = ["web_search", "calculator"]
+```
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-important}
+### Breaking Circular Imports
+When `Agent` imports `Tool` and `Tool` imports `Agent`, resolve with `TYPE_CHECKING`:
+```python
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from my_agent.agent import AutonomousAgent
+
+def register(agent: "AutonomousAgent"):
+    ...
+```
+Imported only during static type analysis, eliminating runtime cycles.
+:::
+:::
+:::
+
+---
+
+### The Standard Library Toolkit for Agents
+
+| Module | Core Purpose in AI Engineering |
+| :--- | :--- |
+| `pathlib` | Modern object-oriented path traversal: `Path("data") / "prompts" / "v1.txt"` |
+| `json`, `tomllib` | Parse tool arguments, read configuration TOML files (Python 3.11+) |
+| `datetime`, `zoneinfo` | Timezone-aware timestamps for chat logs: `datetime.now(timezone.utc)` |
+| `logging` | Hierarchical, leveled logging with contextual metadata per agent run |
+| `os`, `argparse` | Read environment variables (`os.getenv`), parse CLI arguments |
+| `uuid`, `hashlib` | Generate unique run IDs (`uuid4()`), hash prompt cache keys (`sha256`) |
+| `functools`, `operator` | Function memoization (`@cache`), reducers (`operator.add` in LangGraph) |
+
+---
+
+### Lab 2: A Small Text-Pipeline Library
+
+::: {.callout-tip}
+#### Goal
+Build a lazy text processing pipeline with decorators, timing context managers, and robust error chaining.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Write a generator function that streams lines lazily from a file.
+2. Build a `@stage` decorator that registers processing functions into a pipeline table.
+3. Chain stages lazily using generator expressions.
+4. Implement a `@contextmanager` timer that logs the execution duration of each stage.
+5. Wrap potential step errors into a custom `PipelineError` using `raise ... from`.
+6. Group word counts and token metrics using `defaultdict` and `Counter`.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] Stream processing a large 100MB file operates in constant memory ($O(1)$ RAM)
+- [x] Pipeline stages register by name with docstrings intact
+- [x] Raised exceptions preserve the original underlying traceback
+- [x] **Stretch Goal:** Add structural `match ... case` routing of records to specialized branch stages.
+:::
+:::

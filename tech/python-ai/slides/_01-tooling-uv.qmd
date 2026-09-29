@@ -1,0 +1,379 @@
+
+# Module 1: Tooling with uv {#mod-uv}
+
+---
+
+### uv: One Tool for the Python Workflow
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Replaces Many Legacy Tools
+Consolidates `pip`, `pip-tools`, `pipx`, `poetry`, `pyenv`, `twine`, and `virtualenv` into a single fast CLI.
+:::
+
+::: {.callout-tip}
+### Blazing Fast (Written in Rust)
+10–100x faster package installation and lock resolution. Drastically shortens CI pipeline runs.
+:::
+
+::: {.callout-important}
+### Universal Lockfile (`uv.lock`)
+Pins the entire dependency graph across platforms and Python versions for 100% reproducible environments.
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-note}
+### Single-File Script Execution
+PEP 723 inline dependency metadata allows single-file scripts to declare and isolate their own packages.
+:::
+
+::: {.callout-tip}
+### Manages Python Interpreters
+Downloads, installs, and pins Python runtimes per project automatically without system packages.
+:::
+
+::: {.callout-important}
+### Cargo-Style Workspaces
+Native workspace support for modular multi-package monorepos and microservice agent collections.
+:::
+:::
+:::
+
+---
+
+### The Project Lifecycle in Seven Commands
+
+| Command | Operational Purpose |
+| :--- | :--- |
+| `uv init my-agent` | Create a new project with `pyproject.toml`, `.python-version`, and entry point |
+| `uv add httpx pydantic` | Add runtime dependencies; automatically updates `pyproject.toml` and `uv.lock` |
+| `uv remove httpx` | Remove a dependency cleanly from files and virtual environment |
+| `uv sync` | Reconcile the local `.venv` to match `uv.lock` with surgical precision |
+| `uv run pytest` | Run any command inside the virtual environment (auto-syncs environment first) |
+| `uv lock --upgrade` | Re-resolve all dependencies and upgrade pinned package versions |
+| `uv tree` | Inspect and visualize the full transitive dependency tree |
+
+> **Golden Rule:** `.venv` and `uv.lock` are created automatically on first `uv add` or `uv run`. **You never activate the environment by hand.**
+
+---
+
+### Dependency Groups, CI and Production
+
+::: columns
+::: {.column width="55%"}
+```bash
+# Add development tools to dev group
+uv add --dev pytest ruff pytest-asyncio
+
+# Add documentation dependencies
+uv add --group docs mkdocs
+
+# Developer workstation: sync everything
+uv sync
+
+# CI environment: fail if lockfile changes
+uv sync --frozen
+
+# Production container: exclude test/lint tools
+uv sync --no-dev
+
+# Export for legacy platforms requiring requirements.txt
+uv export --format requirements-txt > requirements.txt
+```
+:::
+
+::: {.column width="45%"}
+#### Separation of Concerns
+- **Dev vs Runtime:** Keep heavy linters, type checkers, and test runners out of production images.
+- **Commit `uv.lock`:** Guarantee that every developer and every CI runner gets bit-for-bit identical packages.
+- **Never Hand-Edit:** Always use `uv add` and `uv remove` so `pyproject.toml` and `uv.lock` stay strictly synchronized.
+:::
+:::
+
+---
+
+### Python Versions and Single-File Scripts
+
+::: columns
+::: {.column width="55%"}
+```python
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "httpx>=0.27",
+#     "rich",
+# ]
+# ///
+import httpx
+from rich import print
+
+resp = httpx.get("https://httpbin.org/get")
+print(f"[bold green]Status:[/bold green] {resp.status_code}")
+
+# Run standalone:
+# uv run example.py
+```
+:::
+
+::: {.column width="45%"}
+#### PEP 723 Inline Metadata
+- **Self-Contained Scripts:** No need to initialize a full project directory for one-off scrapers, evals, or benchmarks.
+- **Isolated Cache:** `uv run` executes the script inside an isolated ephemeral cache, ignoring the surrounding project's dependencies.
+- **Useful Commands:**
+  - `uv init --script agent_eval.py`
+  - `uv add --script agent_eval.py anthropic`
+  - `uv run --with duckdb query.py`
+:::
+:::
+
+---
+
+### Tools: `uvx` and `uv tool`
+
+| Command | Purpose | When to Use |
+| :--- | :--- | :--- |
+| `uvx ruff check .` | Run CLI tool in temporary environment | One-off checks, formatting PRs, quick audits |
+| `uv tool install ruff` | Install CLI tool globally, isolated from system Python | Everyday tools you invoke across all terminal directories |
+| `uv tool upgrade --all` | Upgrade all globally installed CLI tools | Routine developer workstation maintenance |
+| `uv run --with pytest pytest` | Run command with ad-hoc package injected | Testing scripts without polluting `pyproject.toml` |
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-note}
+### Ruff
+Extremely fast Python linter & formatter in Rust; replaces flake8, black, isort, bandit.
+:::
+:::
+::: {.column width="33%"}
+::: {.callout-tip}
+### Type Checker
+`mypy` or `pyright` for static safety checks in CI and editors.
+:::
+:::
+::: {.column width="34%"}
+::: {.callout-important}
+### Pytest
+The industry-standard test runner with fixture and async support.
+:::
+:::
+:::
+
+---
+
+### Anatomy of `pyproject.toml`
+
+::: columns
+::: {.column width="55%"}
+```toml
+[project]
+name = "my-agent"
+version = "0.1.0"
+description = "Autonomous Agent with LangGraph & ADK"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "httpx>=0.27.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+```
+:::
+
+::: {.column width="45%"}
+#### Standard Sections (PEP 621)
+- **`[project]`:**
+  Defines package name, semver version, Python compatibility boundary, and core runtime requirements.
+- **`[dependency-groups]`:**
+  Standardized dev, test, and documentation groups (replaces legacy poetry extras).
+- **`[tool.*]`:**
+  Centralized configuration for developer tools (`ruff`, `pytest`, `mypy`), eliminating cluttered standalone config files.
+:::
+:::
+
+---
+
+### Project Layout that Scales
+
+::: columns
+::: {.column width="50%"}
+```
+my-agent/
+├── pyproject.toml        # Single source of truth
+├── uv.lock               # Cross-platform deterministic lock
+├── .python-version       # Pinned Python interpreter (e.g. 3.13)
+├── .env                  # Environment secrets (NEVER commit!)
+├── .gitignore            # Git exclusion rules
+├── src/
+│   └── my_agent/         # Primary package root
+│       ├── __init__.py
+│       ├── agent.py      # Core agent loop / state machine
+│       ├── tools.py      # Exposed tools & schemas
+│       ├── schemas.py    # Pydantic models
+│       └── config.py     # Settings & env vars
+└── tests/
+    ├── conftest.py       # Global fixtures & mock models
+    └── test_tools.py     # Unit tests mirroring src
+```
+:::
+
+::: {.column width="50%"}
+#### Architectural Rules
+1. **The `src` Layout:**
+   Prevents accidental imports of un-built local directory code when running from repository root.
+2. **Modular Micro-Components:**
+   Split state schemas, tool implementations, configuration, and runtime graphs into distinct modules.
+3. **Mirroring Tests:**
+   Every module in `src/my_agent/<name>.py` corresponds to `tests/test_<name>.py`.
+:::
+:::
+
+---
+
+### Ruff: Lint and Format in One Pass
+
+::: columns
+::: {.column width="55%"}
+```toml
+# pyproject.toml configuration
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "F",     # Pyflakes (unused vars/imports)
+    "I",     # isort (import ordering)
+    "UP",    # pyupgrade (modernize Python syntax)
+    "B",     # flake8-bugbear (common bug traps)
+    "ASYNC", # flake8-async (blocking calls in loops)
+]
+```
+
+```bash
+# Run linting with automated fix suggestions
+uv run ruff check --fix
+
+# Format entire codebase instantly
+uv run ruff format
+```
+:::
+
+::: {.column width="45%"}
+#### Essential Rule Sets for Agents
+- **`I` (isort):** Ensures deterministic, clean import structures.
+- **`UP` (pyupgrade):** Automatically updates older typing syntax to modern Python 3.12+ syntax (`int | None`).
+- **`ASYNC`:** Catches catastrophic bugs in agent code, such as calling `time.sleep()` or `requests.get()` inside async functions.
+
+> **Team Culture:** Let the formatter end style debates. Never disable a rule without an explicit `# noqa` comment explaining the engineering reason.
+:::
+:::
+
+---
+
+### Static Type Checking as a Habit
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Pick a Checker
+- **Mypy:** The established reference type checker.
+- **Pyright:** Extremely fast, outstanding IDE integration.
+- Choose one and configure it consistently across the entire team and CI.
+:::
+
+::: {.callout-tip}
+### Ratchet Up Strictness
+- Start lenient on legacy code (`basic` mode).
+- Turn on strict checks (`disallow_untyped_defs`, `no_implicit_optional`) incrementally package by package.
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-important}
+### Frameworks Reward Types
+- LangGraph and ADK rely on type annotations to construct runtime state channels, state reducers, and JSON tool schemas.
+- Invalid types cause runtime agent crashes mid-task.
+:::
+
+```bash
+# Run type checker in CI pipeline
+uv run mypy src
+# or
+uv run pyright src
+```
+:::
+:::
+
+---
+
+### Git, Secrets, and Pre-Commit
+
+::: columns
+::: {.column width="50%"}
+```gitignore
+# Baseline .gitignore for Agent Projects
+.venv/
+.env
+.env.*
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+*.sqlite3
+```
+:::
+
+::: {.column width="50%"}
+#### Secret Hygiene
+- **Never Commit Credentials:** Store OpenAI/Anthropic API keys, database URLs, and bearer tokens exclusively in `.env` or system environment.
+- **Automate with Pre-Commit:**
+  Configure a local hook or git workflow to enforce `ruff check` and `ruff format` before commits are created.
+
+::: {.callout-caution}
+### Irreversible Exposure
+A key committed once lives in Git commit history forever. If a secret leaks, rotate it immediately in the cloud provider console.
+:::
+:::
+:::
+
+---
+
+### Lab 1: Build a Professional Project Skeleton
+
+::: {.callout-tip}
+#### Goal
+Create a reproducible Python agent repository from scratch with linting, typing, and tests configured.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Initialize project and pin Python 3.12 or later: `uv init my-agent && uv python pin 3.12`
+2. Add runtime dependencies: `uv add httpx pydantic`
+3. Add development dependencies: `uv add --dev pytest pytest-asyncio ruff mypy`
+4. Configure `tool.ruff` and `tool.pytest.ini_options` in `pyproject.toml`
+5. Write one passing unit test in `tests/test_basic.py`; execute with `uv run pytest`
+6. Verify reproducibility: Delete `.venv` and rebuild completely via `uv sync`
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] A fresh checkout runs tests with a single `uv sync && uv run pytest`
+- [x] `uv.lock` is tracked in git
+- [x] `uv run ruff check` and `uv run ruff format --check` report 0 errors
+- [x] **Stretch Goal:** Add a GitHub Actions CI workflow running `uv sync --frozen` and pytest.
+:::
+:::

@@ -1,0 +1,255 @@
+
+# Module 6: Framework Design Patterns {#mod-patterns}
+
+---
+
+### Hooks, Callbacks, and Middleware
+
+::: columns
+::: {.column width="55%"}
+```python
+from collections import defaultdict
+from collections.abc import Callable
+
+class AgentEventBus:
+    def __init__(self):
+        self._listeners: dict[str, list[Callable]] = defaultdict(list)
+
+    def on(self, event_name: str):
+        """Decorator to register async event listeners."""
+        def decorator(fn: Callable):
+            self._listeners[event_name].append(fn)
+            return fn
+        return decorator
+
+    async def emit(self, event_name: str, **payload):
+        for fn in self._listeners[event_name]:
+            await fn(**payload)
+
+bus = AgentEventBus()
+
+@bus.on("before_tool_call")
+async def audit_tool(tool_name: str, args: dict):
+    print(f"[AUDIT] Invoking {tool_name} with {args}")
+```
+:::
+
+::: {.column width="45%"}
+#### Framework Architecture
+- **Callbacks:** Discrete hooks called at lifecycle boundaries (`on_llm_start`, `on_tool_end`).
+- **Middleware:** Onion layers wrapping execution to inject headers, trace spans, or enforce safety guardrails.
+- **Where It Lives:** Strands hooks, ADK callbacks, and LangGraph listener nodes.
+:::
+:::
+
+---
+
+### Registries and Plugin Patterns
+
+::: columns
+::: {.column width="55%"}
+```python
+class BaseToolPlugin:
+    registry: dict[str, type["BaseToolPlugin"]] = {}
+    name: str
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if hasattr(cls, "name"):
+            cls.registry[cls.name] = cls
+
+    async def run(self, query: str) -> str:
+        raise NotImplementedError
+
+# Auto-registers into BaseToolPlugin.registry upon class definition!
+class WeatherPlugin(BaseToolPlugin):
+    name = "weather"
+    async def run(self, query: str) -> str:
+        return f"Weather for {query}: Sunny, 72F"
+
+tool_instance = BaseToolPlugin.registry["weather"]()
+```
+:::
+
+::: {.column width="45%"}
+#### Plugin Patterns
+- **`__init_subclass__`:** Executes automatically whenever a child class is declared, eliminating manual registration calls.
+- **Entry Points:** Python packages advertise plugins via `pyproject.toml` `[project.entry-points]`.
+- **Architectural Balance:** Auto-registration is convenient for internal tools, but explicit dependency injection is often preferable for modular testability.
+:::
+:::
+
+---
+
+### Dependency Injection & Context Objects
+
+::: columns
+::: {.column width="55%"}
+```python
+from dataclasses import dataclass
+from typing import Protocol
+
+class LLMProvider(Protocol):
+    async def complete(self, prompt: str) -> str: ...
+
+class MemoryStore(Protocol):
+    def get_summary(self, user_id: str) -> str: ...
+
+@dataclass(frozen=True)
+class ExecutionDeps:
+    llm: LLMProvider
+    memory: MemoryStore
+
+async def execute_agent_step(user_query: str, deps: ExecutionDeps) -> str:
+    summary = deps.memory.get_summary("u123")
+    prompt = f"Context: {summary}\nQuery: {user_query}"
+    return await deps.llm.complete(prompt)
+
+# In unit tests: pass FakeLLM() and FakeMemory() cleanly!
+```
+:::
+
+::: {.column width="45%"}
+#### Inject, Do Not Import
+- **Protocols as Seams:** Functions depend on abstract protocols rather than concrete SDK clients (`openai.OpenAI`).
+- **Zero Mocking Overhead:** Swap production services with fast in-memory fakes without touching global monkeypatching.
+- **Framework Analogs:** `RuntimeContext`, `ToolContext`, and invocation state containers.
+:::
+:::
+
+---
+
+### State, Reducers, and Immutability
+
+::: columns
+::: {.column width="55%"}
+```python
+from operator import add
+
+# Reducer Table: mapping channel names to merge strategies
+REDUCERS = {
+    "messages": add,          # Concatenates lists: list + list
+    "step_count": lambda a, b: a + b
+}
+
+def apply_state_update(current_state: dict, partial_update: dict) -> dict:
+    new_state = dict(current_state)  # Shallow copy state container
+    for key, value in partial_update.items():
+        if key in REDUCERS:
+            new_state[key] = REDUCERS[key](current_state.get(key, []), value)
+        else:
+            new_state[key] = value   # Overwrite channel
+    return new_state
+
+s0 = {"messages": ["hello"], "step_count": 0}
+s1 = apply_state_update(s0, {"messages": ["agent response"], "step_count": 1})
+
+assert s0["messages"] == ["hello"]   # Original state untouched!
+```
+:::
+
+::: {.column width="45%"}
+#### Pure State Transitions
+- **Pure Functions:** Same state + same update always produces identical new state with no side effects.
+- **Reducers:** Specify how parallel node updates merge into a unified state channel.
+- **Replay & Checkpoints:** Immutability is the bedrock of LangGraph's time-travel debugging and pause-and-resume workflows.
+:::
+:::
+
+---
+
+### Directed Graphs & State Machines
+
+::: columns
+::: {.column width="55%"}
+```python
+from graphlib import TopologicalSorter
+
+# Graph dependency definition: child -> set of prerequisites
+graph_dependencies = {
+    "synthesize_report": {"search_web", "query_database"},
+    "query_database": {"parse_intent"},
+    "search_web": {"parse_intent"},
+    "parse_intent": set()
+}
+
+# Determine deterministic execution order (std library!)
+sorter = TopologicalSorter(graph_dependencies)
+execution_order = list(sorter.static_order())
+print(execution_order)
+# Output: ['parse_intent', 'query_database', 'search_web', 'synthesize_report']
+
+# Dict-based route dispatching instead of huge if/elif blocks:
+ROUTER = {"search": handle_search, "db": handle_db, "end": handle_end}
+```
+:::
+
+::: {.column width="45%"}
+#### Standard Library Power
+- **`graphlib.TopologicalSorter`:**
+  Built into Python 3.9+; resolves execution DAGs and detects circular cycles automatically.
+- **Routing as Data:**
+  Store routes as dictionary lookup tables, making agents dynamically reconfigurable at runtime.
+:::
+:::
+
+---
+
+### Retries, Backoff, and Idempotency
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+import random
+
+async def retry_with_exponential_backoff(
+    fn, *, attempts: int = 4, base_delay: float = 0.5
+):
+    for attempt in range(attempts):
+        try:
+            return await fn()
+        except (TimeoutError, ConnectionError) as exc:
+            if attempt == attempts - 1:
+                raise
+            # Exponential backoff + Full Jitter
+            delay = base_delay * (2 ** attempt) * random.uniform(0.5, 1.5)
+            await asyncio.sleep(delay)
+```
+:::
+
+::: {.column width="45%"}
+#### Resiliency Rules
+- **Retry the Transient Only:** Retry network drops, socket timeouts, and HTTP 429/503 errors. **Never retry programmer bugs** (`TypeError`, `ValidationError`).
+- **Jitter is Essential:** Prevents the "thundering herd" problem when upstream services recover.
+- **Idempotency Keys:** Pass unique `run_id` tokens with API calls so repeated attempts don't double-charge credit cards or create duplicate records.
+:::
+:::
+
+---
+
+### Lab 6: Build a Mini Graph Runtime
+
+::: {.callout-tip}
+#### Goal
+Write a lightweight asynchronous agent runtime featuring typed state, functional reducers, lifecycle hooks, and retries.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Define an `AgentState` `TypedDict` with reducer metadata.
+2. Implement async nodes that return partial state dictionaries.
+3. Compute execution ordering using `graphlib.TopologicalSorter`.
+4. Route transitions dynamically using a dictionary dispatch table.
+5. Emit `before_node` and `after_node` events via an async event bus.
+6. Simulate a flaky external node and verify it succeeds with backoff.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] State is never mutated in place; every transition yields a new dictionary
+- [x] Lifecycle hooks observe and log every node execution
+- [x] Flaky network calls recover without failing the overall workflow
+- [x] **Stretch Goal:** Execute independent topological nodes concurrently using `asyncio.TaskGroup`.
+:::
+:::

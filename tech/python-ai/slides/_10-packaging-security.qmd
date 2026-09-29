@@ -1,0 +1,196 @@
+
+# Module 10: Packaging, Security & Shipping {#mod-ship}
+
+---
+
+### Build and Publish a Package
+
+::: columns
+::: {.column width="55%"}
+```bash
+# 1. Bump version semantically (0.1.0 -> 0.2.0)
+uv version --bump minor
+
+# 2. Build standard distribution artifacts
+uv build
+# Output in dist/:
+# - my_agent-0.2.0.tar.gz (sdist)
+# - my_agent-0.2.0-py3-none-any.whl (wheel)
+
+# 3. Publish to package index
+uv publish --token $PYPI_TOKEN
+```
+
+```toml
+# In pyproject.toml: expose command-line entry points
+[project.scripts]
+my-agent = "my_agent.cli:main"
+```
+:::
+
+::: {.column width="45%"}
+#### Distribution Concepts
+- **`sdist` vs Wheel:** Source distribution contains raw code; wheel is pre-built, instantly installable without compiling.
+- **Entry Points:** `[project.scripts]` turns any Python function into a global shell command when installed.
+- **Semantic Versioning:**
+  - `MAJOR`: Breaking state or schema changes
+  - `MINOR`: New tools or agent capabilities
+  - `PATCH`: Internal bug fixes & performance
+:::
+:::
+
+---
+
+### Command-Line Applications
+
+::: columns
+::: {.column width="55%"}
+```python
+import argparse
+import asyncio
+from my_agent.runtime import run_agent
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="my-agent",
+        description="Autonomous CLI Research Agent"
+    )
+    parser.add_argument("query", help="User prompt or task")
+    parser.add_argument("--model", default="claude-3-5-sonnet")
+    parser.add_argument("--timeout", type=float, default=60.0)
+    parser.add_argument("--verbose", "-v", action="store_true")
+
+    args = parser.parse_args()
+
+    # The single sync-to-async bridge at CLI boundary
+    result = asyncio.run(
+        run_agent(args.query, model=args.model, timeout=args.timeout)
+    )
+    print(result)
+
+if __name__ == "__main__":
+    main()
+```
+:::
+
+::: {.column width="45%"}
+#### CLI Architecture
+- **Standard Library `argparse`:** Dependency-free, reliable, built into Python.
+- **Alternative CLIs:** Consider `typer` or `click` for large interactive terminal dashboards.
+- **Single Bridge Boundary:** Keep business logic purely asynchronous; invoke `asyncio.run()` only once inside `main()`.
+:::
+:::
+
+---
+
+### Containerization with uv
+
+::: columns
+::: {.column width="60%"}
+```dockerfile
+FROM python:3.13-slim
+
+# Install uv from official Astral binary distribution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+WORKDIR /app
+
+# Step 1: Copy lockfile and install dependencies (cached Docker layer!)
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Step 2: Copy application source code
+COPY src ./src
+
+# Step 3: Complete project installation
+RUN uv sync --frozen --no-dev
+
+# Principle of least privilege: run as non-root user
+RUN useradd -m -u 1000 appuser
+USER appuser
+
+ENV PATH="/app/.venv/bin:$PATH"
+ENTRYPOINT ["my-agent"]
+```
+:::
+
+::: {.column width="40%"}
+#### Production Docker Best Practices
+- **Layer Caching:** By copying `pyproject.toml` and `uv.lock` first, Docker caches third-party dependencies. Changing Python source code will **not** trigger re-downloads.
+- **`--frozen --no-dev`:** Guarantees repeatable production images without development tools.
+- **Non-Root Execution:** Always run containers under an unprivileged user (`appuser`).
+:::
+:::
+
+---
+
+### Security Hygiene for Agent Code
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-caution}
+### Secret Management
+Inject API keys via environment variables or secret vaults. Never commit secrets to git or log them in telemetry.
+:::
+
+::: {.callout-caution}
+### Untrusted Model Output
+Never execute unvalidated model outputs. Always parse through strict Pydantic schemas before taking actions.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-caution}
+### No `eval()` or `shell=True`
+Never pass model-generated strings directly into `eval()`, `exec()`, or `subprocess.Popen(shell=True)`.
+:::
+
+::: {.callout-caution}
+### Forbid `pickle`
+Never deserialize untrusted payloads using `pickle.loads()`. Use JSON or Pydantic models.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-tip}
+### Audit Dependencies
+Regularly run `uv audit` in CI to detect vulnerabilities in third-party libraries:
+```bash
+uv audit
+```
+:::
+
+::: {.callout-important}
+### Least Privilege
+Grant agent tools and API tokens only the narrowest scopes and permissions required.
+:::
+:::
+:::
+
+---
+
+### Lab 9: Ship It &middot; Package, Containerize & Audit
+
+::: {.callout-tip}
+#### Goal
+Transform the agent runtime into a deployable, containerized CLI application and verify security compliance.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Add a `[project.scripts]` entry point and implement an `argparse` CLI.
+2. Bump the package version and build distribution wheels using `uv build`.
+3. Install the generated `.whl` in a fresh virtual environment and verify the CLI.
+4. Construct a multi-stage Dockerfile leveraging `ghcr.io/astral-sh/uv`.
+5. Run `uv audit` and ensure zero high-severity CVEs exist in the dependency tree.
+6. Verify configuration loads exclusively from environment variables.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] CLI command executes from a clean virtual environment install
+- [x] Docker container builds and runs under a non-root user
+- [x] Zero API keys or secrets are baked into container layers
+- [x] **Stretch Goal:** Publish the distribution wheel to a private or test package registry.
+:::
+:::

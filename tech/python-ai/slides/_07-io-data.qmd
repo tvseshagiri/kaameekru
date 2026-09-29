@@ -1,0 +1,207 @@
+
+# Module 7: I/O, Data & Observability {#mod-io}
+
+---
+
+### HTTP Clients & Streaming Responses
+
+::: columns
+::: {.column width="55%"}
+```python
+import httpx
+
+# Synchronous one-off call
+resp = httpx.get("https://api.openai.com/v1/models", timeout=10.0)
+resp.raise_for_status()
+models = resp.json()
+
+# Asynchronous streaming (SSE / Server-Sent Events)
+async def stream_agent_events(url: str):
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        async with client.stream("GET", url) as stream_resp:
+            stream_resp.raise_for_status()
+            async for line in stream_resp.aiter_lines():
+                if line.startswith("data: "):
+                    yield line[6:]
+```
+:::
+
+::: {.column width="45%"}
+#### Production HTTP Rules
+- **Explicit Timeouts:** The `httpx` default timeout can hang indefinitely on network partitions. Always pass explicit float or `httpx.Timeout` configurations.
+- **`raise_for_status()`:** Immediately converts HTTP 4xx/5xx responses into catchable Python exceptions.
+- **`aiter_lines()`:** Reads SSE streams line-by-line without buffering full gigabyte responses into RAM.
+:::
+:::
+
+---
+
+### JSON and Serialization
+
+::: columns
+::: {.column width="55%"}
+```python
+import json
+import datetime as dt
+from dataclasses import asdict
+
+# Only native JSON types serialize out-of-the-box:
+# dict, list, str, int, float, bool, None
+json.dumps({"name": "Agent", "step": 1})  # OK
+
+# Non-primitive trap:
+# json.dumps({"timestamp": dt.datetime.now()})  # TypeError!
+
+# Dataclass serialization
+json.dumps(asdict(runtime_context))
+
+# Pydantic handles dates, UUIDs, and enums automatically!
+json_str = state_model.model_dump_json()
+
+# Always verify round-trip serialization:
+assert json.loads(json_str) is not None
+```
+:::
+
+::: {.column width="45%"}
+#### Persistence Integrity
+- **Checkpointers Need JSON:** LangGraph and ADK persist session history and agent state to disk or Postgres; all custom state channels must be serializable.
+- **Custom Encoders:** Convert dates to ISO-8601 strings and enums to `.value`.
+- **Round-Trip Testing:** Always verify `validate(loads(dumps(state))) == state` in unit tests.
+:::
+:::
+
+---
+
+### Files, Paths, and Safe Configuration
+
+::: columns
+::: {.column width="55%"}
+```python
+import os
+import tempfile
+import tomllib
+from pathlib import Path
+
+# Modern object-oriented paths
+base_dir = Path(__file__).resolve().parent
+config_path = base_dir / "config" / "agent.toml"
+
+# Atomic file writes (prevents corrupted half-written files)
+def write_atomic(target_path: Path, content: str):
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile("w", dir=target_path.parent, delete=False) as f:
+        f.write(content)
+        temp_name = f.name
+    os.replace(temp_name, target_path)  # Atomic POSIX swap!
+```
+:::
+
+::: {.column width="45%"}
+#### Security & Robustness
+- **`pathlib.Path`:** Use `/` operator instead of fragile `os.path.join()`.
+- **Atomic Writes:** If an agent process crashes mid-write, atomic swap guarantees the file is never left partially written.
+- **Validate Paths:** Never construct file paths using unvalidated LLM output strings (prevents directory traversal `../../etc/passwd`).
+:::
+:::
+
+---
+
+### Logging and Observability
+
+::: columns
+::: {.column width="55%"}
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s (run_id=%(run_id)s): %(message)s"
+)
+
+logger = logging.getLogger("agent.tools.web")
+
+# Injecting correlation metadata
+logger.info(
+    "Fetching document",
+    extra={"run_id": "run_98234"}
+)
+
+# Tune individual external libraries without noise:
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+```
+:::
+
+::: {.column width="45%"}
+#### Observability Architecture
+- **Logger Hierarchy:** Dot notation (`my_agent.tools`) lets you silence noisy third-party libraries while enabling verbose debug logs for your code.
+- **Correlation IDs:** Always attach `run_id` to log records to trace an agent turn across distributed workers.
+- **Redaction:** Scrub API keys, auth tokens, and personally identifiable information (PII) before logging.
+:::
+:::
+
+---
+
+### Databases and Persistence Basics
+
+::: columns
+::: {.column width="55%"}
+```python
+import sqlite3
+
+# SQLite with automatic transaction context
+with sqlite3.connect("agent_memory.db") as conn:
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS checkpoints (
+            run_id TEXT PRIMARY KEY,
+            state TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Parameterized query (PREVENTS SQL INJECTION)
+    cursor.execute(
+        "INSERT OR REPLACE INTO checkpoints (run_id, state) VALUES (?, ?)",
+        ("run_123", serialized_state)
+    )
+    # Automatically committed upon exit of with block!
+```
+:::
+
+::: {.column width="45%"}
+#### Production Persistence
+- **Transactions:** The `with` statement automatically commits on success and performs a rollback if an unhandled exception occurs.
+- **Parameterized Queries:** **Never use f-strings for SQL** (`f"SELECT * WHERE id={id}"`). Always use query parameters `?` or `%s`.
+- **Connection Pools:** For production databases (PostgreSQL), use connection pools (`psycopg_pool` or `asyncpg`).
+:::
+:::
+
+---
+
+### Lab 7: Concurrent API Client with Validation and Logs
+
+::: {.callout-tip}
+#### Goal
+Fetch data concurrently across multiple endpoints, validate responses with Pydantic, persist atomically, and trace every step.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Build an `httpx.AsyncClient` wrapper with timeouts and exponential retry backoff.
+2. Fetch paginated records concurrently using an `asyncio.Semaphore(5)`.
+3. Validate every parsed JSON payload through a strict Pydantic model.
+4. Atomically persist validated records into SQLite using transactions.
+5. Propagate a `run_id` `ContextVar` onto every emitted log message.
+6. Verify serialized state round-trips from SQLite back into typed models.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] Malformed API items are logged as structured errors without crashing the pipeline
+- [x] Logs display consistent `run_id` correlation across all async tasks
+- [x] State round-trips losslessly through JSON and SQLite
+- [x] **Stretch Goal:** Add a streaming SSE reader using `aiter_lines()` for real-time progress.
+:::
+:::

@@ -1,0 +1,462 @@
+
+# Module 5: Async & Concurrency {#mod-async}
+
+---
+
+### A Mental Model of Concurrency
+
+| Model | Ideal Workload | Context Switching | Shared State | Task Cost |
+| :--- | :--- | :--- | :--- | :--- |
+| **`asyncio`** | **Many waiting I/O calls** | Cooperative (at `await`) | Single thread, shared heap | **Ultra-low** (microseconds) |
+| **Threads** | Blocking legacy libraries | Preemptive (OS-driven) | Shared memory (needs locks) | Moderate ($~8\text{MB}$ stack) |
+| **Processes** | CPU-heavy compute / math | Preemptive (OS-driven) | Isolated memory (pipes/IPC) | High (process fork) |
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Agents Wait Most of the Time
+Model inference, vector search, web browsing, and tool APIs spend 95%+ of latency waiting for network sockets. `asyncio` is the ideal paradigm.
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-caution}
+### The Single Event Loop
+Tasks take turns cooperatively. **If any single function executes synchronous blocking code, every other agent task on that loop freezes completely.**
+:::
+:::
+:::
+
+---
+
+### Coroutines, Tasks, and `await`
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+
+async def fetch_embeddings(doc_id: int) -> list[float]:
+    await asyncio.sleep(0.1)  # Yields execution back to loop
+    return [0.1 * doc_id, 0.2, 0.3]
+
+async def main():
+    # 1. Coroutine object: created, not started
+    coro = fetch_embeddings(1)
+
+    # 2. Await: runs to completion inline
+    result1 = await coro
+
+    # 3. create_task: scheduled concurrently in background
+    task = asyncio.create_task(fetch_embeddings(2))
+    # Loop can do other work here...
+    result2 = await task
+    print(result1, result2)
+
+asyncio.run(main())  # Bootstraps the event loop
+```
+:::
+
+::: {.column width="45%"}
+#### Fundamental Mechanics
+- **`async def`:** Calling the function returns a coroutine object immediately without executing its body.
+- **`await`:** Suspends the current coroutine until the awaited object produces a value, freeing the loop to run other work.
+- **`create_task()`:** Wraps a coroutine in an `asyncio.Task` and adds it to the loop's ready queue immediately.
+:::
+:::
+
+---
+
+### Running Work Concurrently: `gather` vs `TaskGroup`
+
+::: columns
+::: {.column width="50%"}
+#### `asyncio.gather` (Legacy Fan-Out)
+```python
+results = await asyncio.gather(
+    fetch_doc(1),
+    fetch_doc(2),
+    fetch_doc(3),
+    return_exceptions=True  # Returns Errors as values
+)
+```
+- Returns results in invocation order.
+- **Drawback:** If one task crashes, siblings continue running orphaned in the background ("fire-and-leak").
+:::
+
+::: {.column width="50%"}
+#### `TaskGroup` (Python 3.11+ Structured Concurrency)
+```python
+async with asyncio.TaskGroup() as tg:
+    t1 = tg.create_task(fetch_doc(1))
+    t2 = tg.create_task(fetch_doc(2))
+
+# Guaranteed: Both tasks finished successfully here
+print(t1.result(), t2.result())
+```
+- **Fail-Fast:** If `t1` crashes, `t2` is **automatically cancelled**.
+- Failures bundled in an `ExceptionGroup`.
+:::
+:::
+
+---
+
+### Timeouts and Safe Cancellation
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+
+async def background_worker():
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except asyncio.CancelledError:
+        # Mandatory: perform async cleanup
+        await flush_audit_logs()
+        raise  # NEVER swallow CancelledError!
+    finally:
+        # Runs on both clean exit and cancellation
+        close_local_resources()
+
+async def execute_with_timeout():
+    try:
+        async with asyncio.timeout(5.0):  # Python 3.11+
+            await background_worker()
+    except TimeoutError:
+        print("Agent tool exceeded 5-second SLA")
+```
+:::
+
+::: {.column width="45%"}
+#### Golden Rules for Cancellation
+- **`asyncio.timeout()`:** Context manager that cancels the inner block cleanly upon expiration.
+- **Never Swallow `CancelledError`:** Always re-raise `CancelledError`. Swallowing it prevents the runtime from terminating cancelled agent requests.
+- **Guaranteed Cleanup:** Place resource disposal in `finally` blocks.
+:::
+:::
+
+---
+
+### Limiting & Coordinating Tasks
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+
+# 1. Semaphore: enforce LLM rate limits
+rate_limiter = asyncio.Semaphore(5)
+
+async def rate_limited_call(url: str):
+    async with rate_limiter:  # At most 5 concurrent requests
+        return await http_client.get(url)
+
+# 2. Queue: decoupled producer-consumer with backpressure
+work_queue: asyncio.Queue[str] = asyncio.Queue(maxsize=50)
+
+async def producer():
+    for item in dataset:
+        await work_queue.put(item)  # Suspends if queue is full!
+
+async def worker():
+    while True:
+        item = await work_queue.get()
+        await process(item)
+        work_queue.task_done()
+```
+:::
+
+::: {.column width="45%"}
+#### Coordination Primitives
+- **`asyncio.Semaphore`:** Prevents hitting 429 Too Many Requests errors when calling external LLMs in parallel.
+- **`asyncio.Queue`:** Provides natural backpressure so producers don't flood system memory.
+- **`asyncio.Lock` & `Event`:** Thread-safe mutual exclusion and flag-based synchronization between agent nodes.
+:::
+:::
+
+---
+
+### Async Iterators and Generators: Streaming
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+from contextlib import aclosing
+
+async def stream_tokens(prompt: str):
+    """Async generator yielding LLM tokens as they arrive."""
+    for word in prompt.split():
+        await asyncio.sleep(0.05)  # Simulate network chunk
+        yield word + " "
+
+async def render_chat():
+    # Consume tokens in real time
+    async for token in stream_tokens("Autonomous agents reason in steps"):
+        print(token, end="", flush=True)
+
+# Safe early termination with aclosing
+async def partial_consume():
+    async with aclosing(stream_tokens("hello world")) as stream:
+        async for token in stream:
+            if "hello" in token:
+                break  # Stream generator properly closed!
+```
+:::
+
+::: {.column width="45%"}
+#### Why This Matters
+- **Async Generator:** `yield` inside an `async def` function creates an `AsyncIterator`.
+- **`async for`:** Consumes chunks one at a time as the remote model yields them.
+- **Perceived Latency:** Streaming cuts time-to-first-token (TTFT) from 5 seconds to under 300 milliseconds.
+:::
+:::
+
+---
+
+### Async Context Managers & Resource Pooling
+
+::: columns
+::: {.column width="55%"}
+```python
+import httpx
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def agent_session():
+    # Initialize connection pool once
+    limits = httpx.Limits(max_keepalive_connections=20, max_connections=50)
+    async with httpx.AsyncClient(limits=limits, timeout=15.0) as client:
+        yield client
+    # Client closed and connections drained cleanly here
+
+async def query_cluster(urls: list[str]):
+    async with agent_session() as client:
+        tasks = [client.get(u) for u in urls]
+        return await asyncio.gather(*tasks)
+```
+:::
+
+::: {.column width="45%"}
+#### Connection Reuse
+- **Connection Pooling:** Creating a new `httpx.AsyncClient` per request incurs TLS handshake and DNS overhead on every call.
+- **Persistent Sessions:** Share one pooled client across the agent lifecycle.
+- **MCP Clients:** Model Context Protocol clients use async context managers to manage subprocess stdio connections.
+:::
+:::
+
+---
+
+### Never Block the Event Loop!
+
+::: columns
+::: {.column width="55%"}
+```python
+import asyncio
+import time
+from concurrent.futures import ProcessPoolExecutor
+
+# FATAL ANTI-PATTERN (Freezes all concurrent agents!):
+# time.sleep(2)
+# requests.get("https://api.openai.com")
+
+# CORRECT PATTERN: Offload blocking I/O to thread pool
+def blocking_disk_read(path: str) -> str:
+    with open(path) as f: return f.read()
+
+content = await asyncio.to_thread(blocking_disk_read, "large.txt")
+
+# Offload CPU-heavy tokenization / math to ProcessPool
+process_pool = ProcessPoolExecutor()
+loop = asyncio.get_running_loop()
+embeddings = await loop.run_in_executor(
+    process_pool, cpu_intensive_math, matrix
+)
+```
+:::
+
+::: {.column width="45%"}
+#### Diagnosing Stalls
+- **Symptoms:** WebSocket heartbeats fail, token streams stutter, health checks time out.
+- **Detection:**
+  ```bash
+  PYTHONASYNCIODEBUG=1 uv run agent.py
+  ```
+  Logs warnings whenever a callback blocks the loop for $>100\text{ms}$.
+- **Static Prevention:** Ruff `ASYNC` rules flag `requests` or `time.sleep` in async code.
+:::
+:::
+
+---
+
+### Bridging Sync and Async
+
+| Scenario | Recommended Architectural Approach |
+| :--- | :--- |
+| **Sync CLI script calls async agent** | `asyncio.run(main())` once at the application entry point |
+| **Already inside running loop (FastAPI, Jupyter)** | `await coro` directly; calling `asyncio.run()` raises `RuntimeError` |
+| **Async agent must invoke blocking sync code** | `await asyncio.to_thread(sync_func, *args)` |
+| **Framework offers sync and async methods** | Use `ainvoke()` / `astream()` in async web apps; use `invoke()` in batch scripts |
+| **Synchronous SDK wrapper around async core** | Place a single `asyncio.run()` at the outermost boundary |
+
+> **Warning:** Never nest `asyncio.run()` calls. Avoid `nest_asyncio` in production architectures as it masks broken event loop designs.
+
+---
+
+### `contextvars`: State That Follows a Task
+
+::: columns
+::: {.column width="55%"}
+```python
+import contextvars
+import logging
+
+# Define context variable with default
+run_id_var: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "run_id", default="unknown"
+)
+
+async def tool_step():
+    # Automatically inherits the task's context without passing arguments!
+    current_run = run_id_var.get()
+    logging.info(f"[{current_run}] Executing tool")
+
+async def handle_agent_turn(turn_id: str):
+    run_id_var.set(turn_id)
+    await tool_step()
+
+# Tasks receive an isolated copy of contextvars:
+# Updating run_id in Task A does NOT overwrite Task B!
+```
+:::
+
+::: {.column width="45%"}
+#### Why Agents Need `contextvars`
+- **Request Tracing:** Propagates `run_id`, `trace_id`, and `tenant_id` across deeply nested agent tool functions.
+- **Signature Cleanliness:** Eliminates the need to pass context dictionaries down through every function parameter.
+- **Task Isolation:** Inherited by child tasks created via `create_task`, but modifications stay scoped to that branch.
+:::
+:::
+
+---
+
+### Threads, the GIL and Python 3.14
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-note}
+### The GIL
+In standard CPython, the Global Interpreter Lock ensures only one thread executes Python bytecode at a time. Threads still accelerate blocking C-level I/O.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-tip}
+### Python 3.14 Free-Threaded
+Official support for builds without the GIL (PEP 703). Multi-threaded CPU algorithms achieve true hardware parallel speedups.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-important}
+### Subinterpreters (PEP 734)
+Run multiple independent Python runtimes inside a single process with isolated GILs and memory spaces.
+:::
+:::
+:::
+
+```python
+# Graceful thread cancellation via cooperative signaling
+import threading
+
+stop_event = threading.Event()
+worker_thread = threading.Thread(target=sync_worker, args=(stop_event,))
+worker_thread.start()
+
+# Later: signal thread to exit safely
+stop_event.set()
+worker_thread.join()
+```
+
+---
+
+### Testing and Debugging Async Code
+
+::: columns
+::: {.column width="55%"}
+```python
+import pytest
+from unittest.mock import AsyncMock
+
+@pytest.mark.asyncio
+async def test_agent_fetch():
+    # Mocking async dependencies
+    mock_client = AsyncMock()
+    mock_client.get.return_value.json.return_value = {"answer": 42}
+
+    # Time-box the test to guarantee CI never hangs
+    async with asyncio.timeout(2.0):
+        result = await run_agent_query(mock_client, "test")
+
+    assert result == 42
+    mock_client.get.assert_awaited_once()
+
+# Testing async generator streams
+async def test_streaming():
+    chunks = [c async for c in stream_tokens("hi there")]
+    assert chunks == ["hi ", "there "]
+```
+:::
+
+::: {.column width="45%"}
+#### Async Test Toolkit
+- **`pytest-asyncio`:** Enables `async def test_*` functions.
+- **`pytest.ini`:** Configure `asyncio_mode = "auto"` to avoid manually decorating every test.
+- **`AsyncMock`:** Accurately mimics awaitable functions and tracks `assert_awaited_once()`.
+- **Timeouts in Tests:** Always enforce `asyncio.timeout` to prevent hung sockets from freezing test runs.
+:::
+:::
+
+---
+
+### Async Anti-Patterns & Clean Solutions
+
+| Dangerous Anti-Pattern | Why It Breaks | Clean Idiomatic Solution |
+| :--- | :--- | :--- |
+| **Forgetting `await`** | Coroutine object created but never executed | Add `await` or wrap in `asyncio.create_task` |
+| **`time.sleep()` in async code** | Freezes all running tasks on the entire thread | Use `await asyncio.sleep()` or `asyncio.to_thread` |
+| **Swallowing `CancelledError`** | Task refuses to die during shutdowns/timeouts | Clean up in `finally` and **always re-raise** |
+| **Fire-and-forget `create_task`** | Garbage collector may destroy task mid-flight | Store reference in a set or use `TaskGroup` |
+| **Unbounded `asyncio.gather`** | Exhausts file descriptors or triggers API 429s | Throttle with `asyncio.Semaphore` |
+| **`asyncio.run` in existing loop** | Crashes with `RuntimeError: loop is running` | Await the coroutine directly |
+| **New HTTP client per request** | No socket reuse; connection exhaust | Maintain a single shared `httpx.AsyncClient` |
+
+---
+
+### Lab 5: A Concurrent, Cancellable Fetcher
+
+::: {.callout-tip}
+#### Goal
+Build a high-performance concurrent fetcher with rate limiting, timeouts, cancellation, and streaming output.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Concurrently fetch 50 mock endpoints using `asyncio.gather` bounded by a `Semaphore(5)`.
+2. Add per-request timeouts with `asyncio.timeout(1.0)`.
+3. Refactor the runner to use `asyncio.TaskGroup` and handle `ExceptionGroup`.
+4. Trigger an external cancellation signal after 3 seconds and ensure graceful cleanup.
+5. Expose the results as an async generator (`yield` chunks as they complete).
+6. Insert a deliberate blocking file operation, observe the lag, and fix it using `asyncio.to_thread`.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] Concurrency is strictly capped at 5 simultaneous connections
+- [x] Cancellation runs all cleanup handlers and re-raises properly
+- [x] Async stream yields results immediately upon completion
+- [x] **Stretch Goal:** Add a `request_id` `ContextVar` and inject it automatically into all log outputs.
+:::
+:::

@@ -14,6 +14,7 @@ subtitle: "Interactive Presentations & Course Curricula"
 | [GenAI: LLM Application Development](tech/genai/intro/index.qmd) | Architecture of LLM-powered applications, prompt engineering, LangChain components, vector databases, and security considerations. |
 | [GenAI: Local LLMs PoC](tech/genai/poc/localllms.qmd) | Exploring self-hosted, quantized local open-source models, quantization techniques, and privacy-preserving prototyping. |
 | [Python Programming](tech/python/index.qmd) | Introduction to core Python programming concepts and regular expression processing. |
+| [Python for AI Engineers](tech/python-ai/index.qmd) | Prerequisite bootcamp for agent frameworks (LangGraph, Strands, ADK): uv, typing, Pydantic, async, design patterns, testing, performance, and packaging. |
 
 : {tbl-colwidths="[30,70]"}
 

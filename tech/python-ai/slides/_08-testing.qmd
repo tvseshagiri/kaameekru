@@ -1,0 +1,199 @@
+
+# Module 8: Testing & Quality {#mod-testing}
+
+---
+
+### `pytest` Essentials
+
+::: columns
+::: {.column width="55%"}
+```python
+import pytest
+from pathlib import Path
+
+# Fixtures for reusable setup and teardown
+@pytest.fixture
+def temp_workspace(tmp_path: Path):
+    data_dir = tmp_path / "agent_data"
+    data_dir.mkdir()
+    yield data_dir
+    # Cleanup happens automatically after test!
+
+# Parametrized tests: one test logic, many edge cases
+@pytest.mark.parametrize("query,expected_category", [
+    ("Book flight to Tokyo", "travel"),
+    ("Reset my password", "it_support"),
+    ("Account balance inquiry", "billing"),
+])
+def test_intent_classification(query, expected_category):
+    assert classify_intent(query) == expected_category
+
+def test_validation_error_raised():
+    with pytest.raises(ValueError, match="API key required"):
+        initialize_agent(api_key="")
+```
+:::
+
+::: {.column width="45%"}
+#### Why Developers Love Pytest
+- **Plain `assert` Statements:** Pytest introspects the bytecode, printing detailed left/right diffs on failure without `assertEquals` boilerplate.
+- **Fixtures:** Modular dependency injection for tests (`tmp_path`, database connections, mock clients).
+- **`@pytest.mark.parametrize`:** Easily test exhaustive permutations and edge cases.
+:::
+:::
+
+---
+
+### Fakes, Mocks, and Monkeypatching
+
+::: columns
+::: {.column width="55%"}
+```python
+from unittest.mock import AsyncMock
+
+# Fakes over Mocks: small working fake class
+class FakeLLMClient:
+    def __init__(self, canned_response: str = "ok"):
+        self.canned = canned_response
+        self.call_history: list[str] = []
+
+    async def complete(self, prompt: str) -> str:
+        self.call_history.append(prompt)
+        return self.canned
+
+# Testing async agent workflow with fake:
+async def test_agent_with_fake():
+    fake = FakeLLMClient("tool_call: web_search")
+    result = await run_agent_loop(client=fake)
+    assert len(fake.call_history) == 1
+
+# Monkeypatching environment variables safely
+def test_environment_loading(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-key-12345")
+    settings = load_settings()
+    assert settings.api_key.get_secret_value() == "sk-test-key-12345"
+```
+:::
+
+::: {.column width="45%"}
+#### Testing Principles
+- **Fakes > Mocks:** High-fidelity in-memory fakes are easier to read and maintain than complex nested mock assertions.
+- **`AsyncMock`:** Accurately replicates awaitables and tracks `.assert_awaited_once()`.
+- **`monkeypatch`:** Automatically reverts modified environment variables or module attributes after each test.
+:::
+:::
+
+---
+
+### Testing LLM-Shaped Code
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-note}
+### Deterministic Fakes
+Return fixed responses to verify state routing, JSON extraction, and error retries completely offline.
+:::
+
+::: {.callout-tip}
+### Golden Snapshot Files
+Snapshot generated prompt strings and expected tool schemas to catch unintended regressions in git diffs.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-important}
+### Property-Based Tests
+Use `Hypothesis` to generate random inputs, verifying mathematical properties like **reducer associativity**.
+:::
+
+::: {.callout-caution}
+### Mark Slow Tests
+Mark tests calling real remote models with `@pytest.mark.slow` and run them only on scheduled pipelines.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-note}
+### Evals vs Unit Tests
+- **Unit Tests:** Verify deterministic code logic, typing, and protocol contracts.
+- **Evals:** Measure stochastic model accuracy, tone, and reasoning quality.
+- **Keep both distinct!**
+:::
+:::
+:::
+
+---
+
+### Coverage, CI and Quality Gates
+
+::: columns
+::: {.column width="60%"}
+```yaml
+# .github/workflows/ci.yml
+name: CI Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --frozen --python ${{ matrix.python-version }}
+
+      - name: Code formatting & linting
+        run: uv run ruff check && uv run ruff format --check
+
+      - name: Static type checking
+        run: uv run mypy src
+
+      - name: Execute test suite
+        run: uv run pytest --cov=src --cov-report=term-missing
+```
+:::
+
+::: {.column width="40%"}
+#### CI Gate Requirements
+- **`uv sync --frozen`:** Guarantees CI builds never modify `uv.lock`.
+- **Triad Check:**
+  1. Formatting (`ruff format`)
+  2. Linting (`ruff check`)
+  3. Strict Types (`mypy`)
+- **Matrix Testing:** Run across all supported Python versions (3.12 & 3.13).
+:::
+:::
+
+---
+
+### Lab 8: Test the Mini Runtime
+
+::: {.callout-tip}
+#### Goal
+Bring the Module 6 agent graph runtime under a comprehensive test suite and continuous integration pipeline.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Test state reducers with `@pytest.mark.parametrize` across empty and multi-item lists.
+2. Test event routing using an isolated fake handler table.
+3. Test event bus hooks using an `AsyncMock` to verify invocation count and arguments.
+4. Test retry backoff logic with a simulated flaky fake without real-time sleep pauses.
+5. Add a `Hypothesis` property-based test proving reducer associativity:
+   $$\text{apply}(\text{apply}(s, a), b) = \text{apply}(s, a + b)$$
+6. Construct a complete GitHub Actions workflow executing ruff, mypy, and pytest.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] Test suite executes 100% offline in $<2$ seconds
+- [x] A broken reducer update is immediately flagged by property-based tests
+- [x] CI pipeline fails if any linter, type, or unit test check breaks
+- [x] **Stretch Goal:** Enforce an automated code coverage threshold (e.g. 85%) on `src/`.
+:::
+:::

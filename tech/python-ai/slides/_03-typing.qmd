@@ -1,0 +1,420 @@
+
+# Module 3: Type Hints in Depth {#mod-typing}
+
+---
+
+### Why Types Matter for Agent Frameworks
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-note}
+### Frameworks Read Them
+Tool schemas, state channels, and structured outputs are derived from annotations dynamically at runtime.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-tip}
+### Checkers Read Them
+Static type checkers catch interface mismatches, missing fields, and type bugs *before* executing expensive LLM API calls.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-important}
+### Humans Read Them
+Annotations document strict contracts between nodes, tools, and multi-agent coordination teams.
+:::
+:::
+:::
+
+::: {.callout-note}
+### Python 3.14 & PEP 649
+Python 3.14 defers annotation evaluation until explicitly inspected. Use `annotationlib.get_annotations()` with `Format.VALUE`, `Format.FORWARDREF`, or `Format.STRING` to safely introspect types without circular import errors.
+:::
+
+---
+
+### Modern Annotation Syntax
+
+::: columns
+::: {.column width="55%"}
+```python
+# Modern union syntax (Python 3.10+) & built-in generics
+def process_messages(
+    messages: list[str],
+    user_id: int | None = None,
+    options: dict[str, float] | None = None
+) -> tuple[int, str]:
+    ...
+
+# Accept abstract types, return concrete types
+from collections.abc import Callable, Sequence, Mapping
+
+def execute_pipeline(
+    handler: Callable[[str], dict],
+    inputs: Sequence[str],              # Accepts list, tuple, deque
+    config: Mapping[str, str]            # Accepts dict, custom mapping
+) -> list[dict]:
+    return [handler(item) for item in inputs]
+```
+:::
+
+::: {.column width="45%"}
+#### Best Practices
+- **Union Operator `|`:** Use `str | None` instead of legacy `Optional[str]`.
+- **Built-in Generics:** Use `list[T]`, `dict[K, V]`, `set[T]` instead of importing `typing.List` or `typing.Dict`.
+- **Abstract Input Parameters:** Always accept `Sequence` or `Iterable` in parameters so callers can pass lists, tuples, or generators interchangeably.
+:::
+:::
+
+---
+
+### `Literal`, `Final`, and `Annotated`
+
+::: columns
+::: {.column width="55%"}
+```python
+from typing import Literal, Final, Annotated
+from operator import add
+from pydantic import Field
+
+# Literal: strictly allowed string options for routing
+AgentMode = Literal["planner", "executor", "evaluator"]
+
+# Final: constants that cannot be reassigned
+MAX_SUBTASKS: Final[int] = 10
+
+# LangGraph-style Reducer Metadata:
+# Annotated[Type, ReducerFunction]
+class AgentState(TypedDict):
+    messages: Annotated[list[str], add]
+    scratchpad: Annotated[list[str], add]
+
+# Pydantic-style Field Constraint:
+Confidence = Annotated[float, Field(ge=0.0, le=1.0)]
+```
+:::
+
+::: {.column width="45%"}
+#### Key Roles in Frameworks
+- **`Literal`:** Drives router nodes in LangGraph and model decision points.
+- **`Final`:** Pins safety constants (turn limits, token thresholds).
+- **`Annotated[T, metadata]`:**
+  Attaches runtime instructions directly to the type without changing static checking. LangGraph inspects the second argument to know *how* to merge partial updates (`operator.add`).
+:::
+:::
+
+---
+
+### `TypedDict`: Lightweight State Modeling
+
+::: columns
+::: {.column width="55%"}
+```python
+from typing import TypedDict, NotRequired, Required
+
+class ChatMessage(TypedDict):
+    role: str
+    content: str
+    tool_call_id: NotRequired[str]   # Optional key
+
+# Python 3.13 ReadOnly support
+from typing import ReadOnly
+
+class SessionState(TypedDict, total=False):
+    session_id: Required[str]        # Must be present
+    messages: list[ChatMessage]
+    api_key: ReadOnly[str]           # Immutable key
+
+msg: ChatMessage = {"role": "user", "content": "hello"}
+```
+:::
+
+::: {.column width="45%"}
+#### When to Use `TypedDict`
+- **Zero Runtime Overhead:** At runtime, it is a plain Python `dict`. No instantiation latency.
+- **JSON Serialization:** Inherently JSON-serializable without needing special serializers.
+- **Where It Lives:** Primary state representation in **LangGraph**, tool parameter dictionaries in **Strands**.
+:::
+:::
+
+---
+
+### Dataclasses and `NamedTuple`
+
+::: columns
+::: {.column width="55%"}
+```python
+from dataclasses import dataclass, field, replace
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class RuntimeContext:
+    user_id: str
+    agent_name: str = "assistant"
+    tags: list[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        if not self.user_id:
+            raise ValueError("user_id cannot be empty")
+
+ctx1 = RuntimeContext(user_id="usr_123")
+
+# Functional non-mutating update:
+ctx2 = replace(ctx1, agent_name="specialist")
+```
+:::
+
+::: {.column width="45%"}
+#### Best Practices for Agents
+- **`slots=True`:** Drastically reduces memory consumption and speeds up attribute lookups.
+- **`frozen=True`:** Enforces immutability; instances are hashable and thread-safe.
+- **`default_factory`:** Always use `field(default_factory=list)` to avoid the shared mutable container trap.
+- **`replace()`:** Creates a modified clone without mutating the original.
+:::
+:::
+
+---
+
+### `Protocol` vs `ABC`: Describing Behavior
+
+::: columns
+::: {.column width="50%"}
+#### Structural Typing (`Protocol`)
+```python
+from typing import Protocol
+
+class ModelClient(Protocol):
+    async def generate(self, prompt: str) -> str:
+        ...
+
+# Conforms automatically WITHOUT inheritance!
+class FakeModelClient:
+    async def generate(self, prompt: str) -> str:
+        return "mock response"
+
+def run_agent(client: ModelClient):
+    ...
+
+run_agent(FakeModelClient())  # Type-checks cleanly!
+```
+:::
+
+::: {.column width="50%"}
+#### Nominal Typing (`ABC`)
+```python
+from abc import ABC, abstractmethod
+
+class BaseCheckpointer(ABC):
+    @abstractmethod
+    def save(self, run_id: str, state: dict) -> None:
+        ...
+
+class SqliteCheckpointer(BaseCheckpointer):
+    def save(self, run_id: str, state: dict) -> None:
+        # Implementation required
+        ...
+```
+:::
+:::
+
+> **Rule of Thumb:** Use `Protocol` for test seams, fakes, and client swapping. Use `ABC` when sharing concrete helper code among derived plugin classes.
+
+---
+
+### Generics with PEP 695 (Python 3.12+)
+
+::: columns
+::: {.column width="55%"}
+```python
+# Modern PEP 695 Syntax (Python 3.12+)
+def first_item[T](items: list[T]) -> T:
+    return items[0]
+
+class StateStore[TState, TConfig]:
+    def __init__(self, state: TState, config: TConfig) -> None:
+        self.state = state
+        self.config = config
+
+# Type Aliases
+type AgentResult[T] = tuple[bool, T, dict[str, int]]
+
+# Bounded Generics
+class Runner[T: ModelClient]:
+    def __init__(self, client: T) -> None:
+        self.client = client
+```
+:::
+
+::: {.column width="45%"}
+#### Eliminating Boilerplate
+- **No More `TypeVar`:** Replaces verbose `T = TypeVar("T")` declarations with clean syntax parameters `[T]`.
+- **`type` Keyword:** First-class statement for defining parameterized type aliases.
+- **Framework Ubiquity:** Seen across frameworks as `Runtime[Context]`, `Case[str, str]`, and `Channel[T]`.
+:::
+:::
+
+---
+
+### `ParamSpec` & Typed Decorators
+
+::: columns
+::: {.column width="55%"}
+```python
+from collections.abc import Callable
+from functools import wraps
+
+def with_retry[**P, R](attempts: int = 3):
+    def decorator(fn: Callable[P, R]) -> Callable[P, R]:
+        @wraps(fn)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            for i in range(attempts):
+                try:
+                    return fn(*args, **kwargs)
+                except Exception:
+                    if i == attempts - 1:
+                        raise
+            raise RuntimeError("Exhausted")
+        return wrapper
+    return decorator
+```
+:::
+
+::: {.column width="45%"}
+#### Why `ParamSpec` is Crucial
+- **Preserves Signatures:** Forward parameter names, defaults, and types from the wrapped function to the wrapper.
+- **Tool Decorator Safety:**
+  Without `ParamSpec`, a decorator would type the function as `Callable[..., Any]`, destroying autocomplete and runtime tool schema inspection!
+:::
+:::
+
+---
+
+### Type Narrowing & Discriminated Unions
+
+::: columns
+::: {.column width="55%"}
+```python
+from typing import Literal, TypedDict, assert_never
+
+class TextChunk(TypedDict):
+    kind: Literal["text"]
+    text: str
+
+class ToolChunk(TypedDict):
+    kind: Literal["tool_call"]
+    name: str
+    args: dict
+
+StreamChunk = TextChunk | ToolChunk
+
+def handle_chunk(chunk: StreamChunk) -> None:
+    match chunk["kind"]:
+        case "text":
+            print(chunk["text"])          # Narrowed to TextChunk
+        case "tool_call":
+            call_tool(chunk["name"])      # Narrowed to ToolChunk
+        case _ as unreachable:
+            assert_never(unreachable)     # Compile-time exhaustiveness!
+```
+:::
+
+::: {.column width="45%"}
+#### Exhaustive Matching
+- **Discriminated Union:** A shared `Literal` field (`kind`) allows the type checker to narrow branches cleanly.
+- **`assert_never()`:**
+  If a new event type (e.g. `ErrorChunk`) is added to `StreamChunk` but forgotten in the `match` statement, the type checker immediately raises a static build error.
+:::
+:::
+
+---
+
+### Runtime Introspection: Building Tool Schemas
+
+::: columns
+::: {.column width="55%"}
+```python
+import inspect
+from typing import get_type_hints
+
+def generate_tool_schema(fn) -> dict:
+    """Inspect a Python function and construct JSON Schema."""
+    hints = get_type_hints(fn)
+    sig = inspect.signature(fn)
+
+    parameters = {}
+    for param_name, param in sig.parameters.items():
+        param_type = hints.get(param_name, str).__name__
+        parameters[param_name] = {
+            "type": param_type,
+            "default": None if param.default is inspect._empty else param.default
+        }
+
+    return {
+        "name": fn.__name__,
+        "description": inspect.getdoc(fn) or "",
+        "parameters": parameters
+    }
+```
+:::
+
+::: {.column width="45%"}
+#### How Agent Frameworks Work
+- Frameworks like LangGraph, Strands, and ADK do this exact introspection when you annotate functions with `@tool`.
+- Function name $\rightarrow$ LLM tool name
+- Function docstring $\rightarrow$ LLM tool description
+- Type hints $\rightarrow$ JSON Schema parameter types
+:::
+:::
+
+---
+
+### Typing Pitfalls & A Strictness Plan
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-caution}
+### Common Traps
+- **`Any` Leaks:** One `Any` silently infects everything downstream. Use `object` if uncertain.
+- **Optional $\neq$ Default:** `x: int | None` still requires an argument unless declared as `= None`.
+- **Runtime is Unchecked:** Annotations do not validate input values at runtime!
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-tip}
+### Incremental Strictness Plan
+1. **Phase 1:** Add return types and parameter types to public agent tools.
+2. **Phase 2:** Turn on `disallow_untyped_defs` for core modules.
+3. **Phase 3:** Enforce `--strict` across the whole repository in CI.
+:::
+:::
+:::
+
+---
+
+### Lab 3: Typed State Machine & Schema Generator
+
+::: {.callout-tip}
+#### Goal
+Model an agent workflow with precise types, then generate JSON tool schemas directly from Python function signatures.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Define an `AgentState` as a `TypedDict` with `NotRequired` keys.
+2. Add an `Annotated` reducer and apply it in a custom state merge function.
+3. Model agent events as a discriminated union of `TypedDict` structures.
+4. Handle every event kind with `match ... case` and `assert_never`.
+5. Implement a generic `ToolRegistry[T]` using Python 3.12+ PEP 695 syntax.
+6. Generate a compliant JSON schema dictionary from function signatures.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] The type checker (`mypy` or `pyright`) passes in strict mode
+- [x] Removing any match branch triggers an `assert_never` static type error
+- [x] Extracted tool schemas include function name, description, and typed parameters
+- [x] **Stretch Goal:** Make the tool registry a typed decorator using `ParamSpec`.
+:::
+:::

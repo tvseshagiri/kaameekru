@@ -1,0 +1,154 @@
+
+# Bootcamp Overview {#overview}
+
+---
+
+### Python for Agent Frameworks
+
+::: columns
+::: {.column width="55%"}
+#### Prerequisite Bootcamp
+**From core Python to typing, Pydantic, async, and tooling behind modern agent architectures.**
+
+- **Focus:** The exact language features powering **LangGraph**, **Strands**, and **ADK**.
+- **Scope:** 10 modules &middot; 9 hands-on labs &middot; 1 capstone project.
+- **Pacing:** 20% concept, 80% practical engineering.
+- **Sources:** CPython internals, Astral `uv`, Pydantic v2, and framework docs.
+:::
+
+::: {.column width="45%"}
+::: {.callout-note}
+### Core Focus Pillars
+- **Types:** `TypedDict`, `Annotated`, `Protocol`, generics
+- **Validation:** Pydantic v2 `BaseModel`, `TypeAdapter`
+- **Async:** `TaskGroup`, cancellation, token streaming
+- **Tooling:** `uv`, `ruff`, `pytest`, strict CI quality gates
+:::
+:::
+:::
+
+---
+
+### Five Days, Ten Modules
+
+| Day | Focus Area | Modules Included |
+| :--- | :--- | :--- |
+| **Day 1** | **Foundation** | **1:** Tooling with `uv`<br>**2:** Core Language Fluency |
+| **Day 2** | **Types** | **3:** Type Hints in Depth<br>**4:** Pydantic Validation & Schemas |
+| **Day 3** | **Async** | **5:** Async and Concurrency<br>**6:** Framework Design Patterns |
+| **Day 4** | **Real Work** | **7:** I/O, Data, and Logging<br>**8:** Testing and Quality |
+| **Day 5** | **Ship** | **9:** Performance & Memory<br>**10:** Packaging, Security & Capstone |
+
+> Every module concludes with an executable hands-on lab and self-check criteria.
+
+---
+
+### Outcomes & Prerequisites
+
+::: columns
+::: {.column width="50%"}
+#### What You Will Master
+- **Read & Write Typed Python:** Annotations, `TypedDict`, dataclasses, `Protocol`, and PEP 695 generics.
+- **Model Data with Pydantic:** Schema generation, strict validation, settings, and structured LLM outputs.
+- **Program Asynchronously:** Tasks, timeouts, cancellation, streams, and safe sync/async bridging.
+- **Work Like a Professional:** `uv`, `ruff`, static type checking, `pytest`, and automated CI gates.
+:::
+
+::: {.column width="50%"}
+#### You Should Already Know
+- Variables, numbers, strings, lists, dictionaries.
+- Control flow (`if`, `for`, `while`) and basic functions.
+- Simple classes, objects, and methods.
+- Executing scripts from a terminal.
+- Basic Git workflow (`clone`, `branch`, `commit`, `push`).
+:::
+:::
+
+---
+
+### The Gap Map: Python in Agent Frameworks
+
+| Python Feature | LangGraph | Strands | ADK |
+| :--- | :--- | :--- | :--- |
+| **TypedDict, Annotated** | State channels, reducers | Tool parameters | State schemas |
+| **Pydantic models** | Optional state validation | Structured output | Input/output schemas |
+| **Dataclasses** | `context_schema` | Config objects | Config & context |
+| **Decorators** | `@tool`, `@task`, `@entrypoint` | `@tool`, `@hook` | `@node` |
+| **async, await, gather** | `ainvoke`, `astream` | `stream_async` | `run_node`, `gather` |
+| **Async generators** | Graph streaming | Streaming events | Event yields |
+| **Context managers** | Checkpointer setup | `MCPClient` | Runners, clients |
+| **Exceptions** | `GraphRecursionError` | Stop reasons, errors | `BaseException` trap |
+
+---
+
+### Self-Assessment: Four Levels
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Level 1 &middot; Recognize
+You can read the code and explain what it does in context.
+:::
+
+::: {.callout-tip}
+### Level 2 &middot; Use
+You can write the code from an example with documentation open.
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-important}
+### Level 3 &middot; Design
+You choose the right abstraction and structure components cleanly.
+:::
+
+::: {.callout-caution}
+### Level 4 &middot; Debug & Teach
+You diagnose subtle runtime/concurrency bugs and mentor peers.
+:::
+:::
+:::
+
+> **Target Benchmark:** Reach **Level 3** for typing, Pydantic, and async; reach **Level 2** for tooling and patterns.
+
+---
+
+### Which Python to Install?
+
+::: columns
+::: {.column width="33%"}
+#### Minimum
+**Python 3.10 – 3.11**
+
+- Framework minimum baseline.
+- `requires-python` target in legacy projects.
+- Lacks modern syntax like PEP 695 and built-in `TaskGroup`.
+:::
+
+::: {.column width="33%"}
+#### Recommended
+**Python 3.12 – 3.13**
+
+- `asyncio.TaskGroup` built-in.
+- PEP 695 generics (`def f[T]()`).
+- Improved tracebacks and error messages.
+- `itertools.batched`, `ReadOnly`.
+:::
+
+::: {.column width="34%"}
+#### Latest
+**Python 3.14**
+
+- PEP 649 deferred annotations.
+- Template strings (`t-strings`).
+- PEP 734 subinterpreters in stdlib.
+- Official free-threaded (GIL-free) builds.
+:::
+:::
+
+```bash
+# Let uv manage Python interpreters seamlessly:
+uv python install 3.13       # Download managed Python binary
+uv python pin 3.13           # Write .python-version file
+uv venv --python 3.13        # Create isolated virtual environment
+```

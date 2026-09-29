@@ -1,0 +1,19 @@
+---
+title: "Python for AI Engineers"
+subtitle: "Prerequisite Bootcamp for Agent Frameworks (LangGraph, Strands, ADK)"
+author: "AI Engineering Academy"
+slide-number: true
+---
+
+{{< include slides/_00-overview.qmd >}}
+{{< include slides/_01-tooling-uv.qmd >}}
+{{< include slides/_02-core-fluency.qmd >}}
+{{< include slides/_03-typing.qmd >}}
+{{< include slides/_04-pydantic.qmd >}}
+{{< include slides/_05-async.qmd >}}
+{{< include slides/_06-patterns.qmd >}}
+{{< include slides/_07-io-data.qmd >}}
+{{< include slides/_08-testing.qmd >}}
+{{< include slides/_09-performance.qmd >}}
+{{< include slides/_10-packaging-security.qmd >}}
+{{< include slides/_11-capstone-resources.qmd >}}

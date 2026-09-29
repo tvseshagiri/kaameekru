@@ -1,0 +1,227 @@
+
+# Capstone & Resources {#capstone}
+
+---
+
+### Capstone: Build a Mini Agent Runtime
+
+::: {.callout-note}
+#### The Challenge
+Deliver a small, fully tested, typed, asynchronous agent runtime package that mirrors how **LangGraph**, **Strands**, and **ADK** work internally.
+:::
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-tip}
+### 1. Typed State
+`TypedDict`, functional reducers (`operator.add`), and `Annotated` state channels.
+:::
+
+::: {.callout-tip}
+### 2. Validated Tools
+Automatic JSON Schema extraction from Python functions with Pydantic validation.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-important}
+### 3. Async Engine
+DAG node execution using `graphlib`, per-step `asyncio.timeout`, and cancellation.
+:::
+
+::: {.callout-important}
+### 4. Extensibility
+Async lifecycle hooks (`before_tool`, `after_tool`) and Protocol-based dependency injection.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-caution}
+### 5. Reliability
+Retries with exponential backoff and jitter; atomic SQLite state checkpointing.
+:::
+
+::: {.callout-caution}
+### 6. Packaging & Ship
+Managed via `uv`, linted with `ruff`, strictly checked with `mypy`, with a CLI entry point.
+:::
+:::
+:::
+
+> **Suggested Rubric (100 pts):** Correctness (30), Typing & Architecture (20), Async & Reliability (20), Tests & CI (15), Packaging & CLI (15).
+
+---
+
+### From These Skills to the Framework Bootcamps
+
+| Python Skill | How It Translates Directly to Frameworks |
+| :--- | :--- |
+| **`TypedDict` & `Annotated`** | Define LangGraph graph state and channel reducers; specify tool schemas |
+| **Pydantic & `TypeAdapter`** | Parse structured output in Strands; define input/output contracts in ADK |
+| **Decorators & Generics** | Author `@tool`, `@hook`, and `@node`; understand `Runtime[Context]` and `Case[str, str]` |
+| **`async`, `gather`, `TaskGroup`** | Execute parallel tool calls, dynamic branch fan-out, and multi-agent coordination |
+| **Async Generators (`yield`)** | Stream token generation via `stream_async()` and server-sent events (SSE) |
+| **Context Managers** | Manage Model Context Protocol (MCP) clients, DB transactions, and session state |
+| **Exceptions & Cancellation** | Handle agent stop reasons, human-in-the-loop interrupts, and timeouts safely |
+| **`uv`, `ruff`, `pytest`, CI** | Test, package, containerize, and deploy production-ready autonomous agents |
+
+---
+
+### Troubleshooting Cheat Sheet
+
+| Symptom / Error | Root Cause | Idiomatic Resolution |
+| :--- | :--- | :--- |
+| `RuntimeWarning: coroutine was never awaited` | Forgot to `await` a coroutine function | Add `await` or schedule with `asyncio.create_task()` |
+| `RuntimeError: asyncio.run() cannot be called...` | Called `asyncio.run()` inside an active loop | Await the coroutine directly |
+| Stream freezes and timeouts fire late | Synchronous blocking call inside async function | Offload with `await asyncio.to_thread()` |
+| Shared list grows across independent calls | Mutable default parameter (`items=[]`) | Use `items=None` or `field(default_factory=list)` |
+| `TypeError: Object is not JSON serializable` | Non-primitive (datetime, set, object) in state | Convert to string/dict or use Pydantic `model_dump_json()` |
+| `ImportError: cannot import name ...` | Circular dependency between modules | Refactor shared code or guard with `if TYPE_CHECKING:` |
+| `uv run` uses unexpected dependency versions | Inline script metadata header overrides project | Check `# /// script` metadata block |
+| Type checker passes but runtime crashes | Static annotations are not enforced at runtime | Validate inputs at boundaries using Pydantic |
+
+---
+
+### Commands and Syntax at a Glance
+
+::: columns
+::: {.column width="33%"}
+#### `uv`
+```bash
+uv init
+uv add / uv remove
+uv sync --frozen
+uv run <cmd>
+uv python install 3.13
+uv tool install ruff
+uv build && uv publish
+uv audit
+```
+:::
+
+::: {.column width="33%"}
+#### Types
+```python
+X | None
+Literal["a", "b"]
+Annotated[T, metadata]
+class State(TypedDict): ...
+class Store(Protocol): ...
+def f[T](x: T) -> T: ...
+type Result[T] = tuple[bool, T]
+```
+:::
+
+::: {.column width="34%"}
+#### Pydantic
+```python
+class M(BaseModel): ...
+Field(ge=0, le=100)
+@field_validator("x")
+@model_validator(mode="after")
+model_dump_json()
+TypeAdapter(list[M])
+```
+:::
+:::
+
+::: columns
+::: {.column width="33%"}
+#### Async
+```python
+async def / await
+asyncio.create_task()
+async with TaskGroup() as tg:
+async with timeout(5.0):
+asyncio.Semaphore(5)
+async for item in stream:
+await asyncio.to_thread(fn)
+```
+:::
+
+::: {.column width="33%"}
+#### Testing
+```python
+@pytest.fixture
+@pytest.mark.parametrize
+@pytest.mark.asyncio
+with pytest.raises(Error):
+AsyncMock()
+monkeypatch.setenv()
+Hypothesis properties
+```
+:::
+
+::: {.column width="34%"}
+#### Quality
+```bash
+uv run ruff check --fix
+uv run ruff format
+uv run mypy src --strict
+pre-commit run --all-files
+GitHub Actions CI matrix
+```
+:::
+:::
+
+---
+
+### Readiness Checklist: Agent Frameworks
+
+::: columns
+::: {.column width="50%"}
+#### Tooling & Environment
+- [ ] I can create, manage, and run projects with `uv`
+- [ ] I can pin Python versions and commit universal lockfiles
+- [ ] `ruff` and static type checkers run in continuous integration
+- [ ] Secrets and `.env` files are excluded from Git history
+
+#### Types & Data Modeling
+- [ ] I can design typed state machines with `TypedDict` and dataclasses
+- [ ] I can declare and consume structural `Protocol` interfaces and generics
+- [ ] I can model complex domain contracts with Pydantic v2
+- [ ] I enforce strict schema validation at all system boundaries
+:::
+
+::: {.column width="50%"}
+#### Asynchronous Programming
+- [ ] I can explain event loop mechanics and cooperative multitasking
+- [ ] I use `TaskGroup`, timeouts, and cancellation cleanly
+- [ ] I handle and re-raise `asyncio.CancelledError` properly
+- [ ] I can build and consume real-time token async generators
+
+#### Quality & Deployment
+- [ ] I write fast, offline unit tests using in-memory fakes
+- [ ] I test async functions and streams with `pytest-asyncio`
+- [ ] I attach contextual `run_id` correlation across log streams
+- [ ] I can containerize and ship agent CLIs with least privilege
+:::
+:::
+
+---
+
+### Where to Go Next
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-note}
+### Core Language & Tooling
+- [Python Documentation](https://docs.python.org/3/)
+- [What's New in Python 3.14](https://docs.python.org/3/whatsnew/3.14.html)
+- [Python Typing Reference](https://typing.python.org/)
+- [Python Asyncio Documentation](https://docs.python.org/3/library/asyncio.html)
+- [PEP 723: Inline Script Metadata](https://peps.python.org/pep-0723/)
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-tip}
+### Modern Tooling Ecosystem
+- [Astral `uv` Documentation](https://docs.astral.sh/uv/)
+- [Astral `ruff` Guide](https://docs.astral.sh/ruff/)
+- [Pydantic v2 Documentation](https://docs.pydantic.dev/)
+- [Pytest Testing Framework](https://docs.pytest.org/)
+- [Python Packaging User Guide](https://packaging.python.org/)
+:::
+:::
+:::

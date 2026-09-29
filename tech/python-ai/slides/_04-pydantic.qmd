@@ -1,0 +1,261 @@
+
+# Module 4: Pydantic {#mod-pydantic}
+
+---
+
+### Why Pydantic: Validation at the Boundary
+
+::: columns
+::: {.column width="33%"}
+::: {.callout-caution}
+### Untrusted Input
+Model outputs, external webhooks, and tool responses are untrusted raw data until strictly validated.
+:::
+:::
+
+::: {.column width="33%"}
+::: {.callout-tip}
+### Schemas for Free
+Pydantic automatically emits OpenAPI / JSON Schema specifications required by tool-calling models.
+:::
+:::
+
+::: {.column width="34%"}
+::: {.callout-important}
+### Everywhere in Agents
+Strands structured outputs, ADK input/output contracts, FastAPI endpoints, and application settings.
+:::
+:::
+:::
+
+> **Rule of Thumb:** Types document intent, Pydantic enforces reality. **Validate once at the system boundary**, then pass typed, guaranteed objects inward.
+
+---
+
+### `BaseModel` Essentials
+
+::: columns
+::: {.column width="55%"}
+```python
+from pydantic import BaseModel, ValidationError
+
+class FlightBooking(BaseModel):
+    flight_code: str
+    passengers: int = 1
+    tags: list[str] = []
+
+# Automatic type coercion (lax mode by default)
+b = FlightBooking(flight_code="BA249", passengers="3")
+print(b.passengers)  # int: 3
+
+# Serialization
+dumped_dict = b.model_dump()
+json_string = b.model_dump_json()
+
+# Deserialization & validation
+try:
+    FlightBooking.model_validate({"passengers": 0})
+except ValidationError as e:
+    print(e.errors())  # Location & message for missing fields
+```
+:::
+
+::: {.column width="45%"}
+#### Core Capabilities
+- **Coercion vs Strict:** Coerces compatible types (e.g. `"3"` $\rightarrow$ `3`). Use `strict=True` to reject coercion.
+- **`ValidationError`:** Pinpoints the exact path (`loc`), invalid input value, and error type.
+- **`model_json_schema()`:**
+  Extracts the exact JSON Schema for model tool definitions.
+:::
+:::
+
+---
+
+### Field Constraints and Validators
+
+::: columns
+::: {.column width="55%"}
+```python
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+class ToolOrder(BaseModel):
+    quantity: int = Field(ge=1, le=100, description="Items to order")
+    sku: str = Field(pattern=r"^[A-Z]{3}-\d{4}$")
+    min_price: float
+    max_price: float
+
+    @field_validator("sku")
+    @classmethod
+    def normalize_sku(cls, v: str) -> str:
+        return v.strip().upper()
+
+    @model_validator(mode="after")
+    def validate_price_range(self):
+        if self.min_price > self.max_price:
+            raise ValueError("min_price cannot exceed max_price")
+        return self
+```
+:::
+
+::: {.column width="45%"}
+#### Guiding the LLM
+- **`Field(description=...)`:** Injected directly into the model's prompt, explaining semantics and value boundaries to the LLM.
+- **`@field_validator`:** Cleans or checks single fields.
+- **`@model_validator(mode="after")`:** Validates cross-field constraints after initial field parsing.
+:::
+:::
+
+---
+
+### Unions, Discriminators, and Nesting
+
+::: columns
+::: {.column width="55%"}
+```python
+from typing import Literal, Annotated
+from pydantic import BaseModel, Field
+
+class TextContent(BaseModel):
+    kind: Literal["text"]
+    text: str
+
+class ImageContent(BaseModel):
+    kind: Literal["image"]
+    image_url: str
+
+# Tagged / Discriminated Union
+ContentPart = Annotated[TextContent | ImageContent, Field(discriminator="kind")]
+
+class AgentMessage(BaseModel):
+    role: str
+    parts: list[ContentPart]
+
+# Validates and picks the exact subclass instantly:
+msg = AgentMessage.model_validate({
+    "role": "user",
+    "parts": [{"kind": "text", "text": "Analyze this chart"}]
+})
+```
+:::
+
+::: {.column width="45%"}
+#### Why Discriminators Matter
+- **Performance:** Evaluates a single property (`kind`) instead of trial-and-error parsing across every union member.
+- **Clear Errors:** If `image_url` is missing in an image part, Pydantic reports `image_url missing` rather than confusing union union-exhaustion errors.
+- **Recursive Models:** Use `model_rebuild()` for models referencing themselves (e.g. tree structures).
+:::
+:::
+
+---
+
+### Configuration and Settings
+
+::: columns
+::: {.column width="55%"}
+```python
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class AgentSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="forbid"
+    )
+
+    anthropic_api_key: SecretStr
+    model_name: str = "claude-3-5-sonnet"
+    max_tokens: int = 4096
+    timeout_seconds: float = 30.0
+
+settings = AgentSettings()  # Automatically reads from .env and os.environ
+```
+:::
+
+::: {.column width="45%"}
+#### 12-Factor App Best Practices
+- **`SecretStr`:** Masks API keys in logs and tracebacks (`**********`), preventing credential leaks.
+- **Fail-Fast at Startup:** Missing environment variables throw a validation error at boot time, avoiding failures mid-workflow.
+- **Single Settings Object:** Instantiate settings once at application initialization and pass it cleanly into nodes.
+:::
+:::
+
+---
+
+### `TypeAdapter` & LLM Self-Correction
+
+::: columns
+::: {.column width="55%"}
+```python
+from pydantic import BaseModel, TypeAdapter, ValidationError
+
+class ExtractedEntity(BaseModel):
+    name: str
+    category: str
+    confidence: float
+
+# Validate top-level list without wrapping in a container model
+adapter = TypeAdapter(list[ExtractedEntity])
+
+# LLM Error-Feedback Retry Loop
+for attempt in range(3):
+    raw_json = call_llm(extraction_prompt)
+    try:
+        entities = adapter.validate_json(raw_json)
+        break
+    except ValidationError as exc:
+        extraction_prompt += f"\nYour JSON was invalid:\n{exc.errors()}\nPlease fix and re-emit."
+else:
+    raise RuntimeError("LLM failed to output valid schema after 3 retries")
+```
+:::
+
+::: {.column width="45%"}
+#### Powerful Features
+- **`TypeAdapter`:** Validates native types like `list[Model]`, `dict[str, int]`, or `TypedDict` directly.
+- **`validate_json()`:** Parses and validates in a single Rust-accelerated pass.
+- **Self-Healing LLM Loop:** Feeding Pydantic errors back to the model resolves 95%+ of malformed JSON errors.
+:::
+:::
+
+---
+
+### `TypedDict`, Dataclass, or Pydantic?
+
+| Characteristic | `TypedDict` | Dataclass | Pydantic Model |
+| :--- | :--- | :--- | :--- |
+| **Runtime Validation** | No | No | **Yes** |
+| **Instance Type** | Plain `dict` | Class instance | Class instance |
+| **Execution Speed** | **Fastest** ($O(1)$) | Fast | Slower (validation cost) |
+| **Schema Output** | Via adapter | Via adapter | **Built-in native** |
+| **Best Used For** | High-throughput graph state | Internal config & context | **System boundaries & LLM I/O** |
+
+> **Architecture Decision:** LangGraph internal graph state defaults to `TypedDict` for raw speed; Strands and ADK lean on Pydantic for tool validation and structured output. Choose based on where the data lives!
+
+---
+
+### Lab 4: Model an Agent Contract
+
+::: {.callout-tip}
+#### Goal
+Define, validate, and document the complete data exchange contract for an autonomous agent.
+:::
+
+::: columns
+::: {.column width="55%"}
+1. Model a `ToolRequest` and `ToolResponse` with numeric and string constraints using `Field`.
+2. Implement a discriminated tagged union for multimodal message parts.
+3. Add a `@model_validator` enforcing cross-field logical consistency.
+4. Export and inspect the generated JSON Schema via `model_json_schema()`.
+5. Create a `Settings` class using `pydantic-settings` to load API keys securely from `.env`.
+6. Implement a JSON repair loop validating raw mock LLM outputs with `TypeAdapter`.
+:::
+
+::: {.column width="45%"}
+#### Completion Criteria
+- [x] Invalid inputs fail with detailed, human-readable field errors
+- [x] Generated JSON Schema contains field descriptions and constraints
+- [x] `SecretStr` protects API keys from printing in stdout or logs
+- [x] **Stretch Goal:** Benchmark validation speed of `TypedDict` via `TypeAdapter` vs `BaseModel`.
+:::
+:::

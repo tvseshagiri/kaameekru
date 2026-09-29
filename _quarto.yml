@@ -27,6 +27,8 @@ website:
             text: "GenAI: Local LLMs"
           - href: tech/python/index.qmd
             text: "Python"
+          - href: tech/python-ai/index.qmd
+            text: "Python for AI Engineers"
       - text: "Courses"
         menu:
           - href: courses/spring.qmd
