@@ -79,16 +79,94 @@ body.theme-light .reveal dd {
     color: #212529 !important;
 }
 
-body.theme-light .reveal div.sourceCode {
-    background-color: #ffffff !important;
-    border: 1px solid #dee2e6 !important;
+/* Code Blocks in Light Mode */
+body.theme-light .reveal div.sourceCode,
+.theme-light .reveal div.sourceCode {
+    background-color: #f8f9fa !important;
+    border: 1px solid #d0d7de !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    color: #24292f !important;
 }
 
 body.theme-light .reveal pre code,
-body.theme-light .reveal div.sourceCode pre {
-    background-color: #ffffff !important;
-    color: #212529 !important;
+body.theme-light .reveal div.sourceCode pre,
+.theme-light .reveal pre code,
+.theme-light .reveal div.sourceCode pre {
+    background-color: #f8f9fa !important;
+    color: #24292f !important;
+}
+
+/* Syntax Highlighting Tokens in Light Mode */
+body.theme-light .reveal code span,
+.theme-light .reveal code span {
+    color: #24292f !important; /* Base text */
+}
+
+body.theme-light .reveal code span.kw,
+.theme-light .reveal code span.kw { color: #cf222e !important; font-weight: bold; } /* Keyword */
+
+body.theme-light .reveal code span.cf,
+.theme-light .reveal code span.cf { color: #cf222e !important; font-weight: bold; } /* ControlFlow */
+
+body.theme-light .reveal code span.fu,
+.theme-light .reveal code span.fu { color: #8250df !important; } /* Function */
+
+body.theme-light .reveal code span.bu,
+.theme-light .reveal code span.bu { color: #0550ae !important; } /* BuiltIn */
+
+body.theme-light .reveal code span.im,
+.theme-light .reveal code span.im { color: #cf222e !important; } /* Import */
+
+body.theme-light .reveal code span.st,
+body.theme-light .reveal code span.sc,
+body.theme-light .reveal code span.ss,
+body.theme-light .reveal code span.vs,
+body.theme-light .reveal code span.ch,
+.theme-light .reveal code span.st,
+.theme-light .reveal code span.sc,
+.theme-light .reveal code span.ss,
+.theme-light .reveal code span.vs,
+.theme-light .reveal code span.ch { color: #0a3069 !important; } /* Strings & Chars */
+
+body.theme-light .reveal code span.co,
+body.theme-light .reveal code span.cv,
+body.theme-light .reveal code span.do,
+.theme-light .reveal code span.co,
+.theme-light .reveal code span.cv,
+.theme-light .reveal code span.do { color: #6e7781 !important; font-style: italic; } /* Comments & Docs */
+
+body.theme-light .reveal code span.dv,
+body.theme-light .reveal code span.fl,
+body.theme-light .reveal code span.bn,
+body.theme-light .reveal code span.cn,
+.theme-light .reveal code span.dv,
+.theme-light .reveal code span.fl,
+.theme-light .reveal code span.bn,
+.theme-light .reveal code span.cn { color: #0550ae !important; } /* Numbers & Constants */
+
+body.theme-light .reveal code span.dt,
+body.theme-light .reveal code span.at,
+body.theme-light .reveal code span.va,
+.theme-light .reveal code span.dt,
+.theme-light .reveal code span.at,
+.theme-light .reveal code span.va { color: #953800 !important; } /* Types, Attributes & Variables */
+
+body.theme-light .reveal code span.op,
+.theme-light .reveal code span.op { color: #24292f !important; } /* Operators */
+
+body.theme-light .reveal code span.al,
+body.theme-light .reveal code span.er,
+.theme-light .reveal code span.al,
+.theme-light .reveal code span.er { color: #cf222e !important; } /* Alerts & Errors */
+
+body.theme-light .reveal code span.in,
+body.theme-light .reveal code span.an,
+.theme-light .reveal code span.in,
+.theme-light .reveal code span.an { color: #6e7781 !important; } /* Info & Annotation */
+
+body.theme-light .reveal pre.numberSource code > span > a:first-child::before,
+.theme-light .reveal pre.numberSource code > span > a:first-child::before {
+    color: #8c959f !important; /* Line numbers */
 }
 
 body.theme-light .reveal table th {
