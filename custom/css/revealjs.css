@@ -1,3 +1,113 @@
+/* Custom Header Accent for Dark Mode */
 .slides h3 {
-    color:  rgb(255, 221, 164)
+    color: rgb(255, 221, 164);
+}
+
+/* Floating Theme Toggle Button */
+.slide-theme-toggle {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 9999;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.slide-theme-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================
+   Light Theme Overrides for Reveal.js Slides
+   ========================================================== */
+body.theme-light,
+.theme-light .reveal-viewport,
+.reveal-viewport.theme-light {
+    --r-background-color: #f8f9fa !important;
+    --r-main-color: #212529 !important;
+    --r-heading-color: #0f3d68 !important;
+    --r-link-color: #0d6efd !important;
+    --quarto-body-bg: #f8f9fa !important;
+    --quarto-body-color: #212529 !important;
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+body.theme-light .slide-theme-toggle {
+    background: rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+body.theme-light .slide-theme-toggle:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+body.theme-light .slides h1,
+body.theme-light .slides h2 {
+    color: #0f3d68 !important;
+}
+
+body.theme-light .slides h3 {
+    color: #1a5276 !important;
+}
+
+body.theme-light .reveal {
+    color: #212529 !important;
+}
+
+body.theme-light .reveal .slides section,
+body.theme-light .reveal p,
+body.theme-light .reveal li,
+body.theme-light .reveal dt,
+body.theme-light .reveal dd {
+    color: #212529 !important;
+}
+
+body.theme-light .reveal div.sourceCode {
+    background-color: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+body.theme-light .reveal pre code,
+body.theme-light .reveal div.sourceCode pre {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}
+
+body.theme-light .reveal table th {
+    color: #0f3d68 !important;
+    border-bottom: 2px solid #adb5bd !important;
+}
+
+body.theme-light .reveal table td {
+    color: #212529 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+body.theme-light .reveal blockquote {
+    color: #495057 !important;
+    border-left-color: #0d6efd !important;
+    background: rgba(13, 110, 253, 0.05) !important;
+}
+
+body.theme-light .reveal .slide-number {
+    color: #6c757d !important;
+    background-color: transparent !important;
 }

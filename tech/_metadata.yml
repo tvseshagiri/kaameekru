@@ -4,3 +4,63 @@ format:
     theme: dark
     css: /custom/css/revealjs.css
     smaller: true
+    include-after-body:
+      text: |
+        <div id="slide-theme-toggle" class="slide-theme-toggle" title="Toggle Light / Dark Mode (Shortcut: T)" aria-label="Toggle theme">
+          <span id="slide-theme-icon">☀️</span>
+        </div>
+        <script>
+        (function() {
+          function applyTheme(isLight) {
+            const body = document.body;
+            const viewport = document.querySelector('.reveal-viewport') || body;
+            const icon = document.getElementById('slide-theme-icon');
+            if (isLight) {
+              body.classList.add('theme-light');
+              body.classList.remove('theme-dark', 'quarto-dark');
+              body.classList.add('quarto-light');
+              viewport.classList.add('theme-light');
+              if (icon) icon.textContent = '🌙';
+              localStorage.setItem('quarto-slide-theme', 'light');
+            } else {
+              body.classList.remove('theme-light', 'quarto-light');
+              body.classList.add('theme-dark', 'quarto-dark');
+              viewport.classList.remove('theme-light');
+              if (icon) icon.textContent = '☀️';
+              localStorage.setItem('quarto-slide-theme', 'dark');
+            }
+          }
+
+          function toggleTheme() {
+            const isCurrentlyLight = document.body.classList.contains('theme-light');
+            applyTheme(!isCurrentlyLight);
+          }
+
+          const savedSlideTheme = localStorage.getItem('quarto-slide-theme');
+          const siteTheme = localStorage.getItem('quarto-color-scheme');
+          const prefersLight = savedSlideTheme === 'light' || (!savedSlideTheme && siteTheme === 'light');
+
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { applyTheme(prefersLight); });
+          } else {
+            applyTheme(prefersLight);
+          }
+
+          window.addEventListener('load', function() {
+            const btn = document.getElementById('slide-theme-toggle');
+            if (btn) {
+              btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+              });
+            }
+            document.addEventListener('keydown', function(e) {
+              if ((e.key === 't' || e.key === 'T') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                toggleTheme();
+              }
+            });
+          });
+        })();
+        </script>
+
