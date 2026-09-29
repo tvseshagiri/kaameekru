@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Agentic AI Engineering Bootcamp – Kaameekru</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b85bc7c33db8c58e0ec93c3465666fed.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-55617497126496852ff9f5a59253c640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-90b0ccabdf50233fb893b00cd6e33405.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-55617497126496852ff9f5a59253c640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Kaameekru</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-presentations" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Presentations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-presentations">    
+        <li>
+    <a class="dropdown-item" href="../tech/maven/maven.html">
+ <span class="dropdown-text">Maven</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/reactjs/react.html">
+ <span class="dropdown-text">ReactJS</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/es6/es6.html">
+ <span class="dropdown-text">ES6</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/devops/devops.html">
+ <span class="dropdown-text">DevOps</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/genai/intro/index.html">
+ <span class="dropdown-text">GenAI: LLM Apps</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/genai/poc/localllms.html">
+ <span class="dropdown-text">GenAI: Local LLMs</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/python/index.html">
+ <span class="dropdown-text">Python</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/python-ai/index.html">
+ <span class="dropdown-text">Python for AI Engineers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../tech/agentic-ai/index.html">
+ <span class="dropdown-text">Agentic AI Bootcamp</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-courses" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Courses</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-courses">    
+        <li>
+    <a class="dropdown-item" href="../courses/spring.html">
+ <span class="dropdown-text">Spring Framework</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../courses/maven.html">
+ <span class="dropdown-text">Maven Curriculum</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../courses/javawebapp.html">
+ <span class="dropdown-text">Java Web Apps</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../courses/reactjs.html">
+ <span class="dropdown-text">ReactJS Curriculum</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../courses/python-ai.html">
+ <span class="dropdown-text">Python for AI Engineers</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../courses/agentic-ai.html">
+ <span class="dropdown-text">Agentic AI Engineering</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tvseshagiri/kaameekru"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#program-overview" id="toc-program-overview" class="nav-link active" data-scroll-target="#program-overview">Program Overview</a></li>
+  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
+  <li><a href="#overall-learning-outcomes" id="toc-overall-learning-outcomes" class="nav-link" data-scroll-target="#overall-learning-outcomes">Overall Learning Outcomes</a></li>
+  <li><a href="#schedule-at-a-glance" id="toc-schedule-at-a-glance" class="nav-link" data-scroll-target="#schedule-at-a-glance">Schedule at a Glance</a></li>
+  <li><a href="#detailed-daily-curriculum" id="toc-detailed-daily-curriculum" class="nav-link" data-scroll-target="#detailed-daily-curriculum">Detailed Daily Curriculum</a></li>
+  <li><a href="#local-environment-setup-requirements" id="toc-local-environment-setup-requirements" class="nav-link" data-scroll-target="#local-environment-setup-requirements">Local Environment &amp; Setup Requirements</a></li>
+  <li><a href="#python-package-manifest-pyproject.toml-uv" id="toc-python-package-manifest-pyproject.toml-uv" class="nav-link" data-scroll-target="#python-package-manifest-pyproject.toml-uv">Python Package Manifest (<code>pyproject.toml</code> / <code>uv</code>)</a></li>
+  <li><a href="#participant-deliverables-assessment" id="toc-participant-deliverables-assessment" class="nav-link" data-scroll-target="#participant-deliverables-assessment">Participant Deliverables &amp; Assessment</a></li>
+  <li><a href="#day-follow-up-support" id="toc-day-follow-up-support" class="nav-link" data-scroll-target="#day-follow-up-support">30-Day Follow-Up Support</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Agentic AI Engineering Bootcamp</h1>
+<p class="subtitle lead">3-Day Hands-on Intensive: Architecture, Orchestration, Tooling &amp; Production Governance</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="program-overview" class="level3">
+<h3 class="anchored" data-anchor-id="program-overview">Program Overview</h3>
+<p>This intensive, three-day hands-on bootcamp equips <strong>entry-level software engineers, technical leads, and computer science students with foundational LLM programming experience</strong> with the practical skills needed to design, build, evaluate, and safely operate autonomous, tool-using agentic systems.</p>
+<p>Participants transition from basic, single-turn prompt-and-response scripts to stateful, multi-turn agent graphs, interoperable tool protocols (<strong>Model Context Protocol - MCP</strong>), modular agent skills, rigorous regression testing, and production-grade observability.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Quick Facts
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Audience:</strong> Entry-level software engineers and university students with LLM programming fundamentals.</li>
+<li><strong>Duration:</strong> 3 Days · 12 Deep-Dive Sessions · 10 Guided Hands-on Labs · 1 Capstone Showcase.</li>
+<li><strong>Pacing:</strong> 40% Architecture &amp; Design Principles, 60% Practical Guided Labs.</li>
+<li><strong>Default Model:</strong> Google Gemini (<code>gemini-2.5-flash</code> / <code>gemini-1.5-pro</code>) via the official <code>google-genai</code> SDK.</li>
+<li><strong>Tooling Standards:</strong> Python 3.11+ managed with <strong><code>uv</code></strong>, Node.js 22 LTS with <strong><code>npm</code></strong>, and zero-friction local telemetry.</li>
+<li><strong>Interactive Slide Deck:</strong> <a href="../tech/agentic-ai/index.html" target="_blank">Launch Agentic AI Bootcamp Presentation</a></li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+<section id="prerequisites" class="level3">
+<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
+<ol type="1">
+<li><strong>Python Programming:</strong> Comfort with Python functions, classes, async syntax, dictionaries, and virtual environments.</li>
+<li><strong>LLM Fundamentals:</strong> Working understanding of prompts, completions, tokens, temperature, and making API calls to LLMs.</li>
+<li><strong>Developer Tooling:</strong> Basic comfort with terminal CLI commands, Git (<code>clone</code>, <code>commit</code>, <code>branch</code>), and VS Code.</li>
+</ol>
+<hr>
+</section>
+<section id="overall-learning-outcomes" class="level3">
+<h3 class="anchored" data-anchor-id="overall-learning-outcomes">Overall Learning Outcomes</h3>
+<p>By completing the bootcamp, participants will be able to:</p>
+<ol type="1">
+<li><strong>Differentiate Agentic Systems:</strong> Explain what makes a system agentic versus a standard LLM pipeline or chatbot, placing any architecture accurately on the autonomy spectrum.</li>
+<li><strong>Design Agent Runtimes:</strong> Architect agents from first principles (foundation model, instructions, context engineering, tool contracts, memory, and reasoning loops).</li>
+<li><strong>Master Production Frameworks:</strong> Implement stateful workflows and approval gates in both <strong>LangGraph</strong> and the <strong>Google Gen AI Agent Development Kit (ADK)</strong> using Gemini models.</li>
+<li><strong>Standardize Tooling with MCP:</strong> Build and connect custom servers using the open <strong>Model Context Protocol (MCP)</strong> across local <code>stdio</code> and HTTP transports.</li>
+<li><strong>Package Reusable Agent Skills:</strong> Author, test, and distribute modular skill bundles with progressive disclosure to keep prompt contexts lean.</li>
+<li><strong>Accelerate with Coding Agents:</strong> Direct CLI coding agents using spec-driven development, test suites, and iterative human review.</li>
+<li><strong>Quantify Quality &amp; Regressions:</strong> Build deterministic evaluation harnesses combining rule-based checks and calibrated LLM-as-a-Judge scoring.</li>
+<li><strong>Trace &amp; Debug Locally:</strong> Instrument multi-step agent runs with zero-friction local OpenTelemetry and Langfuse tracing to pinpoint latency and cost bottlenecks.</li>
+<li><strong>Harden Against Threats:</strong> Red-team tool-using agents against direct and indirect prompt injection, applying least privilege and deterministic approval gates.</li>
+<li><strong>Formulate Adoption Roadmaps:</strong> Draft enterprise-grade governance, data privacy, and IP protection guidelines for deploying agents in real-world organizations.</li>
+</ol>
+<hr>
+</section>
+<section id="schedule-at-a-glance" class="level3">
+<h3 class="anchored" data-anchor-id="schedule-at-a-glance">Schedule at a Glance</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 30%">
+<col style="width: 28%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Day</th>
+<th style="text-align: center;">Time</th>
+<th style="text-align: left;">Session</th>
+<th style="text-align: left;">Focus Area</th>
+<th style="text-align: left;">Hands-on Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">09:00</td>
+<td style="text-align: left;"><strong>1. What is Agentic AI?</strong></td>
+<td style="text-align: left;">Agents vs.&nbsp;LLM programming &amp; autonomy spectrum</td>
+<td style="text-align: left;">Lab 1: Plain Gemini call to tool-using loop</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">11:00</td>
+<td style="text-align: left;"><strong>2. Anatomy of an Agent</strong></td>
+<td style="text-align: left;">Components, context engineering &amp; tool schemas</td>
+<td style="text-align: left;">Lab 2: Scratch agent with Pydantic schemas &amp; memory</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">14:00</td>
+<td style="text-align: left;"><strong>3. System Types &amp; Patterns</strong></td>
+<td style="text-align: left;">Workflows, chaining, routing &amp; multi-agent</td>
+<td style="text-align: left;">Lab 3: Sequential chain vs.&nbsp;Orchestrator-Worker</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">16:00</td>
+<td style="text-align: left;"><strong>4. Framework Landscape</strong></td>
+<td style="text-align: left;">LangGraph, ADK, CrewAI, AutoGen &amp; trade-offs</td>
+<td style="text-align: left;">Activity 1: Framework decision matrix across 3 use cases</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">09:00</td>
+<td style="text-align: left;"><strong>5. Framework Deep Dive</strong></td>
+<td style="text-align: left;">LangGraph &amp; Google Gen AI ADK hands-on</td>
+<td style="text-align: left;">Lab 5: Stateful graph + ADK agent with human approval gate</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">11:00</td>
+<td style="text-align: left;"><strong>6. Model Context Protocol (MCP)</strong></td>
+<td style="text-align: left;">Open standards, architecture &amp; custom servers</td>
+<td style="text-align: left;">Lab 6: Custom MCP server via Python FastMCP &amp; FastAPI</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">14:00</td>
+<td style="text-align: left;"><strong>7. Agent Skills</strong></td>
+<td style="text-align: left;">Packaging reusable expertise &amp; progressive disclosure</td>
+<td style="text-align: left;">Lab 7: Authoring, packaging &amp; testing reusable skills</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">16:00</td>
+<td style="text-align: left;"><strong>8. Coding Agents</strong></td>
+<td style="text-align: left;">Spec-driven development &amp; agentic refactoring</td>
+<td style="text-align: left;">Lab 8: Build and refactor a microservice with a coding agent</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 3</strong></td>
+<td style="text-align: center;">09:00</td>
+<td style="text-align: left;"><strong>9. Evaluation and Testing</strong></td>
+<td style="text-align: left;">Non-determinism, trajectory eval &amp; LLM judge</td>
+<td style="text-align: left;">Lab 9: 20-case test suite with rule &amp; judge scoring</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 3</strong></td>
+<td style="text-align: center;">10:45</td>
+<td style="text-align: left;"><strong>10. Observability &amp; Telemetry</strong></td>
+<td style="text-align: left;">Zero-friction local tracing, latency &amp; cost</td>
+<td style="text-align: left;">Lab 10: Local OTel / Langfuse tracing &amp; root-cause debug</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 3</strong></td>
+<td style="text-align: center;">13:00</td>
+<td style="text-align: left;"><strong>11. Security and Guardrails</strong></td>
+<td style="text-align: left;">Prompt injection, least privilege &amp; sandboxing</td>
+<td style="text-align: left;">Lab 11: Peer red-teaming &amp; guardrail hardening</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 3</strong></td>
+<td style="text-align: center;">14:45</td>
+<td style="text-align: left;"><strong>12. Enterprise Governance</strong></td>
+<td style="text-align: left;">Privacy, compliance, IP &amp; adoption roadmaps</td>
+<td style="text-align: left;">Activity 2: Enterprise Agent Readiness &amp; Risk Checklist</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 3</strong></td>
+<td style="text-align: center;">16:00</td>
+<td style="text-align: left;"><strong>Capstone Showcase</strong></td>
+<td style="text-align: left;">Live project demos &amp; peer feedback</td>
+<td style="text-align: left;">Capstone: Working production agent &amp; 30-day adoption plan</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="detailed-daily-curriculum" class="level3">
+<h3 class="anchored" data-anchor-id="detailed-daily-curriculum">Detailed Daily Curriculum</h3>
+<section id="day-1-foundations-core-architecture" class="level4">
+<h4 class="anchored" data-anchor-id="day-1-foundations-core-architecture">Day 1 · Foundations &amp; Core Architecture</h4>
+<p>Day 1 transitions participants from single-prompt LLM calls to working, goal-directed agents, followed by an exploration of foundational patterns and framework selection.</p>
+<section id="session-1-0900-1030-what-is-agentic-ai" class="level5">
+<h5 class="anchored" data-anchor-id="session-1-0900-1030-what-is-agentic-ai">Session 1 · 09:00 – 10:30 · What is Agentic AI?</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Chatbots (conversational UI) vs.&nbsp;LLM Pipelines (static chains) vs.&nbsp;Autonomous Agents.</li>
+<li>The Autonomy Spectrum: from deterministic scripts to autonomous multi-agent systems.</li>
+<li>The Perceive-Reason-Act loop: Observation <span class="math inline">\(\rightarrow\)</span> Thought <span class="math inline">\(\rightarrow\)</span> Action <span class="math inline">\(\rightarrow\)</span> Environment Feedback.</li>
+<li>Value vs.&nbsp;Risk: identifying genuine agentic use cases and when deterministic code is strictly superior.</li>
+</ul></li>
+<li><strong>Hands-on Lab 1:</strong> Convert a single Gemini prompt call into an autonomous tool-using loop calling database lookup and calculation functions.</li>
+</ul>
+</section>
+<section id="session-2-1100-1230-anatomy-of-an-agent" class="level5">
+<h5 class="anchored" data-anchor-id="session-2-1100-1230-anatomy-of-an-agent">Session 2 · 11:00 – 12:30 · Anatomy of an Agent</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>The 5 core pillars: Model, System Instructions, Tool Contracts, Memory, and Control Loop.</li>
+<li>Context Engineering: token budgeting, system prompt formulation, dynamic context injection, and mitigating context degradation.</li>
+<li>Tool Design: rigorous JSON Schema generation via Pydantic v2, unambiguous descriptions, and error feedback as agent steering signals.</li>
+<li>Memory architectures: short-term context scratchpad vs.&nbsp;persistent key-value and vector memory.</li>
+</ul></li>
+<li><strong>Hands-on Lab 2:</strong> Build an agent runtime from scratch in raw Python (no third-party frameworks) with Pydantic tool schemas, conversational buffer, and error recovery.</li>
+</ul>
+</section>
+<section id="session-3-1400-1530-agentic-system-types-and-patterns" class="level5">
+<h5 class="anchored" data-anchor-id="session-3-1400-1530-agentic-system-types-and-patterns">Session 3 · 14:00 – 15:30 · Agentic System Types and Patterns</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Deterministic Workflows vs.&nbsp;Autonomous Agents (predictability vs.&nbsp;dynamic flexibility).</li>
+<li>Common patterns: Prompt Chaining, Routing, Parallelization (Voting &amp; Sectioning), Orchestrator-Workers, and Evaluator-Optimizer loops.</li>
+<li>Agentic RAG: Corrective RAG (CRAG), query rewriting, document relevance grading, and fallback search.</li>
+<li>Designing with Occam’s Razor: choosing the simplest reliable pattern.</li>
+</ul></li>
+<li><strong>Hands-on Lab 3:</strong> Implement two architectural patterns (sequential chain vs.&nbsp;orchestrator-worker) for technical document analysis and compare latency, cost, and output consistency.</li>
+</ul>
+</section>
+<section id="session-4-1600-1730-framework-landscape-selection-matrix" class="level5">
+<h5 class="anchored" data-anchor-id="session-4-1600-1730-framework-landscape-selection-matrix">Session 4 · 16:00 – 17:30 · Framework Landscape &amp; Selection Matrix</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Comparative analysis: <strong>LangGraph</strong>, <strong>Google Gen AI ADK</strong>, <strong>CrewAI</strong>, <strong>AutoGen/AG2</strong>, <strong>OpenAI Agents SDK</strong>, and <strong>Claude Agent SDK</strong>.</li>
+<li>Decision criteria: control, learning curve, debugging ease, state persistence, ecosystem lock-in, and production readiness.</li>
+<li>Framework vs.&nbsp;No-Framework: when to use a specialized framework vs.&nbsp;raw Python with FastAPI.</li>
+</ul></li>
+<li><strong>Group Activity 1:</strong> Evaluate three real-world software engineering case studies (automated PR review &amp; test fixer, customer support bot with actions, and data ingestion pipeline) and defend framework choices with a filled scorecard.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="day-2-depth-ecosystem-tooling" class="level4">
+<h4 class="anchored" data-anchor-id="day-2-depth-ecosystem-tooling">Day 2 · Depth, Ecosystem &amp; Tooling</h4>
+<p>Day 2 dives into production-grade frameworks, standard interoperability protocols, reusable capabilities, and developer productivity tools.</p>
+<section id="session-5-0900-1030-framework-deep-dive-langgraph-google-gen-ai-adk" class="level5">
+<h5 class="anchored" data-anchor-id="session-5-0900-1030-framework-deep-dive-langgraph-google-gen-ai-adk">Session 5 · 09:00 – 10:30 · Framework Deep Dive: LangGraph &amp; Google Gen AI ADK</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li><strong>LangGraph</strong>: State schemas (<code>TypedDict</code>), nodes, conditional edges, <code>MemorySaver</code> persistence, and the <code>interrupt()</code> human-in-the-loop mechanism.</li>
+<li><strong>Google Gen AI ADK</strong>: Declarative agent definitions, Gemini tool calling, runner lifecycles, and sub-agent delegation.</li>
+<li>Comparing state management and human approval patterns across both frameworks.</li>
+</ul></li>
+<li><strong>Hands-on Lab 5:</strong> Build a Technical Research Assistant in LangGraph and Google Gen AI ADK with Gemini that plans steps, searches documents, drafts an RFC, and pauses for human approval before committing.</li>
+</ul>
+</section>
+<section id="session-6-1100-1230-model-context-protocol-mcp" class="level5">
+<h5 class="anchored" data-anchor-id="session-6-1100-1230-model-context-protocol-mcp">Session 6 · 11:00 – 12:30 · Model Context Protocol (MCP)</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>The <span class="math inline">\(N \times M\)</span> integration problem and how MCP provides a universal standard.</li>
+<li>Core architecture: Host <span class="math inline">\(\leftrightarrow\)</span> Client <span class="math inline">\(\leftrightarrow\)</span> Server.</li>
+<li>The three MCP primitives: <strong>Tools</strong>, <strong>Resources</strong>, and <strong>Prompts</strong>.</li>
+<li>Transports: Local (<code>stdio</code>) vs.&nbsp;Remote (<code>SSE</code> / HTTP with authentication).</li>
+<li>MCP vs.&nbsp;Agent-to-Agent (A2A) protocols vs.&nbsp;direct REST APIs.</li>
+</ul></li>
+<li><strong>Hands-on Lab 6:</strong> Author a custom Python MCP server using <code>FastMCP</code> and <code>FastAPI</code> (with SSE and stdio transports) exposing a service catalog database, connect it to a Gemini agent client, and execute live queries.</li>
+</ul>
+</section>
+<section id="session-7-1400-1530-agent-skills-progressive-disclosure" class="level5">
+<h5 class="anchored" data-anchor-id="session-7-1400-1530-agent-skills-progressive-disclosure">Session 7 · 14:00 – 15:30 · Agent Skills &amp; Progressive Disclosure</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Anatomy of an Agent Skill: <code>SKILL.md</code> instruction contracts, scripts, references, and assets.</li>
+<li>Progressive disclosure: keeping base context lean (~100 tokens per skill summary) and loading full instructions on-demand.</li>
+<li>Conceptual boundaries: Skills vs.&nbsp;Tools vs.&nbsp;MCP Servers vs.&nbsp;Prompts.</li>
+<li>Authoring, linting, testing, and distributing skills across developer teams.</li>
+</ul></li>
+<li><strong>Hands-on Lab 7:</strong> Author a production skill (e.g., “API Contract &amp; Security Auditor”), define trigger metadata, write verification test scripts, and test on sample inputs.</li>
+</ul>
+</section>
+<section id="session-8-1600-1730-coding-agents-in-modern-engineering" class="level5">
+<h5 class="anchored" data-anchor-id="session-8-1600-1730-coding-agents-in-modern-engineering">Session 8 · 16:00 – 17:30 · Coding Agents in Modern Engineering</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>How coding agents work: workspace indexing, bash execution, diff-based file editing, linter loops.</li>
+<li>Spec-driven development: writing crisp requirement specifications, acceptance tests, and boundary constraints before agent execution.</li>
+<li>Pitfalls and mitigations: hallucinated dependencies, subtle logic regressions, context pollution, unreviewed git changes.</li>
+</ul></li>
+<li><strong>Hands-on Lab 8:</strong> Direct a coding agent via CLI to scaffold a FastAPI microservice, write unit tests with <code>pytest</code>, refactor with async rate-limiting, and verify test passes.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="day-3-trust-production-enterprise-application" class="level4">
+<h4 class="anchored" data-anchor-id="day-3-trust-production-enterprise-application">Day 3 · Trust, Production &amp; Enterprise Application</h4>
+<p>Day 3 turns working prototypes into trustworthy, production-grade systems through evaluation, zero-friction telemetry, security hardening, and governance.</p>
+<section id="session-9-0900-1030-evaluation-and-testing-of-agentic-systems" class="level5">
+<h5 class="anchored" data-anchor-id="session-9-0900-1030-evaluation-and-testing-of-agentic-systems">Session 9 · 09:00 – 10:30 · Evaluation and Testing of Agentic Systems</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Why testing agents is hard: non-deterministic outputs and stochastic multi-step paths.</li>
+<li>Outcome evaluation (task success, schema adherence) vs.&nbsp;Trajectory evaluation (tool call efficiency, loop count, cost).</li>
+<li>LLM-as-a-Judge: scoring rubrics, calibration, pairwise evaluations, mitigating position and verbosity bias.</li>
+<li>Continuous regression testing and synthetic test datasets.</li>
+</ul></li>
+<li><strong>Hands-on Lab 9:</strong> Build a 20-case test dataset with <code>pytest</code> and evaluate the Day 2 agent using both deterministic assertions and an automated Gemini LLM judge.</li>
+</ul>
+</section>
+<section id="session-10-1045-1215-observability-tracing-cost-engineering" class="level5">
+<h5 class="anchored" data-anchor-id="session-10-1045-1215-observability-tracing-cost-engineering">Session 10 · 10:45 – 12:15 · Observability, Tracing &amp; Cost Engineering</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Telemetry fundamentals: Traces, Spans, Events, and OpenTelemetry GenAI semantic conventions.</li>
+<li>Zero-friction local setup: local SQLite trace logger and console/file exporters (with optional free Langfuse cloud).</li>
+<li>Pinpointing failures: diagnosing infinite loops, tool errors, token blowouts, and latency bottlenecks.</li>
+<li>Cost engineering: tracking tokens per turn, caching static contexts, and optimizing model tier selection.</li>
+</ul></li>
+<li><strong>Hands-on Lab 10:</strong> Instrument the LangGraph / ADK agent with local tracing, inject a deliberate tool failure and token blowout, and diagnose the root cause using the waterfall trace view.</li>
+</ul>
+</section>
+<section id="session-11-1300-1430-security-guardrails-red-teaming" class="level5">
+<h5 class="anchored" data-anchor-id="session-11-1300-1430-security-guardrails-red-teaming">Session 11 · 13:00 – 14:30 · Security, Guardrails &amp; Red-Teaming</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Threat taxonomy: Direct prompt injection, indirect prompt injection (poisoned tool inputs), SSRF via web fetchers, tool parameter tampering, and unauthorized action execution.</li>
+<li>MCP supply chain risks: untrusted servers and package vulnerabilities.</li>
+<li>Defense-in-depth: Principle of least privilege, input/output validation, sandboxed execution, and approval gates.</li>
+<li>OWASP Top 10 for Large Language Model Applications.</li>
+</ul></li>
+<li><strong>Hands-on Lab 11:</strong> Red-team peer agents with prompt injection payloads; implement input filters and strict Pydantic parameter boundaries to harden against attacks.</li>
+</ul>
+</section>
+<section id="session-12-1445-1545-enterprise-governance-responsible-ai" class="level5">
+<h5 class="anchored" data-anchor-id="session-12-1445-1545-enterprise-governance-responsible-ai">Session 12 · 14:45 – 15:45 · Enterprise Governance &amp; Responsible AI</h5>
+<ul>
+<li><strong>Topics:</strong>
+<ul>
+<li>Data privacy and Zero Data Retention (ZDR) policies with model providers.</li>
+<li>IP safety and licensing considerations for agent-generated code and artifacts.</li>
+<li>Audit logging, accountability, and enterprise adoption roadmaps.</li>
+<li>Establishing an internal AI Center of Excellence (CoE) and operational SLAs.</li>
+</ul></li>
+<li><strong>Group Activity 2:</strong> Draft an Enterprise Agentic AI Readiness Checklist and risk mitigation plan for an engineering team.</li>
+</ul>
+</section>
+<section id="capstone-showcase-1600-1730" class="level5">
+<h5 class="anchored" data-anchor-id="capstone-showcase-1600-1730">Capstone Showcase · 16:00 – 17:30</h5>
+<ul>
+<li><strong>Objective:</strong> Consolidate all three days by building and demonstrating an end-to-end production-grade agent addressing an enterprise use case.</li>
+<li><strong>Requirements:</strong>
+<ol type="1">
+<li>Stateful workflow using LangGraph or Google Gen AI ADK with Gemini.</li>
+<li>Custom MCP tool or resource integration.</li>
+<li>Deterministic human approval gate for state-mutating actions.</li>
+<li>Local OpenTelemetry / Langfuse trace demonstrating execution path.</li>
+<li>Automated evaluation scorecard with at least 5 test cases.</li>
+</ol></li>
+<li><strong>Deliverable:</strong> Live demo, peer review, and a personal 30-day adoption roadmap.</li>
+</ul>
+<hr>
+</section>
+</section>
+</section>
+<section id="local-environment-setup-requirements" class="level3">
+<h3 class="anchored" data-anchor-id="local-environment-setup-requirements">Local Environment &amp; Setup Requirements</h3>
+<p>Each participant works on their own laptop with Python 3.11+, an isolated virtual environment managed by <strong><code>uv</code></strong>, Node.js 22 LTS, and a Google Gemini API key.</p>
+<section id="hardware-software-checklist" class="level4">
+<h4 class="anchored" data-anchor-id="hardware-software-checklist">Hardware &amp; Software Checklist</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Component</th>
+<th style="text-align: left;">Minimum Specification</th>
+<th style="text-align: left;">Recommended</th>
+<th style="text-align: left;">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Operating System</strong></td>
+<td style="text-align: left;">Windows 11, macOS 13+, or Ubuntu 22.04+</td>
+<td style="text-align: left;">Same, fully updated</td>
+<td style="text-align: left;">Labs verified on all three platforms</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Memory (RAM)</strong></td>
+<td style="text-align: left;">8 GB RAM</td>
+<td style="text-align: left;">16 GB RAM or more</td>
+<td style="text-align: left;">16 GB recommended if running local Ollama models</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Free Disk Space</strong></td>
+<td style="text-align: left;">10 GB</td>
+<td style="text-align: left;">25 GB</td>
+<td style="text-align: left;">For virtual environments, packages, and caching</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Python</strong></td>
+<td style="text-align: left;">3.11 or 3.12</td>
+<td style="text-align: left;">3.12 via <code>uv</code></td>
+<td style="text-align: left;">Managed with <code>uv python install 3.12</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Python Tooling</strong></td>
+<td style="text-align: left;"><code>uv</code> package manager</td>
+<td style="text-align: left;">Latest <code>uv</code> release</td>
+<td style="text-align: left;">Ultra-fast dependency resolution and lockfiles</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Node.js</strong></td>
+<td style="text-align: left;">Node.js 22 LTS</td>
+<td style="text-align: left;">Node.js 22 LTS</td>
+<td style="text-align: left;">Minimum Node 22 with <code>npm</code> for MCP servers</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Git &amp; VS Code</strong></td>
+<td style="text-align: left;">Current stable releases</td>
+<td style="text-align: left;">VS Code with Python extension</td>
+<td style="text-align: left;">For cloning repositories and editing code</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Docker (Optional)</strong></td>
+<td style="text-align: left;">Docker Desktop</td>
+<td style="text-align: left;">Current release</td>
+<td style="text-align: left;">Optional for self-hosted Langfuse or sandboxing</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Model API Key</strong></td>
+<td style="text-align: left;">Google Gemini API Key</td>
+<td style="text-align: left;">Gemini 2.5 Flash / Pro</td>
+<td style="text-align: left;">Active key configured in <code>.env</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+</section>
+<section id="python-package-manifest-pyproject.toml-uv" class="level3">
+<h3 class="anchored" data-anchor-id="python-package-manifest-pyproject.toml-uv">Python Package Manifest (<code>pyproject.toml</code> / <code>uv</code>)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode toml code-with-copy"><code class="sourceCode toml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[project]</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">name</span> <span class="op">=</span> <span class="st">"agentic-ai-bootcamp"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dt">version</span> <span class="op">=</span> <span class="st">"0.1.0"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dt">description</span> <span class="op">=</span> <span class="st">"Hands-on code and labs for the 3-Day Agentic AI Engineering Bootcamp"</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">requires-python</span> <span class="op">=</span> <span class="st">"&gt;=3.11"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">dependencies</span> <span class="op">=</span> <span class="op">[</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"google-genai&gt;=0.1.0"</span><span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"langchain-google-genai&gt;=2.0.0"</span><span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"langgraph&gt;=0.2.0"</span><span class="op">,</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"langchain-core&gt;=0.3.0"</span><span class="op">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mcp&gt;=1.0.0"</span><span class="op">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pydantic&gt;=2.9.0"</span><span class="op">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pydantic-settings&gt;=2.5.0"</span><span class="op">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"httpx&gt;=0.27.0"</span><span class="op">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"fastapi&gt;=0.115.0"</span><span class="op">,</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"uvicorn&gt;=0.31.0"</span><span class="op">,</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"python-dotenv&gt;=1.0.1"</span><span class="op">,</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pytest&gt;=8.3.0"</span><span class="op">,</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pytest-asyncio&gt;=0.24.0"</span><span class="op">,</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"opentelemetry-api&gt;=1.27.0"</span><span class="op">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"opentelemetry-sdk&gt;=1.27.0"</span><span class="op">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"langfuse&gt;=2.50.0"</span><span class="op">,</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"pip-audit&gt;=2.7.3"</span><span class="op">,</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="quick-setup-steps-with-uv" class="level4">
+<h4 class="anchored" data-anchor-id="quick-setup-steps-with-uv">Quick Setup Steps with <code>uv</code></h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ensure uv is installed</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-LsSf</span> https://astral.sh/uv/install.sh <span class="kw">|</span> <span class="fu">sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Clone the repository and initialize environment</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="op">&lt;</span>bootcamp-repo-url<span class="op">&gt;</span> agentic-bootcamp</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> agentic-bootcamp</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Configure API Keys</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example .env</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Edit .env and set: GEMINI_API_KEY="your-gemini-api-key"</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Verify environment with check script</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/check_env.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The <code>check_env.py</code> script validates the Python version, Node.js version, package imports, and executes a test ping to the Google Gemini API to ensure complete readiness before Day 1.</p>
+<hr>
+</section>
+</section>
+<section id="participant-deliverables-assessment" class="level3">
+<h3 class="anchored" data-anchor-id="participant-deliverables-assessment">Participant Deliverables &amp; Assessment</h3>
+<p>Every participant leaves the bootcamp with complete, tested artifacts: 1. <strong>Lab Code Repository:</strong> Executable code for all 10 hands-on labs. 2. <strong>Framework Decision Matrix:</strong> Customized evaluation scorecard for their team’s use cases. 3. <strong>Custom MCP Server &amp; Skill:</strong> Working MCP server and packaged reusable skill bundle. 4. <strong>Automated Evaluation Set:</strong> 20-case test dataset with outcome and trajectory scoring. 5. <strong>Security &amp; Guardrails Checklist:</strong> Hardened agent configuration and threat audit template. 6. <strong>Capstone Project:</strong> Complete, working production-grade agent with telemetry and human gates. 7. <strong>30-Day Adoption Roadmap:</strong> Personal or team action plan for scaling agentic AI.</p>
+<hr>
+</section>
+<section id="day-follow-up-support" class="level3">
+<h3 class="anchored" data-anchor-id="day-follow-up-support">30-Day Follow-Up Support</h3>
+<ul>
+<li><strong>Week 1:</strong> Repository code updates, session recordings, and open discussion channel for lab extensions.</li>
+<li><strong>Week 2:</strong> Virtual office hours for troubleshooting and refining custom agents.</li>
+<li><strong>Week 4:</strong> Virtual showcase session of piloted agents and adoption retrospective.</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/tvseshagiri\.github\.io\/kaameekru");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
