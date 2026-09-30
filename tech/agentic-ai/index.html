@@ -2092,6 +2092,1431 @@ Role-playing personas, backstories, memory, autonomous debates.
 </div>
 </div>
 </div>
+</section></section>
+<section>
+<section id="session-5" class="title-slide slide level1 center">
+<h1>Session 5: Framework Deep Dive: LangGraph</h1>
+
+</section>
+<section class="slide level2">
+
+<h3 id="moving-from-procedural-scripts-to-state-graphs">Moving from Procedural Scripts to State Graphs</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="limits-of-procedural-while-loops">Limits of Procedural While-Loops</h4>
+<p>Procedural scripts and single-file while-loops break down in production:</p>
+<ul>
+<li><strong>State loss on crash:</strong> If a process crashes mid-flight, memory and state are lost.</li>
+<li><strong>Uncontrolled loops:</strong> Hard to set deterministic bounds or inspect dynamic branches.</li>
+<li><strong>Fragile human pause:</strong> Cannot pause for hours or days waiting for human input and resume cleanly.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="what-state-graphs-provide">What State Graphs Provide</h4>
+<p>LangGraph provides production-grade orchestration:</p>
+<ul>
+<li><strong>Strict State Contracts:</strong> Shared <code>TypedDict</code> / Pydantic blackboard across all nodes.</li>
+<li><strong>Atomic Checkpoints:</strong> Snapshots saved at every superstep to SQLite or Postgres.</li>
+<li><strong>Native Interrupts:</strong> Pauses execution at critical gates, awaiting resume signals.</li>
+<li><strong>Time-Travel:</strong> Inspect and replay any past execution step for debugging.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="session-5-architecture-topics-map">Session 5 Architecture &amp; Topics Map</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="part-1-graph-foundations">Part 1: Graph Foundations</h4>
+<ol type="1">
+<li><strong>State as a Strict Contract:</strong>
+<ul>
+<li><code>TypedDict</code>, Pydantic models &amp; validation.</li>
+</ul></li>
+<li><strong>State Reducers:</strong>
+<ul>
+<li><code>Annotated[..., operator.add]</code> for append channels.</li>
+</ul></li>
+<li><strong>Nodes, Edges &amp; Cycles:</strong>
+<ul>
+<li><code>START</code>, <code>END</code>, and the modern <code>Command</code> API.</li>
+</ul></li>
+<li><strong>Dynamic Parallelism:</strong>
+<ul>
+<li>Map-Reduce using the <code>Send</code> API.</li>
+</ul></li>
+</ol>
+</div><div class="column" style="width:50%;">
+<h4 id="part-2-production-capabilities">Part 2: Production Capabilities</h4>
+<ol start="5" type="1">
+<li><strong>Persistence &amp; Checkpointing:</strong>
+<ul>
+<li><code>MemorySaver</code>, <code>SqliteSaver</code> &amp; thread isolation.</li>
+</ul></li>
+<li><strong>Time-Travel Debugging:</strong>
+<ul>
+<li>Replaying checkpoints and state forking.</li>
+</ul></li>
+<li><strong>Human-in-the-Loop (HITL):</strong>
+<ul>
+<li>Modern <code>interrupt()</code> and <code>Command(resume=...)</code>.</li>
+</ul></li>
+<li><strong>Functional API &amp; Streaming Patterns:</strong>
+<ul>
+<li><code>@entrypoint</code>, <code>@task</code> &amp; Gemini native agents.</li>
+</ul></li>
+</ol>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="the-langgraph-mental-model-pregel-supersteps">The LangGraph Mental Model: Pregel &amp; Supersteps</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="the-pregel-execution-runtime">The Pregel Execution Runtime</h4>
+<p>LangGraph is built on a distributed graph processing architecture called <strong>Pregel</strong>:</p>
+<ul>
+<li><strong>Supersteps:</strong> Execution proceeds in discrete iterations called supersteps.</li>
+<li><strong>Parallel Nodes:</strong> Within a single superstep, all independent nodes run concurrently.</li>
+<li><strong>State Channels:</strong> Nodes do not talk directly to each other; they read from and write to <strong>state channels</strong>.</li>
+<li><strong>Atomic Checkpoint:</strong> At the end of every superstep, the complete state snapshot is persisted.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    S([START]) --&gt; N1[Agent Node]
+    N1 --&gt; C{Tool Call?}
+    C -- Yes --&gt; T[Tool Execution]
+    T --&gt; N1
+    C -- No --&gt; E([END])
+    style S fill:#262626,stroke:#737373,color:#fff
+    style N1 fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style C fill:#451a03,stroke:#f97316,color:#fff
+    style T fill:#064e3b,stroke:#10b981,color:#fff
+    style E fill:#262626,stroke:#737373,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Key Takeaway</strong></p>
+</div>
+<div class="callout-content">
+<p>Because state is updated between supersteps, nodes are <strong>pure functions of state</strong> <span class="math inline">\(\rightarrow\)</span> <code>State_in</code> <span class="math inline">\(\rightarrow\)</span> <code>State_delta</code>.</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="state-definition-strict-contracts-with-typeddict">1. State Definition: Strict Contracts with TypedDict</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="defining-state-with-typeddict">Defining State with TypedDict</h4>
+<p>In LangGraph, state is the single source of truth passed to every node:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a aria-label="1"></a><span class="im">from</span> typing <span class="im">import</span> TypedDict, Annotated</span>
+<span id="cb13-2"><a aria-label="2"></a><span class="im">import</span> operator</span>
+<span id="cb13-3"><a aria-label="3"></a></span>
+<span id="cb13-4"><a aria-label="4"></a><span class="kw">class</span> AgentState(TypedDict):</span>
+<span id="cb13-5"><a aria-label="5"></a>    <span class="co">"""The central blackboard schema."""</span></span>
+<span id="cb13-6"><a aria-label="6"></a>    user_query: <span class="bu">str</span></span>
+<span id="cb13-7"><a aria-label="7"></a>    plan: <span class="bu">list</span>[<span class="bu">str</span>]</span>
+<span id="cb13-8"><a aria-label="8"></a>    iteration_count: <span class="bu">int</span></span>
+<span id="cb13-9"><a aria-label="9"></a>    final_answer: <span class="bu">str</span> <span class="op">|</span> <span class="va">None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Every node receives this dictionary as its first parameter.</li>
+<li>Nodes return a partial dictionary containing <strong>only the keys they want to update</strong>.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="using-pydantic-models-for-state">Using Pydantic Models for State</h4>
+<p>For runtime validation and strict coercion, Pydantic v2 models can also serve as graph state:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a aria-label="1"></a><span class="im">from</span> pydantic <span class="im">import</span> BaseModel, Field</span>
+<span id="cb14-2"><a aria-label="2"></a></span>
+<span id="cb14-3"><a aria-label="3"></a><span class="kw">class</span> ValidatedAgentState(BaseModel):</span>
+<span id="cb14-4"><a aria-label="4"></a>    user_query: <span class="bu">str</span></span>
+<span id="cb14-5"><a aria-label="5"></a>    confidence: <span class="bu">float</span> <span class="op">=</span> Field(default<span class="op">=</span><span class="fl">0.0</span>, ge<span class="op">=</span><span class="fl">0.0</span>, le<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb14-6"><a aria-label="6"></a>    audit_log: <span class="bu">list</span>[<span class="bu">str</span>] <span class="op">=</span> Field(default_factory<span class="op">=</span><span class="bu">list</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Recommendation</strong></p>
+</div>
+<div class="callout-content">
+<p>Use <code>TypedDict</code> for fast, lightweight graphs. Use <code>Pydantic</code> when ingesting unvalidated external inputs.</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="state-reducers-controlling-state-accumulation">2. State Reducers: Controlling State Accumulation</h3>
+<div class="columns">
+<div class="column" style="width:52%;">
+<h4 id="why-default-overwriting-breaks-multi-step-loops">Why Default Overwriting Breaks Multi-Step Loops</h4>
+<p>By default, returning a key from a node <strong>overwrites</strong> its previous value.</p>
+<p>When accumulating chat history or worker results, you need a <strong>reducer</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a aria-label="1"></a><span class="im">from</span> typing <span class="im">import</span> TypedDict, Annotated</span>
+<span id="cb15-2"><a aria-label="2"></a><span class="im">import</span> operator</span>
+<span id="cb15-3"><a aria-label="3"></a></span>
+<span id="cb15-4"><a aria-label="4"></a><span class="kw">class</span> ReducerState(TypedDict):</span>
+<span id="cb15-5"><a aria-label="5"></a>    <span class="co"># Overwrites on update (default behavior)</span></span>
+<span id="cb15-6"><a aria-label="6"></a>    current_topic: <span class="bu">str</span></span>
+<span id="cb15-7"><a aria-label="7"></a>    </span>
+<span id="cb15-8"><a aria-label="8"></a>    <span class="co"># Appends new items via operator.add reducer</span></span>
+<span id="cb15-9"><a aria-label="9"></a>    research_notes: Annotated[<span class="bu">list</span>[<span class="bu">str</span>], operator.add]</span>
+<span id="cb15-10"><a aria-label="10"></a>    </span>
+<span id="cb15-11"><a aria-label="11"></a>    <span class="co"># Deduplicates and merges messages by message ID</span></span>
+<span id="cb15-12"><a aria-label="12"></a>    <span class="co"># messages: Annotated[list[AnyMessage], add_messages]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:48%;">
+<h4 id="reducer-mechanics-in-action">Reducer Mechanics in Action</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a aria-label="1"></a><span class="co"># Node 1 returns:</span></span>
+<span id="cb16-2"><a aria-label="2"></a>{<span class="st">"research_notes"</span>: [<span class="st">"Note A: Auth API"</span>]}</span>
+<span id="cb16-3"><a aria-label="3"></a></span>
+<span id="cb16-4"><a aria-label="4"></a><span class="co"># Node 2 returns:</span></span>
+<span id="cb16-5"><a aria-label="5"></a>{<span class="st">"research_notes"</span>: [<span class="st">"Note B: Rate Limits"</span>]}</span>
+<span id="cb16-6"><a aria-label="6"></a></span>
+<span id="cb16-7"><a aria-label="7"></a><span class="co"># Resulting Graph State:</span></span>
+<span id="cb16-8"><a aria-label="8"></a>{</span>
+<span id="cb16-9"><a aria-label="9"></a>    <span class="st">"current_topic"</span>: <span class="st">"Security Review"</span>,</span>
+<span id="cb16-10"><a aria-label="10"></a>    <span class="st">"research_notes"</span>: [</span>
+<span id="cb16-11"><a aria-label="11"></a>        <span class="st">"Note A: Auth API"</span>, </span>
+<span id="cb16-12"><a aria-label="12"></a>        <span class="st">"Note B: Rate Limits"</span></span>
+<span id="cb16-13"><a aria-label="13"></a>    ]</span>
+<span id="cb16-14"><a aria-label="14"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Without <code>Annotated[list, operator.add]</code>, Node 2 would completely wipe out <code>"Note A"</code>!</p>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="wiring-nodes-edges-cycles">3. Wiring Nodes, Edges &amp; Cycles</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="building-the-stategraph">Building the StateGraph</h4>
+<p>Constructing a graph involves 3 core operations: adding nodes, setting entry/exit, and routing edges.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a aria-label="1"></a><span class="im">from</span> langgraph.graph <span class="im">import</span> StateGraph, START, END</span>
+<span id="cb17-2"><a aria-label="2"></a></span>
+<span id="cb17-3"><a aria-label="3"></a><span class="co"># 1. Initialize builder with state schema</span></span>
+<span id="cb17-4"><a aria-label="4"></a>builder <span class="op">=</span> StateGraph(AgentState)</span>
+<span id="cb17-5"><a aria-label="5"></a></span>
+<span id="cb17-6"><a aria-label="6"></a><span class="co"># 2. Add nodes (plain Python functions)</span></span>
+<span id="cb17-7"><a aria-label="7"></a>builder.add_node(<span class="st">"agent"</span>, call_model_node)</span>
+<span id="cb17-8"><a aria-label="8"></a>builder.add_node(<span class="st">"tools"</span>, execute_tools_node)</span>
+<span id="cb17-9"><a aria-label="9"></a></span>
+<span id="cb17-10"><a aria-label="10"></a><span class="co"># 3. Wire control flow</span></span>
+<span id="cb17-11"><a aria-label="11"></a>builder.add_edge(START, <span class="st">"agent"</span>)</span>
+<span id="cb17-12"><a aria-label="12"></a>builder.add_conditional_edges(</span>
+<span id="cb17-13"><a aria-label="13"></a>    <span class="st">"agent"</span>,</span>
+<span id="cb17-14"><a aria-label="14"></a>    should_continue_router,</span>
+<span id="cb17-15"><a aria-label="15"></a>    {<span class="st">"tools"</span>: <span class="st">"tools"</span>, <span class="st">"end"</span>: END}</span>
+<span id="cb17-16"><a aria-label="16"></a>)</span>
+<span id="cb17-17"><a aria-label="17"></a>builder.add_edge(<span class="st">"tools"</span>, <span class="st">"agent"</span>)  <span class="co"># The cycle!</span></span>
+<span id="cb17-18"><a aria-label="18"></a></span>
+<span id="cb17-19"><a aria-label="19"></a><span class="co"># 4. Compile into an executable graph</span></span>
+<span id="cb17-20"><a aria-label="20"></a>graph <span class="op">=</span> builder.<span class="bu">compile</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:50%;">
+<h4 id="conditional-router-function">Conditional Router Function</h4>
+<p>The conditional edge function reads current state and returns the name of the next destination:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a aria-label="1"></a><span class="kw">def</span> should_continue_router(state: AgentState) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb18-2"><a aria-label="2"></a>    <span class="co">"""Determine whether to invoke tools or stop."""</span></span>
+<span id="cb18-3"><a aria-label="3"></a>    <span class="co"># If the model requested tool calls, loop back</span></span>
+<span id="cb18-4"><a aria-label="4"></a>    <span class="cf">if</span> state.get(<span class="st">"tool_calls_pending"</span>):</span>
+<span id="cb18-5"><a aria-label="5"></a>        <span class="cf">return</span> <span class="st">"tools"</span></span>
+<span id="cb18-6"><a aria-label="6"></a>    <span class="co"># Otherwise, finish execution</span></span>
+<span id="cb18-7"><a aria-label="7"></a>    <span class="cf">return</span> <span class="st">"end"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Cyclic Execution</strong></p>
+</div>
+<div class="callout-content">
+<p>Notice <code>builder.add_edge("tools", "agent")</code> creates a cycle. LangGraph safety: defaults to <code>recursion_limit=25</code>.</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="the-modern-command-api-langgraph-0.2">4. The Modern Command API (LangGraph 0.2+)</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="combining-routing-state-updates">Combining Routing &amp; State Updates</h4>
+<p>Nodes control destinations while updating state in one atomic return:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a aria-label="1"></a><span class="im">from</span> langgraph.types <span class="im">import</span> Command</span>
+<span id="cb19-2"><a aria-label="2"></a></span>
+<span id="cb19-3"><a aria-label="3"></a><span class="kw">def</span> triage_node(state: AgentState) <span class="op">-&gt;</span> Command[<span class="bu">str</span>]:</span>
+<span id="cb19-4"><a aria-label="4"></a>    query <span class="op">=</span> state[<span class="st">"user_query"</span>].lower()</span>
+<span id="cb19-5"><a aria-label="5"></a>    <span class="cf">if</span> <span class="st">"billing"</span> <span class="kw">in</span> query:</span>
+<span id="cb19-6"><a aria-label="6"></a>        <span class="cf">return</span> Command(</span>
+<span id="cb19-7"><a aria-label="7"></a>            goto<span class="op">=</span><span class="st">"billing_agent"</span>, </span>
+<span id="cb19-8"><a aria-label="8"></a>            update<span class="op">=</span>{<span class="st">"team"</span>: <span class="st">"Billing"</span>}</span>
+<span id="cb19-9"><a aria-label="9"></a>        )</span>
+<span id="cb19-10"><a aria-label="10"></a>    <span class="cf">return</span> Command(</span>
+<span id="cb19-11"><a aria-label="11"></a>        goto<span class="op">=</span><span class="st">"tech_agent"</span>, </span>
+<span id="cb19-12"><a aria-label="12"></a>        update<span class="op">=</span>{<span class="st">"team"</span>: <span class="st">"Tech"</span>}</span>
+<span id="cb19-13"><a aria-label="13"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:50%;">
+<h4 id="declaring-navigation-targets">Declaring Navigation Targets</h4>
+<p>Declare valid destinations directly in <code>add_node</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a aria-label="1"></a>builder.add_node(</span>
+<span id="cb20-2"><a aria-label="2"></a>    <span class="st">"triage"</span>, </span>
+<span id="cb20-3"><a aria-label="3"></a>    triage_node, </span>
+<span id="cb20-4"><a aria-label="4"></a>    destinations<span class="op">=</span>(<span class="st">"billing_agent"</span>, <span class="st">"tech_agent"</span>)</span>
+<span id="cb20-5"><a aria-label="5"></a>)</span>
+<span id="cb20-6"><a aria-label="6"></a>builder.add_node(<span class="st">"billing_agent"</span>, billing_node)</span>
+<span id="cb20-7"><a aria-label="7"></a>builder.add_node(<span class="st">"tech_agent"</span>, tech_node)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Why Command?</strong></p>
+</div>
+<div class="callout-content">
+<p>Eliminates separate router functions when routing depends on node computation.</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="dynamic-fan-out-parallelism-the-send-api">5. Dynamic Fan-Out &amp; Parallelism: The Send API</h3>
+<div class="columns">
+<div class="column" style="width:52%;">
+<h4 id="map-reduce-with-the-send-api">Map-Reduce with the Send API</h4>
+<p>Dynamically dispatch <span class="math inline">\(N\)</span> parallel worker tasks across a superstep:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a aria-label="1"></a><span class="im">from</span> langgraph.types <span class="im">import</span> Send</span>
+<span id="cb21-2"><a aria-label="2"></a></span>
+<span id="cb21-3"><a aria-label="3"></a><span class="kw">def</span> orchestrator_router(state: DocumentState):</span>
+<span id="cb21-4"><a aria-label="4"></a>    <span class="co">"""Fan out a worker for each section concurrently."""</span></span>
+<span id="cb21-5"><a aria-label="5"></a>    <span class="cf">return</span> [</span>
+<span id="cb21-6"><a aria-label="6"></a>        Send(<span class="st">"analyze_section"</span>, {<span class="st">"section"</span>: s, <span class="st">"idx"</span>: i})</span>
+<span id="cb21-7"><a aria-label="7"></a>        <span class="cf">for</span> i, s <span class="kw">in</span> <span class="bu">enumerate</span>(state[<span class="st">"sections"</span>])</span>
+<span id="cb21-8"><a aria-label="8"></a>    ]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Workers execute concurrently in the same superstep.</li>
+<li>Results merge into state automatically via <code>operator.add</code>.</li>
+</ul>
+</div><div class="column" style="width:48%;">
+<h4 id="dynamic-fan-out-topology">Dynamic Fan-Out Topology</h4>
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    O[Orchestrator] --&gt;|Send| W1[Worker A]
+    O --&gt;|Send| W2[Worker B]
+    W1 --&gt; Agg[Reducer]
+    W2 --&gt; Agg
+    style O fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style W1 fill:#064e3b,stroke:#10b981,color:#fff
+    style W2 fill:#064e3b,stroke:#10b981,color:#fff
+    style Agg fill:#451a03,stroke:#f97316,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="persistence-architecture-checkpointers-threads">6. Persistence Architecture: Checkpointers &amp; Threads</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="persistence-unlocks-state-memory">Persistence Unlocks State Memory</h4>
+<p>Checkpointers save snapshots at each superstep to durable storage:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a aria-label="1"></a><span class="im">from</span> langgraph.checkpoint.sqlite <span class="im">import</span> SqliteSaver</span>
+<span id="cb22-2"><a aria-label="2"></a></span>
+<span id="cb22-3"><a aria-label="3"></a><span class="co"># Zero-setup embedded SQLite checkpointer</span></span>
+<span id="cb22-4"><a aria-label="4"></a><span class="cf">with</span> SqliteSaver.from_conn_string(<span class="st">"state.db"</span>) <span class="im">as</span> memory:</span>
+<span id="cb22-5"><a aria-label="5"></a>    graph <span class="op">=</span> builder.<span class="bu">compile</span>(checkpointer<span class="op">=</span>memory)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong>Fault Tolerance:</strong> Recovers from crashes without restarting runs.</li>
+<li><strong>Conversational Memory:</strong> Retains history across user sessions.</li>
+<li><strong>Human Review:</strong> Pauses execution and resumes seamlessly.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="thread-scoping-via-config">Thread Scoping via Config</h4>
+<p>Pass a unique <code>thread_id</code> under <code>configurable</code> to scope session state:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a aria-label="1"></a>config <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"session_884"</span>}}</span>
+<span id="cb23-2"><a aria-label="2"></a></span>
+<span id="cb23-3"><a aria-label="3"></a><span class="co"># Turn 1: Saves state to SQLite</span></span>
+<span id="cb23-4"><a aria-label="4"></a>r1 <span class="op">=</span> graph.invoke({<span class="st">"query"</span>: <span class="st">"Pricing for Cloud SQL"</span>}, config<span class="op">=</span>config)</span>
+<span id="cb23-5"><a aria-label="5"></a></span>
+<span id="cb23-6"><a aria-label="6"></a><span class="co"># Turn 2: Automatically loads prior context from SQLite!</span></span>
+<span id="cb23-7"><a aria-label="7"></a>r2 <span class="op">=</span> graph.invoke({<span class="st">"query"</span>: <span class="st">"Is there a free tier?"</span>}, config<span class="op">=</span>config)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Each <code>thread_id</code> maintains completely isolated execution state.</p>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="time-travel-debugging-state-forking">7. Time-Travel Debugging &amp; State Forking</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="inspecting-checkpoint-history">Inspecting Checkpoint History</h4>
+<p>LangGraph allows you to inspect every superstep snapshot that ever executed on a thread:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a aria-label="1"></a>config <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"session_user_884"</span>}}</span>
+<span id="cb24-2"><a aria-label="2"></a></span>
+<span id="cb24-3"><a aria-label="3"></a><span class="co"># Iterate through past state checkpoints</span></span>
+<span id="cb24-4"><a aria-label="4"></a><span class="cf">for</span> snapshot <span class="kw">in</span> graph.get_state_history(config):</span>
+<span id="cb24-5"><a aria-label="5"></a>    <span class="bu">print</span>(<span class="ss">f"Step: </span><span class="sc">{</span>snapshot<span class="sc">.</span>metadata<span class="sc">.</span>get(<span class="st">'step'</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-6"><a aria-label="6"></a>    <span class="bu">print</span>(<span class="ss">f"Next Node: </span><span class="sc">{</span>snapshot<span class="sc">.</span><span class="bu">next</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-7"><a aria-label="7"></a>    <span class="bu">print</span>(<span class="ss">f"Values: </span><span class="sc">{</span>snapshot<span class="sc">.</span>values<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-8"><a aria-label="8"></a>    <span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">30</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>You can see exactly what the model thought at step 2.</li>
+<li>Identify the exact node where a hallucination occurred.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="replaying-forking-state">Replaying &amp; Forking State</h4>
+<p>You can roll back time, edit the state, and resume along a new path:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a aria-label="1"></a><span class="co"># 1. Fetch snapshot from before the hallucination</span></span>
+<span id="cb25-2"><a aria-label="2"></a>old_checkpoint <span class="op">=</span> <span class="bu">list</span>(graph.get_state_history(config))[<span class="dv">2</span>]</span>
+<span id="cb25-3"><a aria-label="3"></a></span>
+<span id="cb25-4"><a aria-label="4"></a><span class="co"># 2. Fork state: correct the bad data</span></span>
+<span id="cb25-5"><a aria-label="5"></a>forked_config <span class="op">=</span> graph.update_state(</span>
+<span id="cb25-6"><a aria-label="6"></a>    old_checkpoint.config,</span>
+<span id="cb25-7"><a aria-label="7"></a>    values<span class="op">=</span>{<span class="st">"user_query"</span>: <span class="st">"Corrected prompt"</span>}</span>
+<span id="cb25-8"><a aria-label="8"></a>)</span>
+<span id="cb25-9"><a aria-label="9"></a></span>
+<span id="cb25-10"><a aria-label="10"></a><span class="co"># 3. Resume execution from the fork!</span></span>
+<span id="cb25-11"><a aria-label="11"></a>resumed_output <span class="op">=</span> graph.invoke(<span class="va">None</span>, config<span class="op">=</span>forked_config)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-tip callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Enterprise Superpower</strong></p>
+</div>
+<div class="callout-content">
+<p>Debug failed production runs in your local terminal by replaying the customer’s exact checkpoint!</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="human-in-the-loop-the-modern-interrupt-primitive">8. Human-in-the-Loop: The Modern interrupt() Primitive</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="pausing-execution-with-interrupt">Pausing Execution with interrupt()</h4>
+<p>Calling <code>interrupt()</code> saves a checkpoint, pauses execution, and yields control:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a aria-label="1"></a><span class="im">from</span> langgraph.types <span class="im">import</span> interrupt</span>
+<span id="cb26-2"><a aria-label="2"></a></span>
+<span id="cb26-3"><a aria-label="3"></a><span class="kw">def</span> publish_rfc_node(state: AgentState):</span>
+<span id="cb26-4"><a aria-label="4"></a>    rfc_markdown <span class="op">=</span> state[<span class="st">"drafted_rfc"</span>]</span>
+<span id="cb26-5"><a aria-label="5"></a>    </span>
+<span id="cb26-6"><a aria-label="6"></a>    <span class="co"># Pause execution &amp; send payload to reviewer</span></span>
+<span id="cb26-7"><a aria-label="7"></a>    human_approval <span class="op">=</span> interrupt({</span>
+<span id="cb26-8"><a aria-label="8"></a>        <span class="st">"action"</span>: <span class="st">"approve_rfc"</span>,</span>
+<span id="cb26-9"><a aria-label="9"></a>        <span class="st">"title"</span>: state[<span class="st">"rfc_title"</span>],</span>
+<span id="cb26-10"><a aria-label="10"></a>        <span class="st">"draft_preview"</span>: rfc_markdown[:<span class="dv">200</span>]</span>
+<span id="cb26-11"><a aria-label="11"></a>    })</span>
+<span id="cb26-12"><a aria-label="12"></a>    </span>
+<span id="cb26-13"><a aria-label="13"></a>    <span class="co"># Resumes right here when human responds!</span></span>
+<span id="cb26-14"><a aria-label="14"></a>    <span class="cf">if</span> human_approval.get(<span class="st">"decision"</span>) <span class="op">!=</span> <span class="st">"APPROVED"</span>:</span>
+<span id="cb26-15"><a aria-label="15"></a>        <span class="cf">return</span> {<span class="st">"status"</span>: <span class="st">"REJECTED_BY_HUMAN"</span>}</span>
+<span id="cb26-16"><a aria-label="16"></a>        </span>
+<span id="cb26-17"><a aria-label="17"></a>    <span class="cf">return</span> {<span class="st">"status"</span>: <span class="st">"PUBLISHED_TO_WIKI"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:50%;">
+<h4 id="resuming-with-commandresume">Resuming with Command(resume=…)</h4>
+<p>Resume the paused thread by passing <code>Command(resume=...)</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a aria-label="1"></a><span class="im">from</span> langgraph.types <span class="im">import</span> Command</span>
+<span id="cb27-2"><a aria-label="2"></a></span>
+<span id="cb27-3"><a aria-label="3"></a><span class="co"># 1. Run initial execution (pauses at interrupt)</span></span>
+<span id="cb27-4"><a aria-label="4"></a>config <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"rfc_101"</span>}}</span>
+<span id="cb27-5"><a aria-label="5"></a>graph.invoke({<span class="st">"user_query"</span>: <span class="st">"Draft RFC for OAuth2"</span>}, config)</span>
+<span id="cb27-6"><a aria-label="6"></a></span>
+<span id="cb27-7"><a aria-label="7"></a><span class="co"># 2. Inspect pending interrupt</span></span>
+<span id="cb27-8"><a aria-label="8"></a>state_snapshot <span class="op">=</span> graph.get_state(config)</span>
+<span id="cb27-9"><a aria-label="9"></a><span class="bu">print</span>(<span class="st">"Pending tasks:"</span>, state_snapshot.tasks)</span>
+<span id="cb27-10"><a aria-label="10"></a></span>
+<span id="cb27-11"><a aria-label="11"></a><span class="co"># 3. Provide human response and resume execution!</span></span>
+<span id="cb27-12"><a aria-label="12"></a>graph.invoke(</span>
+<span id="cb27-13"><a aria-label="13"></a>    Command(resume<span class="op">=</span>{<span class="st">"decision"</span>: <span class="st">"APPROVED"</span>}), </span>
+<span id="cb27-14"><a aria-label="14"></a>    config<span class="op">=</span>config</span>
+<span id="cb27-15"><a aria-label="15"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The payload passed to <code>Command(resume=...)</code> becomes the return value of <code>interrupt()</code> inside the node!</p>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="the-rules-of-interrupts-in-langgraph">9. The Rules of Interrupts in LangGraph</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Rule 1: Never Catch interrupt in try/except!</strong></p>
+</div>
+<div class="callout-content">
+<p><code>interrupt()</code> works by raising an internal <code>GraphInterrupt</code> exception.</p>
+<p>If you catch it with <code>except Exception:</code>, LangGraph cannot pause!</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a aria-label="1"></a><span class="co"># ❌ INCORRECT: Swallows the interrupt!</span></span>
+<span id="cb28-2"><a aria-label="2"></a><span class="cf">try</span>:</span>
+<span id="cb28-3"><a aria-label="3"></a>    res <span class="op">=</span> interrupt(<span class="st">"Approve?"</span>)</span>
+<span id="cb28-4"><a aria-label="4"></a><span class="cf">except</span> <span class="pp">Exception</span>:</span>
+<span id="cb28-5"><a aria-label="5"></a>    <span class="bu">print</span>(<span class="st">"Caught error"</span>)</span>
+<span id="cb28-6"><a aria-label="6"></a></span>
+<span id="cb28-7"><a aria-label="7"></a><span class="co"># ✅ CORRECT: Let interrupt bubble to the runtime</span></span>
+<span id="cb28-8"><a aria-label="8"></a>res <span class="op">=</span> interrupt(<span class="st">"Approve?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="callout callout-caution callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Rule 2: Code Before interrupt Must Be Idempotent</strong></p>
+</div>
+<div class="callout-content">
+<p>When a thread resumes, LangGraph <strong>re-executes the node from the beginning</strong> up to the <code>interrupt()</code> call.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a aria-label="1"></a><span class="kw">def</span> unsafe_node(state):</span>
+<span id="cb29-2"><a aria-label="2"></a>    <span class="co"># ❌ Dangerous: Runs TWICE (on pause AND resume)</span></span>
+<span id="cb29-3"><a aria-label="3"></a>    charge_credit_card(state[<span class="st">"amount"</span>])</span>
+<span id="cb29-4"><a aria-label="4"></a>    </span>
+<span id="cb29-5"><a aria-label="5"></a>    review <span class="op">=</span> interrupt(<span class="st">"Confirm?"</span>)</span>
+<span id="cb29-6"><a aria-label="6"></a>    <span class="cf">return</span> {<span class="st">"receipt"</span>: <span class="st">"sent"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Always perform external mutations <strong>after</strong> the interrupt, or verify idempotency with a flag in state!</p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="streaming-in-langgraph">10. Streaming in LangGraph</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="real-time-progress-for-uis">Real-Time Progress for UIs</h4>
+<p>LangGraph supports 3 built-in streaming modes via <code>graph.stream()</code>:</p>
+<ul>
+<li><strong><code>stream_mode="updates"</code></strong>: Emits node state deltas.</li>
+<li><strong><code>stream_mode="values"</code></strong>: Emits full state after superstep.</li>
+<li><strong><code>stream_mode="messages"</code></strong>: Streams LLM token chunks.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a aria-label="1"></a>config <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"live_chat_1"</span>}}</span>
+<span id="cb30-2"><a aria-label="2"></a>input_data <span class="op">=</span> {<span class="st">"user_query"</span>: <span class="st">"Audit DB security"</span>}</span>
+<span id="cb30-3"><a aria-label="3"></a></span>
+<span id="cb30-4"><a aria-label="4"></a><span class="co"># Stream incremental node updates</span></span>
+<span id="cb30-5"><a aria-label="5"></a><span class="cf">for</span> chunk <span class="kw">in</span> graph.stream(input_data, config, stream_mode<span class="op">=</span><span class="st">"updates"</span>):</span>
+<span id="cb30-6"><a aria-label="6"></a>    <span class="cf">for</span> node_name, delta <span class="kw">in</span> chunk.items():</span>
+<span id="cb30-7"><a aria-label="7"></a>        <span class="bu">print</span>(<span class="ss">f"Node [</span><span class="sc">{</span>node_name<span class="sc">}</span><span class="ss">]: </span><span class="sc">{</span>delta<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:50%;">
+<h4 id="fastapi-sse-integration">FastAPI SSE Integration</h4>
+<p>Exposing agent execution via Server-Sent Events (SSE):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a aria-label="1"></a><span class="im">from</span> fastapi <span class="im">import</span> FastAPI</span>
+<span id="cb31-2"><a aria-label="2"></a><span class="im">from</span> fastapi.responses <span class="im">import</span> StreamingResponse</span>
+<span id="cb31-3"><a aria-label="3"></a></span>
+<span id="cb31-4"><a aria-label="4"></a>app <span class="op">=</span> FastAPI()</span>
+<span id="cb31-5"><a aria-label="5"></a></span>
+<span id="cb31-6"><a aria-label="6"></a><span class="at">@app.post</span>(<span class="st">"/agent/stream"</span>)</span>
+<span id="cb31-7"><a aria-label="7"></a><span class="cf">async</span> <span class="kw">def</span> stream_agent(query: <span class="bu">str</span>):</span>
+<span id="cb31-8"><a aria-label="8"></a>    <span class="cf">async</span> <span class="kw">def</span> generate():</span>
+<span id="cb31-9"><a aria-label="9"></a>        cfg <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"sse_demo"</span>}}</span>
+<span id="cb31-10"><a aria-label="10"></a>        <span class="cf">async</span> <span class="cf">for</span> chunk <span class="kw">in</span> graph.astream(</span>
+<span id="cb31-11"><a aria-label="11"></a>            {<span class="st">"user_query"</span>: query}, cfg, stream_mode<span class="op">=</span><span class="st">"updates"</span></span>
+<span id="cb31-12"><a aria-label="12"></a>        ):</span>
+<span id="cb31-13"><a aria-label="13"></a>            <span class="cf">yield</span> <span class="ss">f"data: </span><span class="sc">{</span>chunk<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">"</span></span>
+<span id="cb31-14"><a aria-label="14"></a>            </span>
+<span id="cb31-15"><a aria-label="15"></a>    <span class="cf">return</span> StreamingResponse(generate(), media_type<span class="op">=</span><span class="st">"text/event-stream"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="the-functional-api-entrypoint-task">11. The Functional API: <code>@entrypoint</code> &amp; <code>@task</code></h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="decorators-for-imperative-python">Decorators for Imperative Python</h4>
+<p>Add persistence and interrupts to standard functions without graphs:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a aria-label="1"></a><span class="im">from</span> langgraph.func <span class="im">import</span> entrypoint, task</span>
+<span id="cb32-2"><a aria-label="2"></a><span class="im">from</span> langgraph.types <span class="im">import</span> interrupt</span>
+<span id="cb32-3"><a aria-label="3"></a></span>
+<span id="cb32-4"><a aria-label="4"></a><span class="at">@task</span></span>
+<span id="cb32-5"><a aria-label="5"></a><span class="kw">def</span> research(topic: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb32-6"><a aria-label="6"></a>    <span class="cf">return</span> <span class="ss">f"Research on </span><span class="sc">{</span>topic<span class="sc">}</span><span class="ss">: High Availability"</span></span>
+<span id="cb32-7"><a aria-label="7"></a></span>
+<span id="cb32-8"><a aria-label="8"></a><span class="at">@task</span></span>
+<span id="cb32-9"><a aria-label="9"></a><span class="kw">def</span> format_rfc(notes: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb32-10"><a aria-label="10"></a>    <span class="cf">return</span> <span class="ss">f"# RFC</span><span class="ch">\n\n</span><span class="sc">{</span>notes<span class="sc">}</span><span class="ss">"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong><code>@task</code></strong>: Discrete unit of work cached to checkpoints.</li>
+<li><strong><code>@entrypoint</code></strong>: Orchestrator managing flow and interrupts.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="standard-control-flow-with-interrupts">Standard Control Flow with Interrupts</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a aria-label="1"></a><span class="at">@entrypoint</span>()</span>
+<span id="cb33-2"><a aria-label="2"></a><span class="kw">def</span> rfc_pipeline(topic: <span class="bu">str</span>) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb33-3"><a aria-label="3"></a>    notes <span class="op">=</span> research(topic).result()</span>
+<span id="cb33-4"><a aria-label="4"></a>    draft <span class="op">=</span> format_rfc(notes).result()</span>
+<span id="cb33-5"><a aria-label="5"></a>    </span>
+<span id="cb33-6"><a aria-label="6"></a>    <span class="co"># Pauses execution natively!</span></span>
+<span id="cb33-7"><a aria-label="7"></a>    decision <span class="op">=</span> interrupt({<span class="st">"review"</span>: draft})</span>
+<span id="cb33-8"><a aria-label="8"></a>    </span>
+<span id="cb33-9"><a aria-label="9"></a>    <span class="cf">return</span> <span class="ss">f"Published:</span><span class="ch">\n</span><span class="sc">{</span>draft<span class="sc">}</span><span class="ss">"</span> <span class="cf">if</span> decision <span class="op">==</span> <span class="st">"APPROVED"</span> <span class="cf">else</span> <span class="st">"Aborted"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong>Functional API:</strong> Fast, minimal boilerplate for linear/tree workflows.</li>
+<li><strong>Graph API:</strong> Preferred for complex cyclic loops and multi-agent teams.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-5-scenario-production-rfc-drafting-agent">Lab 5 Scenario: Production RFC Drafting Agent</h3>
+<div class="columns">
+<div class="column" style="width:55%;">
+<h4 id="the-engineering-challenge-1">The Engineering Challenge</h4>
+<p>We will build a complete, stateful <strong>Technical RFC Generator</strong> using <strong>Gemini 2.5 Flash</strong> and <strong>LangGraph</strong>:</p>
+<ol type="1">
+<li><strong>Step 1 (Research Node):</strong> User submits a technical goal (e.g., <em>“Design an event-driven notification service”</em>). The agent searches technical requirements.</li>
+<li><strong>Step 2 (Drafting Node):</strong> Synthesizes research into a structured RFC with architecture, database schema, and trade-offs.</li>
+<li><strong>Step 3 (Human Review Gate):</strong> Graph calls <code>interrupt()</code>. Halts execution until tech lead approves or requests revision.</li>
+<li><strong>Step 4 (Commit Node):</strong> Upon <code>"APPROVED"</code>, writes RFC to disk or returns finalized markdown.</li>
+</ol>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph TD
+    Start([User Request]) --&gt; Research[Research Node]
+    Research --&gt; Draft[RFC Drafter Node]
+    Draft --&gt; Gate{Human interrupt}
+    Gate -- "APPROVED" --&gt; Commit[Commit RFC Node]
+    Gate -- "REVISE" --&gt; Draft
+    Commit --&gt; End([END: Final RFC])
+    style Start fill:#262626,stroke:#737373,color:#fff
+    style Research fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style Draft fill:#0c4a6e,stroke:#0284c7,color:#fff
+    style Gate fill:#451a03,stroke:#f97316,color:#fff
+    style Commit fill:#064e3b,stroke:#10b981,color:#fff
+    style End fill:#262626,stroke:#737373,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-5-complete-reference-implementation-part-1-setup-state">Lab 5: Complete Reference Implementation (Part 1: Setup &amp; State)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a aria-label="1"></a><span class="co">"""Lab 5: Production RFC Drafting Agent with LangGraph &amp; Gemini 2.5 Flash."""</span></span>
+<span id="cb34-2"><a aria-label="2"></a><span class="im">import</span> os</span>
+<span id="cb34-3"><a aria-label="3"></a><span class="im">from</span> typing <span class="im">import</span> TypedDict, Annotated, Literal</span>
+<span id="cb34-4"><a aria-label="4"></a><span class="im">import</span> operator</span>
+<span id="cb34-5"><a aria-label="5"></a><span class="im">from</span> google <span class="im">import</span> genai</span>
+<span id="cb34-6"><a aria-label="6"></a><span class="im">from</span> langgraph.graph <span class="im">import</span> StateGraph, START, END</span>
+<span id="cb34-7"><a aria-label="7"></a><span class="im">from</span> langgraph.checkpoint.memory <span class="im">import</span> MemorySaver</span>
+<span id="cb34-8"><a aria-label="8"></a><span class="im">from</span> langgraph.types <span class="im">import</span> interrupt, Command</span>
+<span id="cb34-9"><a aria-label="9"></a></span>
+<span id="cb34-10"><a aria-label="10"></a><span class="co"># Initialize official Gemini 2.5 client</span></span>
+<span id="cb34-11"><a aria-label="11"></a>client <span class="op">=</span> genai.Client()</span>
+<span id="cb34-12"><a aria-label="12"></a></span>
+<span id="cb34-13"><a aria-label="13"></a><span class="kw">class</span> RFCState(TypedDict):</span>
+<span id="cb34-14"><a aria-label="14"></a>    <span class="co">"""Immutable state blackboard passed between graph nodes."""</span></span>
+<span id="cb34-15"><a aria-label="15"></a>    topic: <span class="bu">str</span></span>
+<span id="cb34-16"><a aria-label="16"></a>    research_bullets: Annotated[<span class="bu">list</span>[<span class="bu">str</span>], operator.add]</span>
+<span id="cb34-17"><a aria-label="17"></a>    rfc_draft: <span class="bu">str</span></span>
+<span id="cb34-18"><a aria-label="18"></a>    feedback_history: Annotated[<span class="bu">list</span>[<span class="bu">str</span>], operator.add]</span>
+<span id="cb34-19"><a aria-label="19"></a>    final_status: <span class="bu">str</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Uses <code>Annotated[list[str], operator.add]</code> for append-only log channels.</li>
+<li>Backed by <code>MemorySaver</code> (or <code>SqliteSaver</code>) for full persistence.</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-5-complete-reference-implementation-part-2-nodes-gate">Lab 5: Complete Reference Implementation (Part 2: Nodes &amp; Gate)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a aria-label="1"></a><span class="kw">def</span> research_node(state: RFCState) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb35-2"><a aria-label="2"></a>    <span class="co">"""Performs domain lookup and requirements gathering."""</span></span>
+<span id="cb35-3"><a aria-label="3"></a>    prompt <span class="op">=</span> <span class="ss">f"List 3 critical engineering requirements for building: </span><span class="sc">{</span>state[<span class="st">'topic'</span>]<span class="sc">}</span><span class="ss">. Be concise."</span></span>
+<span id="cb35-4"><a aria-label="4"></a>    resp <span class="op">=</span> client.models.generate_content(model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>, contents<span class="op">=</span>prompt)</span>
+<span id="cb35-5"><a aria-label="5"></a>    <span class="cf">return</span> {<span class="st">"research_bullets"</span>: [resp.text.strip()]}</span>
+<span id="cb35-6"><a aria-label="6"></a></span>
+<span id="cb35-7"><a aria-label="7"></a><span class="kw">def</span> draft_rfc_node(state: RFCState) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb35-8"><a aria-label="8"></a>    <span class="co">"""Drafts formal RFC combining research and any prior human feedback."""</span></span>
+<span id="cb35-9"><a aria-label="9"></a>    context <span class="op">=</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(state[<span class="st">"research_bullets"</span>])</span>
+<span id="cb35-10"><a aria-label="10"></a>    feedback <span class="op">=</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(state.get(<span class="st">"feedback_history"</span>, [])) <span class="kw">or</span> <span class="st">"None (initial draft)"</span></span>
+<span id="cb35-11"><a aria-label="11"></a>    prompt <span class="op">=</span> <span class="ss">f"Draft a concise RFC for '</span><span class="sc">{</span>state[<span class="st">'topic'</span>]<span class="sc">}</span><span class="ss">'.</span><span class="ch">\n</span><span class="ss">Requirements:</span><span class="ch">\n</span><span class="sc">{</span>context<span class="sc">}</span><span class="ch">\n</span><span class="ss">Feedback:</span><span class="ch">\n</span><span class="sc">{</span>feedback<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb35-12"><a aria-label="12"></a>    resp <span class="op">=</span> client.models.generate_content(model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>, contents<span class="op">=</span>prompt)</span>
+<span id="cb35-13"><a aria-label="13"></a>    <span class="cf">return</span> {<span class="st">"rfc_draft"</span>: resp.text.strip()}</span>
+<span id="cb35-14"><a aria-label="14"></a></span>
+<span id="cb35-15"><a aria-label="15"></a><span class="kw">def</span> approval_gate_node(state: RFCState) <span class="op">-&gt;</span> Command[Literal[<span class="st">"commit_node"</span>, <span class="st">"draft_rfc_node"</span>]]:</span>
+<span id="cb35-16"><a aria-label="16"></a>    <span class="co">"""Pauses execution for human tech lead approval."""</span></span>
+<span id="cb35-17"><a aria-label="17"></a>    human_response <span class="op">=</span> interrupt({</span>
+<span id="cb35-18"><a aria-label="18"></a>        <span class="st">"topic"</span>: state[<span class="st">"topic"</span>],</span>
+<span id="cb35-19"><a aria-label="19"></a>        <span class="st">"draft_preview"</span>: state[<span class="st">"rfc_draft"</span>][:<span class="dv">300</span>] <span class="op">+</span> <span class="st">"..."</span></span>
+<span id="cb35-20"><a aria-label="20"></a>    })</span>
+<span id="cb35-21"><a aria-label="21"></a>    </span>
+<span id="cb35-22"><a aria-label="22"></a>    <span class="cf">if</span> human_response.get(<span class="st">"decision"</span>) <span class="op">==</span> <span class="st">"APPROVED"</span>:</span>
+<span id="cb35-23"><a aria-label="23"></a>        <span class="cf">return</span> Command(goto<span class="op">=</span><span class="st">"commit_node"</span>, update<span class="op">=</span>{<span class="st">"final_status"</span>: <span class="st">"APPROVED"</span>})</span>
+<span id="cb35-24"><a aria-label="24"></a>    <span class="cf">else</span>:</span>
+<span id="cb35-25"><a aria-label="25"></a>        critique <span class="op">=</span> human_response.get(<span class="st">"critique"</span>, <span class="st">"Please improve structure."</span>)</span>
+<span id="cb35-26"><a aria-label="26"></a>        <span class="cf">return</span> Command(goto<span class="op">=</span><span class="st">"draft_rfc_node"</span>, update<span class="op">=</span>{<span class="st">"feedback_history"</span>: [<span class="ss">f"Revision requested: </span><span class="sc">{</span>critique<span class="sc">}</span><span class="ss">"</span>]})</span>
+<span id="cb35-27"><a aria-label="27"></a></span>
+<span id="cb35-28"><a aria-label="28"></a><span class="kw">def</span> commit_node(state: RFCState) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb35-29"><a aria-label="29"></a>    <span class="co">"""Finalizes RFC commit."""</span></span>
+<span id="cb35-30"><a aria-label="30"></a>    <span class="cf">return</span> {<span class="st">"final_status"</span>: <span class="st">"COMMITTED_TO_REPOSITORY"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-5-complete-reference-implementation-part-3-wiring-execution">Lab 5: Complete Reference Implementation (Part 3: Wiring &amp; Execution)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a aria-label="1"></a><span class="co"># 1. Wire the StateGraph</span></span>
+<span id="cb36-2"><a aria-label="2"></a>builder <span class="op">=</span> StateGraph(RFCState)</span>
+<span id="cb36-3"><a aria-label="3"></a>builder.add_node(<span class="st">"research_node"</span>, research_node)</span>
+<span id="cb36-4"><a aria-label="4"></a>builder.add_node(<span class="st">"draft_rfc_node"</span>, draft_rfc_node)</span>
+<span id="cb36-5"><a aria-label="5"></a>builder.add_node(<span class="st">"approval_gate_node"</span>, approval_gate_node)</span>
+<span id="cb36-6"><a aria-label="6"></a>builder.add_node(<span class="st">"commit_node"</span>, commit_node)</span>
+<span id="cb36-7"><a aria-label="7"></a></span>
+<span id="cb36-8"><a aria-label="8"></a>builder.add_edge(START, <span class="st">"research_node"</span>)</span>
+<span id="cb36-9"><a aria-label="9"></a>builder.add_edge(<span class="st">"research_node"</span>, <span class="st">"draft_rfc_node"</span>)</span>
+<span id="cb36-10"><a aria-label="10"></a>builder.add_edge(<span class="st">"draft_rfc_node"</span>, <span class="st">"approval_gate_node"</span>)</span>
+<span id="cb36-11"><a aria-label="11"></a>builder.add_edge(<span class="st">"commit_node"</span>, END)</span>
+<span id="cb36-12"><a aria-label="12"></a></span>
+<span id="cb36-13"><a aria-label="13"></a><span class="co"># 2. Compile with checkpointer</span></span>
+<span id="cb36-14"><a aria-label="14"></a>checkpointer <span class="op">=</span> MemorySaver()</span>
+<span id="cb36-15"><a aria-label="15"></a>graph <span class="op">=</span> builder.<span class="bu">compile</span>(checkpointer<span class="op">=</span>checkpointer)</span>
+<span id="cb36-16"><a aria-label="16"></a></span>
+<span id="cb36-17"><a aria-label="17"></a><span class="co"># 3. Step 1: Initial run (executes research, drafts RFC, and PAUSES at interrupt)</span></span>
+<span id="cb36-18"><a aria-label="18"></a>thread_config <span class="op">=</span> {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"rfc_project_001"</span>}}</span>
+<span id="cb36-19"><a aria-label="19"></a>initial_run <span class="op">=</span> graph.invoke({<span class="st">"topic"</span>: <span class="st">"Distributed Rate Limiter with Redis &amp; FastAPI"</span>}, config<span class="op">=</span>thread_config)</span>
+<span id="cb36-20"><a aria-label="20"></a></span>
+<span id="cb36-21"><a aria-label="21"></a><span class="co"># 4. Step 2: Tech Lead reviews pending interrupt payload</span></span>
+<span id="cb36-22"><a aria-label="22"></a>snapshot <span class="op">=</span> graph.get_state(thread_config)</span>
+<span id="cb36-23"><a aria-label="23"></a><span class="bu">print</span>(<span class="st">"Graph is paused at interrupt!"</span>)</span>
+<span id="cb36-24"><a aria-label="24"></a><span class="bu">print</span>(<span class="st">"Pending Review:"</span>, snapshot.tasks[<span class="dv">0</span>].interrupts[<span class="dv">0</span>].value)</span>
+<span id="cb36-25"><a aria-label="25"></a></span>
+<span id="cb36-26"><a aria-label="26"></a><span class="co"># 5. Step 3: Tech Lead resumes with approval!</span></span>
+<span id="cb36-27"><a aria-label="27"></a>final_run <span class="op">=</span> graph.invoke(Command(resume<span class="op">=</span>{<span class="st">"decision"</span>: <span class="st">"APPROVED"</span>}), config<span class="op">=</span>thread_config)</span>
+<span id="cb36-28"><a aria-label="28"></a><span class="bu">print</span>(<span class="st">"Final Status:"</span>, final_run[<span class="st">"final_status"</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section class="slide level2">
+
+<h3 id="day-2-session-5-takeaways-checklist">Day 2 Session 5 Takeaways &amp; Checklist</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="production-principles">Production Principles</h4>
+<ul>
+<li><strong>State First:</strong> Design your state schema before writing a single line of node logic.</li>
+<li><strong>Reducers Prevent Overwrite:</strong> Always use <code>Annotated[..., operator.add]</code> for message and result accumulation.</li>
+<li><strong>Safe Persistence:</strong> Always attach a checkpointer and pass an explicit <code>thread_id</code>.</li>
+<li><strong>Atomic Routing:</strong> Use the modern <code>Command</code> API to combine routing and state updates cleanly.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="pre-flight-checklist">Pre-Flight Checklist</h4>
+<ul class="task-list">
+<li><label><input type="checkbox" checked="">State graph compiled with a persistent checkpointer.</label></li>
+<li><label><input type="checkbox" checked="">Cyclic loops protected by <code>recursion_limit</code>.</label></li>
+<li><label><input type="checkbox" checked="">Destructive actions gated by <code>interrupt()</code>.</label></li>
+<li><label><input type="checkbox" checked="">Node prefixes idempotent before interrupts.</label></li>
+<li><label><input type="checkbox" checked="">Streaming configured with <code>stream_mode="updates"</code> for live UI feedback.</label></li>
+</ul>
+</div></div>
+</section></section>
+<section>
+<section id="session-6" class="title-slide slide level1 center">
+<h1>Session 6: Google Gen AI Agent Development Kit (ADK)</h1>
+
+</section>
+<section class="slide level2">
+
+<h3 id="what-is-the-agent-development-kit-adk">What is the Agent Development Kit (ADK)?</h3>
+<div class="columns">
+<div class="column" style="width:52%;">
+<h4 id="googles-open-source-multi-agent-toolkit">Google’s Open-Source Multi-Agent Toolkit</h4>
+<p>The <strong>Agent Development Kit (ADK)</strong> (<code>adk.dev</code>) is a code-first framework by Google for building, evaluating, and deploying production AI agents:</p>
+<ul>
+<li><strong>Multi-Model Flexibility:</strong> Built for Gemini 2.5, supports Claude, GPT-4o, Ollama.</li>
+<li><strong>Team-First Architecture:</strong> First-class sub-agents with automatic delegation.</li>
+<li><strong>Hybrid Workflows:</strong> <code>SequentialAgent</code>, <code>ParallelAgent</code>, and dynamic graphs.</li>
+<li><strong>Local-to-Cloud Runtime:</strong> CLI (<code>adk run</code>), web UI (<code>adk web</code>), and Cloud Run.</li>
+</ul>
+<div class="callout callout-note callout-style-simple">
+<div class="callout-body">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-content">
+<p>📦 <strong>Install:</strong> <code>uv add google-adk</code> · <strong>Docs:</strong> <a href="https://adk.dev">adk.dev</a></p>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:48%;">
+<h4 id="adk-architecture-overview">ADK Architecture Overview</h4>
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    U[User / API] --&gt; R[Runner]
+    R --&gt; S[(Session)]
+    R --&gt; A[Root Agent]
+    A --&gt; SA[Sub-Agents]
+    A --&gt; T[Tools &amp; MCP]
+    style U fill:#262626,stroke:#737373,color:#fff
+    style R fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style S fill:#451a03,stroke:#f97316,color:#fff
+    style A fill:#172554,stroke:#3b82f6,color:#fff
+    style SA fill:#064e3b,stroke:#10b981,color:#fff
+    style T fill:#3b0764,stroke:#a855f7,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="core-primitives-llmagent-runner-sessionservice">Core Primitives: LlmAgent, Runner &amp; SessionService</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="llmagent-llm_agent.agent">1. LlmAgent (<code>llm_agent.Agent</code>)</h4>
+<p>The central declarative unit defining model, system instructions, tools, and sub-agents:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents.llm_agent <span class="im">import</span> Agent</span>
+<span id="cb37-2"><a aria-label="2"></a></span>
+<span id="cb37-3"><a aria-label="3"></a>triage_agent <span class="op">=</span> Agent(</span>
+<span id="cb37-4"><a aria-label="4"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb37-5"><a aria-label="5"></a>    name<span class="op">=</span><span class="st">"triage_agent"</span>,</span>
+<span id="cb37-6"><a aria-label="6"></a>    description<span class="op">=</span><span class="st">"Diagnoses cloud infrastructure alerts."</span>,</span>
+<span id="cb37-7"><a aria-label="7"></a>    instruction<span class="op">=</span><span class="st">"Analyze alerts and query metrics tools."</span>,</span>
+<span id="cb37-8"><a aria-label="8"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong><code>description</code></strong>: Crucial for delegation; parent agents inspect this to route tasks.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="runner-sessionservice">2. Runner &amp; SessionService</h4>
+<ul>
+<li><strong><code>Runner</code></strong>: Drives the interaction event loop, streaming, and tool execution.</li>
+<li><strong><code>SessionService</code></strong>: Persists conversation history and state across turns.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a aria-label="1"></a><span class="im">from</span> google.adk.runners <span class="im">import</span> Runner</span>
+<span id="cb38-2"><a aria-label="2"></a><span class="im">from</span> google.adk.sessions <span class="im">import</span> InMemorySessionService</span>
+<span id="cb38-3"><a aria-label="3"></a></span>
+<span id="cb38-4"><a aria-label="4"></a>session_svc <span class="op">=</span> InMemorySessionService()</span>
+<span id="cb38-5"><a aria-label="5"></a>runner <span class="op">=</span> Runner(agent<span class="op">=</span>triage_agent, session_service<span class="op">=</span>session_svc)</span>
+<span id="cb38-6"><a aria-label="6"></a></span>
+<span id="cb38-7"><a aria-label="7"></a>response <span class="op">=</span> runner.run(</span>
+<span id="cb38-8"><a aria-label="8"></a>    user_input<span class="op">=</span><span class="st">"Investigate spike in 502 errors"</span>,</span>
+<span id="cb38-9"><a aria-label="9"></a>    session_id<span class="op">=</span><span class="st">"incident-902"</span></span>
+<span id="cb38-10"><a aria-label="10"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="multi-model-flexibility-edge-inference-litert-lm">Multi-Model Flexibility &amp; Edge Inference (LiteRT-LM)</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="cloud-frontier-to-on-device-edge">Cloud Frontier to On-Device Edge</h4>
+<p>ADK is model-agnostic, supporting cloud frontier models and <strong>local on-device inference</strong>:</p>
+<ul>
+<li><strong>Gemini 2.5 Flash / Pro:</strong> Native high-speed reasoning &amp; multimodal input.</li>
+<li><strong>LiteRT-LM:</strong> Google’s lightweight runtime for <strong>on-device local inference</strong> (Gemma 2B) with zero network dependency.</li>
+<li><strong>LiteLLM Provider:</strong> Seamless fallback to Anthropic Claude, OpenAI GPT-4o, or local Ollama.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="hybrid-cloud-edge-configuration">Hybrid Cloud &amp; Edge Configuration</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents.llm_agent <span class="im">import</span> Agent</span>
+<span id="cb39-2"><a aria-label="2"></a></span>
+<span id="cb39-3"><a aria-label="3"></a><span class="co"># Cloud frontier model for complex synthesis</span></span>
+<span id="cb39-4"><a aria-label="4"></a>cloud_agent <span class="op">=</span> Agent(</span>
+<span id="cb39-5"><a aria-label="5"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb39-6"><a aria-label="6"></a>    name<span class="op">=</span><span class="st">"cloud_analyst"</span>,</span>
+<span id="cb39-7"><a aria-label="7"></a>    instruction<span class="op">=</span><span class="st">"Analyze enterprise incident patterns."</span></span>
+<span id="cb39-8"><a aria-label="8"></a>)</span>
+<span id="cb39-9"><a aria-label="9"></a></span>
+<span id="cb39-10"><a aria-label="10"></a><span class="co"># On-device offline model via LiteRT-LM</span></span>
+<span id="cb39-11"><a aria-label="11"></a>edge_agent <span class="op">=</span> Agent(</span>
+<span id="cb39-12"><a aria-label="12"></a>    model<span class="op">=</span><span class="st">"litert-lm:gemma-2b"</span>,</span>
+<span id="cb39-13"><a aria-label="13"></a>    name<span class="op">=</span><span class="st">"edge_sensor_agent"</span>,</span>
+<span id="cb39-14"><a aria-label="14"></a>    instruction<span class="op">=</span><span class="st">"Process local telemetry on edge hardware."</span></span>
+<span id="cb39-15"><a aria-label="15"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="tool-authoring-toolcontext-action-escalation">Tool Authoring, ToolContext &amp; Action Escalation</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="python-function-tools-type-hints">Python Function Tools &amp; Type Hints</h4>
+<p>Any Python function with docstrings and type hints auto-generates JSON tool schemas:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a aria-label="1"></a><span class="im">from</span> google.adk.tools <span class="im">import</span> ToolContext</span>
+<span id="cb40-2"><a aria-label="2"></a></span>
+<span id="cb40-3"><a aria-label="3"></a><span class="kw">def</span> query_prometheus(metric: <span class="bu">str</span>, context: ToolContext) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb40-4"><a aria-label="4"></a>    <span class="co">"""Fetch real-time cluster metrics from Prometheus.</span></span>
+<span id="cb40-5"><a aria-label="5"></a><span class="co">    </span></span>
+<span id="cb40-6"><a aria-label="6"></a><span class="co">    Args:</span></span>
+<span id="cb40-7"><a aria-label="7"></a><span class="co">        metric: The Prometheus query string.</span></span>
+<span id="cb40-8"><a aria-label="8"></a><span class="co">    """</span></span>
+<span id="cb40-9"><a aria-label="9"></a>    cluster <span class="op">=</span> context.state.get(<span class="st">"cluster"</span>, <span class="st">"prod-us-1"</span>)</span>
+<span id="cb40-10"><a aria-label="10"></a>    <span class="cf">return</span> {<span class="st">"cluster"</span>: cluster, <span class="st">"value"</span>: <span class="st">"99.4%"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Type hints define parameter validation.</li>
+<li>Docstrings guide the LLM’s calling rationale.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="session-state-loop-escalation">Session State &amp; Loop Escalation</h4>
+<p><code>ToolContext</code> reads/writes session blackboard and provides runtime control signals:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a aria-label="1"></a><span class="kw">def</span> trigger_escalation(reason: <span class="bu">str</span>, context: ToolContext) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb41-2"><a aria-label="2"></a>    <span class="co">"""Signals ADK runtime to halt loop and escalate to human."""</span></span>
+<span id="cb41-3"><a aria-label="3"></a>    <span class="co"># Write to session memory</span></span>
+<span id="cb41-4"><a aria-label="4"></a>    context.state[<span class="st">"escalation_reason"</span>] <span class="op">=</span> reason</span>
+<span id="cb41-5"><a aria-label="5"></a>    </span>
+<span id="cb41-6"><a aria-label="6"></a>    <span class="co"># Programmatic runtime signal</span></span>
+<span id="cb41-7"><a aria-label="7"></a>    context.actions.escalate <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb41-8"><a aria-label="8"></a>    context.actions.skip_summarization <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb41-9"><a aria-label="9"></a>    <span class="cf">return</span> {<span class="st">"status"</span>: <span class="st">"Escalated to human supervisor"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="multi-agent-teams-auto-flow-sub-agent-delegation">Multi-Agent Teams: Auto-Flow &amp; Sub-Agent Delegation</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="specialist-sub-agents">Specialist Sub-Agents</h4>
+<p>Divide responsibilities into specialist sub-agents with narrow descriptions:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents.llm_agent <span class="im">import</span> Agent</span>
+<span id="cb42-2"><a aria-label="2"></a></span>
+<span id="cb42-3"><a aria-label="3"></a>researcher <span class="op">=</span> Agent(</span>
+<span id="cb42-4"><a aria-label="4"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb42-5"><a aria-label="5"></a>    name<span class="op">=</span><span class="st">"research_agent"</span>,</span>
+<span id="cb42-6"><a aria-label="6"></a>    description<span class="op">=</span><span class="st">"Searches docs and knowledge bases."</span>,</span>
+<span id="cb42-7"><a aria-label="7"></a>    instruction<span class="op">=</span><span class="st">"Provide concise technical summaries."</span></span>
+<span id="cb42-8"><a aria-label="8"></a>)</span>
+<span id="cb42-9"><a aria-label="9"></a></span>
+<span id="cb42-10"><a aria-label="10"></a>coder <span class="op">=</span> Agent(</span>
+<span id="cb42-11"><a aria-label="11"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb42-12"><a aria-label="12"></a>    name<span class="op">=</span><span class="st">"code_agent"</span>,</span>
+<span id="cb42-13"><a aria-label="13"></a>    description<span class="op">=</span><span class="st">"Writes and refactors Python code."</span>,</span>
+<span id="cb42-14"><a aria-label="14"></a>    instruction<span class="op">=</span><span class="st">"Write clean, PEP8 compliant code."</span></span>
+<span id="cb42-15"><a aria-label="15"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div><div class="column" style="width:50%;">
+<h4 id="auto-flow-delegation-on-coordinator">Auto-Flow Delegation on Coordinator</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a aria-label="1"></a>coordinator <span class="op">=</span> Agent(</span>
+<span id="cb43-2"><a aria-label="2"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb43-3"><a aria-label="3"></a>    name<span class="op">=</span><span class="st">"lead_coordinator"</span>,</span>
+<span id="cb43-4"><a aria-label="4"></a>    instruction<span class="op">=</span><span class="st">"Coordinate tasks between research and coding."</span>,</span>
+<span id="cb43-5"><a aria-label="5"></a>    sub_agents<span class="op">=</span>[researcher, coder]</span>
+<span id="cb43-6"><a aria-label="6"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong>Auto-Flow Routing:</strong> When a user asks a coding question, the coordinator automatically hands off context to <code>coder</code>.</li>
+<li><strong>Result Synthesis:</strong> Sub-agent results bubble back to the coordinator or stream directly to the client.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="template-workflows-sequentialagent-parallelagent">Template Workflows: SequentialAgent &amp; ParallelAgent</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="sequential-workflow-sequentialagent">Sequential Workflow (<code>SequentialAgent</code>)</h4>
+<p>Executes sub-agents in a strict, deterministic sequence without relying on LLM routing decisions:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents.workflow_agents <span class="im">import</span> SequentialAgent</span>
+<span id="cb44-2"><a aria-label="2"></a></span>
+<span id="cb44-3"><a aria-label="3"></a>code_pipeline <span class="op">=</span> SequentialAgent(</span>
+<span id="cb44-4"><a aria-label="4"></a>    name<span class="op">=</span><span class="st">"pr_review_pipeline"</span>,</span>
+<span id="cb44-5"><a aria-label="5"></a>    sub_agents<span class="op">=</span>[</span>
+<span id="cb44-6"><a aria-label="6"></a>        code_writer_agent,    <span class="co"># Step 1: Draft code</span></span>
+<span id="cb44-7"><a aria-label="7"></a>        security_audit_agent, <span class="co"># Step 2: Audit</span></span>
+<span id="cb44-8"><a aria-label="8"></a>        refactor_agent        <span class="co"># Step 3: Refactor</span></span>
+<span id="cb44-9"><a aria-label="9"></a>    ]</span>
+<span id="cb44-10"><a aria-label="10"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Output of Step 1 is placed in <code>context.state</code> and consumed by Step 2.</li>
+<li>100% predictable; zero risk of hallucinations.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="parallel-workflow-parallelagent">Parallel Workflow (<code>ParallelAgent</code>)</h4>
+<p>Fans out multiple agents concurrently across the same input:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents.workflow_agents <span class="im">import</span> ParallelAgent</span>
+<span id="cb45-2"><a aria-label="2"></a></span>
+<span id="cb45-3"><a aria-label="3"></a>security_audit_team <span class="op">=</span> ParallelAgent(</span>
+<span id="cb45-4"><a aria-label="4"></a>    name<span class="op">=</span><span class="st">"multi_audit"</span>,</span>
+<span id="cb45-5"><a aria-label="5"></a>    sub_agents<span class="op">=</span>[</span>
+<span id="cb45-6"><a aria-label="6"></a>        sast_scanner_agent,</span>
+<span id="cb45-7"><a aria-label="7"></a>        dependency_vuln_agent,</span>
+<span id="cb45-8"><a aria-label="8"></a>        license_checker_agent</span>
+<span id="cb45-9"><a aria-label="9"></a>    ]</span>
+<span id="cb45-10"><a aria-label="10"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>All three audit agents execute in parallel.</li>
+<li>Results are merged into session state.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="iterative-refinement-loopagent-termination-controls">Iterative Refinement: LoopAgent &amp; Termination Controls</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="deterministic-loops-loopagent">Deterministic Loops (<code>LoopAgent</code>)</h4>
+<p><code>LoopAgent</code> repeatedly invokes sub-agents for iterative refinement until a condition is met:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents <span class="im">import</span> LoopAgent, LlmAgent</span>
+<span id="cb46-2"><a aria-label="2"></a><span class="im">from</span> google.adk.tools.tool_context <span class="im">import</span> ToolContext</span>
+<span id="cb46-3"><a aria-label="3"></a></span>
+<span id="cb46-4"><a aria-label="4"></a><span class="kw">def</span> exit_loop(context: ToolContext) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb46-5"><a aria-label="5"></a>    <span class="co">"""Signals completion when quality passes."""</span></span>
+<span id="cb46-6"><a aria-label="6"></a>    context.actions.escalate <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb46-7"><a aria-label="7"></a>    <span class="cf">return</span> {<span class="st">"status"</span>: <span class="st">"Complete"</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Ideal for code generation &amp; self-healing, document critique, or image re-prompting.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="wiring-the-critique-refine-loop">Wiring the Critique-Refine Loop</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a aria-label="1"></a>critic <span class="op">=</span> LlmAgent(</span>
+<span id="cb47-2"><a aria-label="2"></a>    name<span class="op">=</span><span class="st">"CriticAgent"</span>,</span>
+<span id="cb47-3"><a aria-label="3"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb47-4"><a aria-label="4"></a>    instruction<span class="op">=</span><span class="st">"Critique draft. If approved, call exit_loop."</span>,</span>
+<span id="cb47-5"><a aria-label="5"></a>    tools<span class="op">=</span>[exit_loop]</span>
+<span id="cb47-6"><a aria-label="6"></a>)</span>
+<span id="cb47-7"><a aria-label="7"></a></span>
+<span id="cb47-8"><a aria-label="8"></a>refinement_loop <span class="op">=</span> LoopAgent(</span>
+<span id="cb47-9"><a aria-label="9"></a>    name<span class="op">=</span><span class="st">"doc_refinement"</span>,</span>
+<span id="cb47-10"><a aria-label="10"></a>    sub_agents<span class="op">=</span>[writer_agent, critic],</span>
+<span id="cb47-11"><a aria-label="11"></a>    max_iterations<span class="op">=</span><span class="dv">5</span> <span class="co"># Safety ceiling prevents infinite loops</span></span>
+<span id="cb47-12"><a aria-label="12"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><strong>Dual-Termination:</strong> Exits early when <code>exit_loop</code> sets <code>escalate=True</code>, or halts at <code>max_iterations</code>.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="adk-2.0-graph-workflows-deterministic-dags-node-schemas">ADK 2.0 Graph Workflows: Deterministic DAGs &amp; Node Schemas</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="combining-code-functions-ai-agents">Combining Code Functions &amp; AI Agents</h4>
+<p>ADK 2.0 introduces graph-based workflows (<code>Workflow</code>) connecting functions, agents, and events:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a aria-label="1"></a><span class="im">from</span> google.adk <span class="im">import</span> Agent, Workflow</span>
+<span id="cb48-2"><a aria-label="2"></a><span class="im">from</span> pydantic <span class="im">import</span> BaseModel</span>
+<span id="cb48-3"><a aria-label="3"></a></span>
+<span id="cb48-4"><a aria-label="4"></a><span class="kw">class</span> IncidentPayload(BaseModel):</span>
+<span id="cb48-5"><a aria-label="5"></a>    service_id: <span class="bu">str</span></span>
+<span id="cb48-6"><a aria-label="6"></a>    severity: <span class="bu">str</span></span>
+<span id="cb48-7"><a aria-label="7"></a></span>
+<span id="cb48-8"><a aria-label="8"></a><span class="kw">def</span> parse_alert_function(raw_alert: <span class="bu">str</span>) <span class="op">-&gt;</span> IncidentPayload:</span>
+<span id="cb48-9"><a aria-label="9"></a>    <span class="co">"""Pure Python deterministic node (Zero LLM cost)."""</span></span>
+<span id="cb48-10"><a aria-label="10"></a>    <span class="cf">return</span> IncidentPayload(service_id<span class="op">=</span><span class="st">"auth-svc"</span>, severity<span class="op">=</span><span class="st">"HIGH"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Functions execute pure code without invoking LLMs.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="declarative-dag-edges-with-contracts">Declarative DAG Edges with Contracts</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a aria-label="1"></a>diagnostician <span class="op">=</span> Agent(</span>
+<span id="cb49-2"><a aria-label="2"></a>    name<span class="op">=</span><span class="st">"diagnostician"</span>,</span>
+<span id="cb49-3"><a aria-label="3"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb49-4"><a aria-label="4"></a>    input_schema<span class="op">=</span>IncidentPayload, <span class="co"># Strict Pydantic contract</span></span>
+<span id="cb49-5"><a aria-label="5"></a>    instruction<span class="op">=</span><span class="st">"Analyze parsed incident and diagnose root cause."</span></span>
+<span id="cb49-6"><a aria-label="6"></a>)</span>
+<span id="cb49-7"><a aria-label="7"></a></span>
+<span id="cb49-8"><a aria-label="8"></a>incident_graph <span class="op">=</span> Workflow(</span>
+<span id="cb49-9"><a aria-label="9"></a>    name<span class="op">=</span><span class="st">"incident_dag"</span>,</span>
+<span id="cb49-10"><a aria-label="10"></a>    edges<span class="op">=</span>[</span>
+<span id="cb49-11"><a aria-label="11"></a>        (<span class="st">"START"</span>, parse_alert_function, diagnostician)</span>
+<span id="cb49-12"><a aria-label="12"></a>    ]</span>
+<span id="cb49-13"><a aria-label="13"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Node return values pass directly as inputs to subsequent nodes.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="dynamic-workflows-agent-routing-routedagent">Dynamic Workflows &amp; Agent Routing (<code>RoutedAgent</code>)</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="runtime-selection-automated-failover">Runtime Selection &amp; Automated Failover</h4>
+<p><code>RoutedAgent</code> selects exactly <strong>one</strong> agent per invocation based on a custom routing function:</p>
+<ul>
+<li><strong>Cost Optimization:</strong> Route simple queries to <code>flash</code> and complex code tasks to <code>pro</code>.</li>
+<li><strong>Automatic Failover:</strong> If the selected agent encounters an error before yielding events, the router retries with a fallback.</li>
+<li><strong>Failover Context:</strong> Router receives <code>failedKeys</code> and <code>lastError</code> to select alternatives.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="router-function-implementation">Router Function Implementation</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb50"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a aria-label="1"></a><span class="im">from</span> google.adk.agents <span class="im">import</span> RoutedAgent, LlmAgent</span>
+<span id="cb50-2"><a aria-label="2"></a></span>
+<span id="cb50-3"><a aria-label="3"></a>fast_agent <span class="op">=</span> LlmAgent(name<span class="op">=</span><span class="st">"fast"</span>, model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>)</span>
+<span id="cb50-4"><a aria-label="4"></a>expert_agent <span class="op">=</span> LlmAgent(name<span class="op">=</span><span class="st">"expert"</span>, model<span class="op">=</span><span class="st">"gemini-2.5-pro"</span>)</span>
+<span id="cb50-5"><a aria-label="5"></a></span>
+<span id="cb50-6"><a aria-label="6"></a><span class="kw">def</span> route_query(agents: <span class="bu">dict</span>, context) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb50-7"><a aria-label="7"></a>    <span class="co">"""Routes by complexity with failover."""</span></span>
+<span id="cb50-8"><a aria-label="8"></a>    user_msg <span class="op">=</span> context.user_input.lower()</span>
+<span id="cb50-9"><a aria-label="9"></a>    <span class="cf">if</span> <span class="st">"architecture"</span> <span class="kw">in</span> user_msg <span class="kw">or</span> <span class="bu">len</span>(user_msg) <span class="op">&gt;</span> <span class="dv">300</span>:</span>
+<span id="cb50-10"><a aria-label="10"></a>        <span class="cf">return</span> <span class="st">"expert"</span></span>
+<span id="cb50-11"><a aria-label="11"></a>    <span class="cf">return</span> <span class="st">"fast"</span></span>
+<span id="cb50-12"><a aria-label="12"></a></span>
+<span id="cb50-13"><a aria-label="13"></a>router <span class="op">=</span> RoutedAgent(</span>
+<span id="cb50-14"><a aria-label="14"></a>    name<span class="op">=</span><span class="st">"smart_router"</span>,</span>
+<span id="cb50-15"><a aria-label="15"></a>    agents<span class="op">=</span>[fast_agent, expert_agent],</span>
+<span id="cb50-16"><a aria-label="16"></a>    router_fn<span class="op">=</span>route_query</span>
+<span id="cb50-17"><a aria-label="17"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="safety-guardrails-callback-lifecycle-approval-gates">Safety Guardrails: Callback Lifecycle &amp; Approval Gates</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="callback-lifecycle-hooks">Callback Lifecycle Hooks</h4>
+<p>ADK provides callback hooks to inspect, modify, or block actions before and after execution:</p>
+<ul>
+<li><strong><code>before_model_callback</code></strong>: Audit prompts, sanitize PII, or inject dynamic rules.</li>
+<li><strong><code>before_tool_callback</code></strong>: Human approval gates before executing destructive tools.</li>
+<li><strong><code>after_tool_callback</code></strong>: Validate tool outputs against Pydantic schemas.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="human-in-the-loop-approval-gate">Human-in-the-Loop Approval Gate</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb51"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a aria-label="1"></a><span class="kw">def</span> require_human_approval(tool_name: <span class="bu">str</span>, args: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">bool</span>:</span>
+<span id="cb51-2"><a aria-label="2"></a>    <span class="co">"""Blocks destructive tools until verified."""</span></span>
+<span id="cb51-3"><a aria-label="3"></a>    destructive <span class="op">=</span> [<span class="st">"drop_database"</span>, <span class="st">"restart_production_pod"</span>]</span>
+<span id="cb51-4"><a aria-label="4"></a>    </span>
+<span id="cb51-5"><a aria-label="5"></a>    <span class="cf">if</span> tool_name <span class="kw">in</span> destructive:</span>
+<span id="cb51-6"><a aria-label="6"></a>        <span class="bu">print</span>(<span class="ss">f"⚠️ Approval Gate: Tool '</span><span class="sc">{</span>tool_name<span class="sc">}</span><span class="ss">' triggered!"</span>)</span>
+<span id="cb51-7"><a aria-label="7"></a>        <span class="cf">return</span> <span class="va">False</span> <span class="co"># Intercept &amp; block execution</span></span>
+<span id="cb51-8"><a aria-label="8"></a>    <span class="cf">return</span> <span class="va">True</span></span>
+<span id="cb51-9"><a aria-label="9"></a></span>
+<span id="cb51-10"><a aria-label="10"></a>agent <span class="op">=</span> Agent(</span>
+<span id="cb51-11"><a aria-label="11"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb51-12"><a aria-label="12"></a>    name<span class="op">=</span><span class="st">"ops_agent"</span>,</span>
+<span id="cb51-13"><a aria-label="13"></a>    tools<span class="op">=</span>[restart_production_pod, get_pod_status],</span>
+<span id="cb51-14"><a aria-label="14"></a>    before_tool_callback<span class="op">=</span>require_human_approval</span>
+<span id="cb51-15"><a aria-label="15"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="agent-to-agent-a2a-federation-protocol">Agent-to-Agent (A2A) Federation Protocol</h3>
+<div class="columns">
+<div class="column" style="width:52%;">
+<h4 id="decentralized-multi-agent-collaboration">Decentralized Multi-Agent Collaboration</h4>
+<p>Google’s <strong>Agent-to-Agent (A2A)</strong> protocol enables agents across independent services to collaborate securely:</p>
+<ul>
+<li><strong>Capability Manifests:</strong> Machine-readable skill schemas.</li>
+<li><strong>Federated Requests:</strong> Cross-service invocations without shared runtime.</li>
+<li><strong>Perimeter Isolation:</strong> Services preserve separate secrets and VPCs.</li>
+<li><strong>Context Preservation:</strong> Trace IDs propagate across network hops.</li>
+</ul>
+</div><div class="column" style="width:48%;">
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    User[Client App] --&gt; SvcA[Billing Agent]
+    SvcA --&gt;|A2A Request| SvcB[Infra Agent]
+    SvcB --&gt;|A2A Response| SvcA
+    style User fill:#262626,stroke:#737373,color:#fff
+    style SvcA fill:#172554,stroke:#3b82f6,color:#fff
+    style SvcB fill:#064e3b,stroke:#10b981,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="generative-ui-a2ui-agent-to-ui-integration">Generative UI: A2UI (Agent-to-UI) Integration</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="emitting-real-interactive-ui">Emitting Real Interactive UI</h4>
+<p>The <strong>A2UI</strong> protocol (<code>a2ui.org</code>) allows ADK agents to generate structured UI cards, forms, and charts:</p>
+<ul>
+<li><strong>Beyond Markdown:</strong> Agents return typed JSON components rendered natively by Web/Flutter frontends.</li>
+<li><strong>A2uiSchemaManager:</strong> Injects component schemas (Cards, Tables, Buttons) into system prompts.</li>
+<li><strong>Transport Agnostic:</strong> Works over REST, SSE, WebSockets, or A2A federation.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="integrating-a2ui-with-adk">Integrating A2UI with ADK</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a aria-label="1"></a><span class="im">from</span> a2ui.core.schema.manager <span class="im">import</span> A2uiSchemaManager</span>
+<span id="cb52-2"><a aria-label="2"></a><span class="im">from</span> google.adk.agents.llm_agent <span class="im">import</span> LlmAgent</span>
+<span id="cb52-3"><a aria-label="3"></a></span>
+<span id="cb52-4"><a aria-label="4"></a><span class="co"># 1. Generate UI prompt with component catalog</span></span>
+<span id="cb52-5"><a aria-label="5"></a>schema_mgr <span class="op">=</span> A2uiSchemaManager()</span>
+<span id="cb52-6"><a aria-label="6"></a>instruction <span class="op">=</span> schema_mgr.generate_system_prompt(</span>
+<span id="cb52-7"><a aria-label="7"></a>    role_description<span class="op">=</span><span class="st">"Cloud Operations Assistant"</span>,</span>
+<span id="cb52-8"><a aria-label="8"></a>    workflow_description<span class="op">=</span><span class="st">"Present cluster metrics with UI cards."</span>,</span>
+<span id="cb52-9"><a aria-label="9"></a>    allowed_components<span class="op">=</span>[<span class="st">"Heading"</span>, <span class="st">"Card"</span>, <span class="st">"Table"</span>, <span class="st">"Button"</span>]</span>
+<span id="cb52-10"><a aria-label="10"></a>)</span>
+<span id="cb52-11"><a aria-label="11"></a></span>
+<span id="cb52-12"><a aria-label="12"></a><span class="co"># 2. ADK agent outputs validated UI JSON</span></span>
+<span id="cb52-13"><a aria-label="13"></a>ui_agent <span class="op">=</span> LlmAgent(</span>
+<span id="cb52-14"><a aria-label="14"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb52-15"><a aria-label="15"></a>    name<span class="op">=</span><span class="st">"ui_ops_agent"</span>,</span>
+<span id="cb52-16"><a aria-label="16"></a>    instruction<span class="op">=</span>instruction</span>
+<span id="cb52-17"><a aria-label="17"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="local-cli-visual-playground-cloud-run-deployment">Local CLI, Visual Playground &amp; Cloud Run Deployment</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="local-development-evaluation">Local Development &amp; Evaluation</h4>
+<p>ADK includes a built-in CLI, visual debugger, and evaluation benchmarks:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb53"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb53-1"><a aria-label="1"></a><span class="co"># 1. Interactive terminal chat</span></span>
+<span id="cb53-2"><a aria-label="2"></a><span class="ex">adk</span> run my_agent</span>
+<span id="cb53-3"><a aria-label="3"></a></span>
+<span id="cb53-4"><a aria-label="4"></a><span class="co"># 2. Local visual web UI with trace viewer</span></span>
+<span id="cb53-5"><a aria-label="5"></a><span class="ex">adk</span> web <span class="at">--port</span> 8000</span>
+<span id="cb53-6"><a aria-label="6"></a></span>
+<span id="cb53-7"><a aria-label="7"></a><span class="co"># 3. Automated evaluation benchmark</span></span>
+<span id="cb53-8"><a aria-label="8"></a><span class="ex">adk</span> eval <span class="at">--agent</span> my_agent <span class="at">--dataset</span> eval.json</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Accessible at <code>http://localhost:8000</code>.</li>
+<li>Visualizes tool calls, session state, and latency.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="serverless-cloud-run-deployment">Serverless Cloud Run Deployment</h4>
+<p>Containerize and deploy to Google Cloud Run in one command:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb54"><pre class="sourceCode numberSource bash number-lines code-with-copy"><code class="sourceCode bash"><span id="cb54-1"><a aria-label="1"></a><span class="co"># Deploy to serverless container runtime</span></span>
+<span id="cb54-2"><a aria-label="2"></a><span class="ex">gcloud</span> run deploy incident-agent <span class="dt">\</span></span>
+<span id="cb54-3"><a aria-label="3"></a>  <span class="at">--source</span> . <span class="dt">\</span></span>
+<span id="cb54-4"><a aria-label="4"></a>  <span class="at">--region</span> us-central1 <span class="dt">\</span></span>
+<span id="cb54-5"><a aria-label="5"></a>  <span class="at">--allow-unauthenticated</span> <span class="dt">\</span></span>
+<span id="cb54-6"><a aria-label="6"></a>  <span class="at">--set-env-vars</span> GOOGLE_API_KEY=<span class="st">"secret-key"</span> <span class="dt">\</span></span>
+<span id="cb54-7"><a aria-label="7"></a>  <span class="at">--min-instances</span> 0 <span class="dt">\</span></span>
+<span id="cb54-8"><a aria-label="8"></a>  <span class="at">--max-instances</span> 10</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Auto-scales to zero when no alerts are active.</li>
+<li>Instant scale-up during incident surges.</li>
+</ul>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="architectural-choice-langgraph-vs.-google-adk">Architectural Choice: LangGraph vs.&nbsp;Google ADK</h3>
+<div style="font-size: 0.72em;">
+<table class="caption-top">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 37%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Architectural Dimension</th>
+<th style="text-align: left;">LangGraph (LangChain)</th>
+<th style="text-align: left;">Google Gen AI ADK (<code>adk.dev</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Core Paradigm</strong></td>
+<td style="text-align: left;">Directed Cyclic Graph (Pregel supersteps)</td>
+<td style="text-align: left;">Declarative Hierarchical Agent Teams</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>State Model</strong></td>
+<td style="text-align: left;">Channel-based <code>TypedDict</code> with reducers</td>
+<td style="text-align: left;">Blackboard via <code>SessionService</code> &amp; <code>ToolContext</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Control Flow</strong></td>
+<td style="text-align: left;">Dynamic graphs, edges, and <code>Command</code> routing</td>
+<td style="text-align: left;"><code>SequentialAgent</code>, <code>ParallelAgent</code>, <code>LoopAgent</code>, Graphs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Persistence &amp; Replay</strong></td>
+<td style="text-align: left;"><code>SqliteSaver</code>, checkpoints &amp; time-travel replay</td>
+<td style="text-align: left;">Pluggable <code>SessionService</code> &amp; turn history</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Microservice Federation</strong></td>
+<td style="text-align: left;">LangGraph Cloud / Self-hosted REST API</td>
+<td style="text-align: left;">Native Agent-to-Agent (A2A) protocol</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Best Production Fit</strong></td>
+<td style="text-align: left;">Complex cyclic loops, code self-healing</td>
+<td style="text-align: left;">Enterprise microservices &amp; Google Cloud Run</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-6-scenario-enterprise-sre-incident-response-team">Lab 6 Scenario: Enterprise SRE Incident Response Team</h3>
+<div class="columns">
+<div class="column" style="width:55%;">
+<h4 id="the-multi-agent-mission">The Multi-Agent Mission</h4>
+<p>We will build a hierarchical <strong>SRE Incident Response Team</strong> using <strong>Google ADK</strong> and <strong>Gemini 2.5 Flash</strong>:</p>
+<ol type="1">
+<li><strong>Root Coordinator:</strong> Receives alerts, inspects severity, and assigns work.</li>
+<li><strong>Metrics Specialist (<code>sub-agent</code>):</strong> Queries cluster performance metrics.</li>
+<li><strong>Remediation Specialist (<code>sub-agent</code>):</strong> Recommends safe recovery commands.</li>
+<li><strong>Safety Callback:</strong> Intercepts restart commands, halting until verified by human.</li>
+</ol>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">graph LR
+    Alert[504 Alert] --&gt; Coord[Coordinator]
+    Coord --&gt; Met[Metrics Agent]
+    Coord --&gt; Rem[Remediation Agent]
+    Rem --&gt; Gate{Safety Gate}
+    Gate --&gt; Fix[Patch]
+    style Alert fill:#451a03,stroke:#f97316,color:#fff
+    style Coord fill:#172554,stroke:#3b82f6,color:#fff
+    style Met fill:#064e3b,stroke:#10b981,color:#fff
+    style Rem fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style Gate fill:#b91c1c,stroke:#ef4444,color:#fff
+    style Fix fill:#064e3b,stroke:#10b981,color:#fff
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-6-complete-reference-implementation-part-1-tools-specialists">Lab 6: Complete Reference Implementation (Part 1: Tools &amp; Specialists)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a aria-label="1"></a><span class="co">"""Lab 6: Enterprise SRE Incident Team with Google ADK."""</span></span>
+<span id="cb55-2"><a aria-label="2"></a><span class="im">from</span> google.adk.agents.llm_agent <span class="im">import</span> Agent</span>
+<span id="cb55-3"><a aria-label="3"></a><span class="im">from</span> google.adk.tools <span class="im">import</span> ToolContext</span>
+<span id="cb55-4"><a aria-label="4"></a></span>
+<span id="cb55-5"><a aria-label="5"></a><span class="co"># 1. Specialist Diagnostic Tool</span></span>
+<span id="cb55-6"><a aria-label="6"></a><span class="kw">def</span> query_kubernetes_health(service_name: <span class="bu">str</span>, context: ToolContext) <span class="op">-&gt;</span> <span class="bu">dict</span>:</span>
+<span id="cb55-7"><a aria-label="7"></a>    <span class="co">"""Checks pod restart counts and error logs for a service."""</span></span>
+<span id="cb55-8"><a aria-label="8"></a>    <span class="cf">return</span> {</span>
+<span id="cb55-9"><a aria-label="9"></a>        <span class="st">"service"</span>: service_name,</span>
+<span id="cb55-10"><a aria-label="10"></a>        <span class="st">"pod_status"</span>: <span class="st">"CrashLoopBackOff"</span>,</span>
+<span id="cb55-11"><a aria-label="11"></a>        <span class="st">"restarts"</span>: <span class="dv">14</span>,</span>
+<span id="cb55-12"><a aria-label="12"></a>        <span class="st">"last_error"</span>: <span class="st">"OutOfMemory: Container killed"</span></span>
+<span id="cb55-13"><a aria-label="13"></a>    }</span>
+<span id="cb55-14"><a aria-label="14"></a></span>
+<span id="cb55-15"><a aria-label="15"></a><span class="co"># 2. Metrics Specialist Sub-Agent</span></span>
+<span id="cb55-16"><a aria-label="16"></a>metrics_agent <span class="op">=</span> Agent(</span>
+<span id="cb55-17"><a aria-label="17"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb55-18"><a aria-label="18"></a>    name<span class="op">=</span><span class="st">"metrics_specialist"</span>,</span>
+<span id="cb55-19"><a aria-label="19"></a>    description<span class="op">=</span><span class="st">"Queries cluster health and error diagnostics."</span>,</span>
+<span id="cb55-20"><a aria-label="20"></a>    instruction<span class="op">=</span><span class="st">"Inspect pod status and return memory/CPU bottlenecks."</span>,</span>
+<span id="cb55-21"><a aria-label="21"></a>    tools<span class="op">=</span>[query_kubernetes_health]</span>
+<span id="cb55-22"><a aria-label="22"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Sub-agents are configured with narrow, task-specific instructions and tools.</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-6-complete-reference-implementation-part-2-safety-gate-coordinator">Lab 6: Complete Reference Implementation (Part 2: Safety Gate &amp; Coordinator)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a aria-label="1"></a><span class="co"># 3. Remediation Specialist Sub-Agent</span></span>
+<span id="cb56-2"><a aria-label="2"></a>remediation_agent <span class="op">=</span> Agent(</span>
+<span id="cb56-3"><a aria-label="3"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb56-4"><a aria-label="4"></a>    name<span class="op">=</span><span class="st">"remediation_specialist"</span>,</span>
+<span id="cb56-5"><a aria-label="5"></a>    description<span class="op">=</span><span class="st">"Generates Kubernetes fix manifests and safe patch commands."</span>,</span>
+<span id="cb56-6"><a aria-label="6"></a>    instruction<span class="op">=</span><span class="st">"Generate kubectl commands to scale memory limits."</span></span>
+<span id="cb56-7"><a aria-label="7"></a>)</span>
+<span id="cb56-8"><a aria-label="8"></a></span>
+<span id="cb56-9"><a aria-label="9"></a><span class="co"># 4. Human Approval Callback for destructive operations</span></span>
+<span id="cb56-10"><a aria-label="10"></a><span class="kw">def</span> verify_kubectl_actions(tool_name: <span class="bu">str</span>, args: <span class="bu">dict</span>) <span class="op">-&gt;</span> <span class="bu">bool</span>:</span>
+<span id="cb56-11"><a aria-label="11"></a>    <span class="co">"""Approval gate preventing unverified cluster modifications."""</span></span>
+<span id="cb56-12"><a aria-label="12"></a>    <span class="cf">if</span> <span class="st">"patch"</span> <span class="kw">in</span> tool_name <span class="kw">or</span> <span class="st">"restart"</span> <span class="kw">in</span> tool_name:</span>
+<span id="cb56-13"><a aria-label="13"></a>        <span class="bu">print</span>(<span class="ss">f"Gate Triggered: Review required for '</span><span class="sc">{</span>tool_name<span class="sc">}</span><span class="ss">' with </span><span class="sc">{</span>args<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb56-14"><a aria-label="14"></a>        <span class="cf">return</span> <span class="va">True</span> <span class="co"># Approved for lab demo</span></span>
+<span id="cb56-15"><a aria-label="15"></a>    <span class="cf">return</span> <span class="va">True</span></span>
+<span id="cb56-16"><a aria-label="16"></a></span>
+<span id="cb56-17"><a aria-label="17"></a><span class="co"># 5. Lead Coordinator Agent with Sub-Agents</span></span>
+<span id="cb56-18"><a aria-label="18"></a>incident_coordinator <span class="op">=</span> Agent(</span>
+<span id="cb56-19"><a aria-label="19"></a>    model<span class="op">=</span><span class="st">"gemini-2.5-flash"</span>,</span>
+<span id="cb56-20"><a aria-label="20"></a>    name<span class="op">=</span><span class="st">"incident_coordinator"</span>,</span>
+<span id="cb56-21"><a aria-label="21"></a>    instruction<span class="op">=</span><span class="st">"Coordinate incident diagnosis using metrics and remediation sub-agents."</span>,</span>
+<span id="cb56-22"><a aria-label="22"></a>    sub_agents<span class="op">=</span>[metrics_agent, remediation_agent],</span>
+<span id="cb56-23"><a aria-label="23"></a>    before_tool_callback<span class="op">=</span>verify_kubectl_actions</span>
+<span id="cb56-24"><a aria-label="24"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section class="slide level2">
+
+<h3 id="lab-6-complete-reference-implementation-part-3-runner-execution">Lab 6: Complete Reference Implementation (Part 3: Runner &amp; Execution)</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb57"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a aria-label="1"></a><span class="im">from</span> google.adk.runners <span class="im">import</span> Runner</span>
+<span id="cb57-2"><a aria-label="2"></a><span class="im">from</span> google.adk.sessions <span class="im">import</span> InMemorySessionService</span>
+<span id="cb57-3"><a aria-label="3"></a></span>
+<span id="cb57-4"><a aria-label="4"></a><span class="co"># 6. Run Team with Session Memory</span></span>
+<span id="cb57-5"><a aria-label="5"></a>session_service <span class="op">=</span> InMemorySessionService()</span>
+<span id="cb57-6"><a aria-label="6"></a>runner <span class="op">=</span> Runner(agent<span class="op">=</span>incident_coordinator, session_service<span class="op">=</span>session_service)</span>
+<span id="cb57-7"><a aria-label="7"></a></span>
+<span id="cb57-8"><a aria-label="8"></a>response <span class="op">=</span> runner.run(</span>
+<span id="cb57-9"><a aria-label="9"></a>    user_input<span class="op">=</span><span class="st">"CRITICAL: 'auth-service' pods are crash looping in prod-east. Investigate and patch."</span>,</span>
+<span id="cb57-10"><a aria-label="10"></a>    session_id<span class="op">=</span><span class="st">"incident-404"</span></span>
+<span id="cb57-11"><a aria-label="11"></a>)</span>
+<span id="cb57-12"><a aria-label="12"></a></span>
+<span id="cb57-13"><a aria-label="13"></a><span class="bu">print</span>(<span class="st">"# SRE Team Incident Resolution Plan</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb57-14"><a aria-label="14"></a><span class="bu">print</span>(response.text)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><code>Runner</code> orchestrates the multi-agent delegation loop automatically.</li>
+<li>All state and conversational memory persist across turns in <code>InMemorySessionService</code>.</li>
+</ul>
+</section>
+<section class="slide level2">
+
+<h3 id="day-2-session-6-takeaways-checklist">Day 2 Session 6 Takeaways &amp; Checklist</h3>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h4 id="production-principles-1">Production Principles</h4>
+<ul>
+<li><strong>Sub-Agents Over Giant Prompts:</strong> Divide complex roles into specialist agents with clear <code>description</code> strings.</li>
+<li><strong>Deterministic Workflows First:</strong> Use <code>SequentialAgent</code> or <code>Workflow</code> DAGs when the sequence is known ahead of time.</li>
+<li><strong>Loop with Escalation:</strong> Use <code>LoopAgent</code> with <code>context.actions.escalate=True</code> for self-healing code loops.</li>
+<li><strong>Safety at the Tool Boundary:</strong> Use <code>before_tool_callback</code> for approval gates before mutating infrastructure.</li>
+<li><strong>A2A for Microservices:</strong> Federate agents across team perimeters using the A2A protocol.</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h4 id="pre-flight-checklist-1">Pre-Flight Checklist</h4>
+<ul class="task-list">
+<li><label><input type="checkbox" checked="">Sub-agents configured with distinct system instructions.</label></li>
+<li><label><input type="checkbox" checked="">Tools utilize <code>ToolContext</code> for state &amp; escalation.</label></li>
+<li><label><input type="checkbox" checked="">Destructive actions protected by <code>before_tool_callback</code>.</label></li>
+<li><label><input type="checkbox" checked="">Iterative loops bounded by <code>max_iterations</code>.</label></li>
+<li><label><input type="checkbox" checked="">Tested locally via <code>adk run</code>, <code>adk web</code>, and <code>adk eval</code>.</label></li>
+<li><label><input type="checkbox" checked="">Ready for deployment on Google Cloud Run.</label></li>
+</ul>
+</div></div>
 
 
 </section></section>
