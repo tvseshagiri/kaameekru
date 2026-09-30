@@ -1,0 +1,776 @@
+# Session 5: Framework Deep Dive: LangGraph {#session-5}
+
+---
+
+### Moving from Procedural Scripts to State Graphs
+
+::: columns
+::: {.column width="50%"}
+#### Limits of Procedural While-Loops
+
+Procedural scripts and single-file while-loops break down in production:
+
+- **State loss on crash:** If a process crashes mid-flight, memory and state are lost.
+- **Uncontrolled loops:** Hard to set deterministic bounds or inspect dynamic branches.
+- **Fragile human pause:** Cannot pause for hours or days waiting for human input and resume cleanly.
+:::
+
+::: {.column width="50%"}
+#### What State Graphs Provide
+
+LangGraph provides production-grade orchestration:
+
+- **Strict State Contracts:** Shared `TypedDict` / Pydantic blackboard across all nodes.
+- **Atomic Checkpoints:** Snapshots saved at every superstep to SQLite or Postgres.
+- **Native Interrupts:** Pauses execution at critical gates, awaiting resume signals.
+- **Time-Travel:** Inspect and replay any past execution step for debugging.
+:::
+:::
+
+---
+
+### Session 5 Architecture & Topics Map
+
+::: columns
+::: {.column width="50%"}
+#### Part 1: Graph Foundations
+
+1. **State as a Strict Contract:**
+   - `TypedDict`, Pydantic models & validation.
+2. **State Reducers:**
+   - `Annotated[..., operator.add]` for append channels.
+3. **Nodes, Edges & Cycles:**
+   - `START`, `END`, and the modern `Command` API.
+4. **Dynamic Parallelism:**
+   - Map-Reduce using the `Send` API.
+:::
+
+::: {.column width="50%"}
+#### Part 2: Production Capabilities
+
+5. **Persistence & Checkpointing:**
+   - `MemorySaver`, `SqliteSaver` & thread isolation.
+6. **Time-Travel Debugging:**
+   - Replaying checkpoints and state forking.
+7. **Human-in-the-Loop (HITL):**
+   - Modern `interrupt()` and `Command(resume=...)`.
+8. **Functional API & Streaming Patterns:**
+   - `@entrypoint`, `@task` & Gemini native agents.
+:::
+:::
+
+---
+
+### The LangGraph Mental Model: Pregel & Supersteps
+
+::: columns
+::: {.column width="50%"}
+#### The Pregel Execution Runtime
+LangGraph is built on a distributed graph processing architecture called **Pregel**:
+
+- **Supersteps:** Execution proceeds in discrete iterations called supersteps.
+- **Parallel Nodes:** Within a single superstep, all independent nodes run concurrently.
+- **State Channels:** Nodes do not talk directly to each other; they read from and write to **state channels**.
+- **Atomic Checkpoint:** At the end of every superstep, the complete state snapshot is persisted.
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    S([START]) --> N1[Agent Node]
+    N1 --> C{Tool Call?}
+    C -- Yes --> T[Tool Execution]
+    T --> N1
+    C -- No --> E([END])
+    style S fill:#262626,stroke:#737373,color:#fff
+    style N1 fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style C fill:#451a03,stroke:#f97316,color:#fff
+    style T fill:#064e3b,stroke:#10b981,color:#fff
+    style E fill:#262626,stroke:#737373,color:#fff
+```
+
+::: {.callout-note}
+### Key Takeaway
+Because state is updated between supersteps, nodes are **pure functions of state** $\rightarrow$ `State_in` $\rightarrow$ `State_delta`.
+:::
+:::
+:::
+
+---
+
+### 1. State Definition: Strict Contracts with TypedDict
+
+::: columns
+::: {.column width="50%"}
+#### Defining State with TypedDict
+In LangGraph, state is the single source of truth passed to every node:
+
+```python
+from typing import TypedDict, Annotated
+import operator
+
+class AgentState(TypedDict):
+    """The central blackboard schema."""
+    user_query: str
+    plan: list[str]
+    iteration_count: int
+    final_answer: str | None
+```
+
+- Every node receives this dictionary as its first parameter.
+- Nodes return a partial dictionary containing **only the keys they want to update**.
+:::
+
+::: {.column width="50%"}
+#### Using Pydantic Models for State
+For runtime validation and strict coercion, Pydantic v2 models can also serve as graph state:
+
+```python
+from pydantic import BaseModel, Field
+
+class ValidatedAgentState(BaseModel):
+    user_query: str
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    audit_log: list[str] = Field(default_factory=list)
+```
+
+::: {.callout-tip}
+### Recommendation
+Use `TypedDict` for fast, lightweight graphs. Use `Pydantic` when ingesting unvalidated external inputs.
+:::
+:::
+:::
+
+---
+
+### 2. State Reducers: Controlling State Accumulation
+
+::: columns
+::: {.column width="52%"}
+#### Why Default Overwriting Breaks Multi-Step Loops
+By default, returning a key from a node **overwrites** its previous value. 
+
+When accumulating chat history or worker results, you need a **reducer**:
+
+```python
+from typing import TypedDict, Annotated
+import operator
+
+class ReducerState(TypedDict):
+    # Overwrites on update (default behavior)
+    current_topic: str
+    
+    # Appends new items via operator.add reducer
+    research_notes: Annotated[list[str], operator.add]
+    
+    # Deduplicates and merges messages by message ID
+    # messages: Annotated[list[AnyMessage], add_messages]
+```
+:::
+
+::: {.column width="48%"}
+#### Reducer Mechanics in Action
+
+```python
+# Node 1 returns:
+{"research_notes": ["Note A: Auth API"]}
+
+# Node 2 returns:
+{"research_notes": ["Note B: Rate Limits"]}
+
+# Resulting Graph State:
+{
+    "current_topic": "Security Review",
+    "research_notes": [
+        "Note A: Auth API", 
+        "Note B: Rate Limits"
+    ]
+}
+```
+
+Without `Annotated[list, operator.add]`, Node 2 would completely wipe out `"Note A"`!
+:::
+:::
+
+---
+
+### 3. Wiring Nodes, Edges & Cycles
+
+::: columns
+::: {.column width="50%"}
+#### Building the StateGraph
+Constructing a graph involves 3 core operations: adding nodes, setting entry/exit, and routing edges.
+
+```python
+from langgraph.graph import StateGraph, START, END
+
+# 1. Initialize builder with state schema
+builder = StateGraph(AgentState)
+
+# 2. Add nodes (plain Python functions)
+builder.add_node("agent", call_model_node)
+builder.add_node("tools", execute_tools_node)
+
+# 3. Wire control flow
+builder.add_edge(START, "agent")
+builder.add_conditional_edges(
+    "agent",
+    should_continue_router,
+    {"tools": "tools", "end": END}
+)
+builder.add_edge("tools", "agent")  # The cycle!
+
+# 4. Compile into an executable graph
+graph = builder.compile()
+```
+:::
+
+::: {.column width="50%"}
+#### Conditional Router Function
+The conditional edge function reads current state and returns the name of the next destination:
+
+```python
+def should_continue_router(state: AgentState) -> str:
+    """Determine whether to invoke tools or stop."""
+    # If the model requested tool calls, loop back
+    if state.get("tool_calls_pending"):
+        return "tools"
+    # Otherwise, finish execution
+    return "end"
+```
+
+::: {.callout-important}
+### Cyclic Execution
+Notice `builder.add_edge("tools", "agent")` creates a cycle. LangGraph safety: defaults to `recursion_limit=25`.
+:::
+:::
+:::
+
+---
+
+### 4. The Modern Command API (LangGraph 0.2+)
+
+::: columns
+::: {.column width="50%"}
+#### Combining Routing & State Updates
+Nodes control destinations while updating state in one atomic return:
+
+```python
+from langgraph.types import Command
+
+def triage_node(state: AgentState) -> Command[str]:
+    query = state["user_query"].lower()
+    if "billing" in query:
+        return Command(
+            goto="billing_agent", 
+            update={"team": "Billing"}
+        )
+    return Command(
+        goto="tech_agent", 
+        update={"team": "Tech"}
+    )
+```
+:::
+
+::: {.column width="50%"}
+#### Declaring Navigation Targets
+Declare valid destinations directly in `add_node`:
+
+```python
+builder.add_node(
+    "triage", 
+    triage_node, 
+    destinations=("billing_agent", "tech_agent")
+)
+builder.add_node("billing_agent", billing_node)
+builder.add_node("tech_agent", tech_node)
+```
+
+::: {.callout-tip}
+### Why Command?
+Eliminates separate router functions when routing depends on node computation.
+:::
+:::
+:::
+
+---
+
+### 5. Dynamic Fan-Out & Parallelism: The Send API
+
+::: columns
+::: {.column width="52%"}
+#### Map-Reduce with the Send API
+Dynamically dispatch $N$ parallel worker tasks across a superstep:
+
+```python
+from langgraph.types import Send
+
+def orchestrator_router(state: DocumentState):
+    """Fan out a worker for each section concurrently."""
+    return [
+        Send("analyze_section", {"section": s, "idx": i})
+        for i, s in enumerate(state["sections"])
+    ]
+```
+
+- Workers execute concurrently in the same superstep.
+- Results merge into state automatically via `operator.add`.
+:::
+
+::: {.column width="48%"}
+#### Dynamic Fan-Out Topology
+
+```{mermaid}
+graph LR
+    O[Orchestrator] -->|Send| W1[Worker A]
+    O -->|Send| W2[Worker B]
+    W1 --> Agg[Reducer]
+    W2 --> Agg
+    style O fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style W1 fill:#064e3b,stroke:#10b981,color:#fff
+    style W2 fill:#064e3b,stroke:#10b981,color:#fff
+    style Agg fill:#451a03,stroke:#f97316,color:#fff
+```
+:::
+:::
+
+---
+
+### 6. Persistence Architecture: Checkpointers & Threads
+
+::: columns
+::: {.column width="50%"}
+#### Persistence Unlocks State Memory
+Checkpointers save snapshots at each superstep to durable storage:
+
+```python
+from langgraph.checkpoint.sqlite import SqliteSaver
+
+# Zero-setup embedded SQLite checkpointer
+with SqliteSaver.from_conn_string("state.db") as memory:
+    graph = builder.compile(checkpointer=memory)
+```
+
+- **Fault Tolerance:** Recovers from crashes without restarting runs.
+- **Conversational Memory:** Retains history across user sessions.
+- **Human Review:** Pauses execution and resumes seamlessly.
+:::
+
+::: {.column width="50%"}
+#### Thread Scoping via Config
+Pass a unique `thread_id` under `configurable` to scope session state:
+
+```python
+config = {"configurable": {"thread_id": "session_884"}}
+
+# Turn 1: Saves state to SQLite
+r1 = graph.invoke({"query": "Pricing for Cloud SQL"}, config=config)
+
+# Turn 2: Automatically loads prior context from SQLite!
+r2 = graph.invoke({"query": "Is there a free tier?"}, config=config)
+```
+
+Each `thread_id` maintains completely isolated execution state.
+:::
+:::
+
+---
+
+### 7. Time-Travel Debugging & State Forking
+
+::: columns
+::: {.column width="50%"}
+#### Inspecting Checkpoint History
+LangGraph allows you to inspect every superstep snapshot that ever executed on a thread:
+
+```python
+config = {"configurable": {"thread_id": "session_user_884"}}
+
+# Iterate through past state checkpoints
+for snapshot in graph.get_state_history(config):
+    print(f"Step: {snapshot.metadata.get('step')}")
+    print(f"Next Node: {snapshot.next}")
+    print(f"Values: {snapshot.values}")
+    print("-" * 30)
+```
+
+- You can see exactly what the model thought at step 2.
+- Identify the exact node where a hallucination occurred.
+:::
+
+::: {.column width="50%"}
+#### Replaying & Forking State
+You can roll back time, edit the state, and resume along a new path:
+
+```python
+# 1. Fetch snapshot from before the hallucination
+old_checkpoint = list(graph.get_state_history(config))[2]
+
+# 2. Fork state: correct the bad data
+forked_config = graph.update_state(
+    old_checkpoint.config,
+    values={"user_query": "Corrected prompt"}
+)
+
+# 3. Resume execution from the fork!
+resumed_output = graph.invoke(None, config=forked_config)
+```
+
+::: {.callout-tip}
+### Enterprise Superpower
+Debug failed production runs in your local terminal by replaying the customer's exact checkpoint!
+:::
+:::
+:::
+
+---
+
+### 8. Human-in-the-Loop: The Modern interrupt() Primitive
+
+::: columns
+::: {.column width="50%"}
+#### Pausing Execution with interrupt()
+Calling `interrupt()` saves a checkpoint, pauses execution, and yields control:
+
+```python
+from langgraph.types import interrupt
+
+def publish_rfc_node(state: AgentState):
+    rfc_markdown = state["drafted_rfc"]
+    
+    # Pause execution & send payload to reviewer
+    human_approval = interrupt({
+        "action": "approve_rfc",
+        "title": state["rfc_title"],
+        "draft_preview": rfc_markdown[:200]
+    })
+    
+    # Resumes right here when human responds!
+    if human_approval.get("decision") != "APPROVED":
+        return {"status": "REJECTED_BY_HUMAN"}
+        
+    return {"status": "PUBLISHED_TO_WIKI"}
+```
+:::
+
+::: {.column width="50%"}
+#### Resuming with Command(resume=...)
+Resume the paused thread by passing `Command(resume=...)`:
+
+```python
+from langgraph.types import Command
+
+# 1. Run initial execution (pauses at interrupt)
+config = {"configurable": {"thread_id": "rfc_101"}}
+graph.invoke({"user_query": "Draft RFC for OAuth2"}, config)
+
+# 2. Inspect pending interrupt
+state_snapshot = graph.get_state(config)
+print("Pending tasks:", state_snapshot.tasks)
+
+# 3. Provide human response and resume execution!
+graph.invoke(
+    Command(resume={"decision": "APPROVED"}), 
+    config=config
+)
+```
+
+The payload passed to `Command(resume=...)` becomes the return value of `interrupt()` inside the node!
+:::
+:::
+
+---
+
+### 9. The Rules of Interrupts in LangGraph
+
+::: columns
+::: {.column width="50%"}
+::: {.callout-important}
+### Rule 1: Never Catch interrupt in try/except!
+`interrupt()` works by raising an internal `GraphInterrupt` exception. 
+
+If you catch it with `except Exception:`, LangGraph cannot pause!
+
+```python
+# ❌ INCORRECT: Swallows the interrupt!
+try:
+    res = interrupt("Approve?")
+except Exception:
+    print("Caught error")
+
+# ✅ CORRECT: Let interrupt bubble to the runtime
+res = interrupt("Approve?")
+```
+:::
+:::
+
+::: {.column width="50%"}
+::: {.callout-caution}
+### Rule 2: Code Before interrupt Must Be Idempotent
+When a thread resumes, LangGraph **re-executes the node from the beginning** up to the `interrupt()` call.
+
+```python
+def unsafe_node(state):
+    # ❌ Dangerous: Runs TWICE (on pause AND resume)
+    charge_credit_card(state["amount"])
+    
+    review = interrupt("Confirm?")
+    return {"receipt": "sent"}
+```
+
+Always perform external mutations **after** the interrupt, or verify idempotency with a flag in state!
+:::
+:::
+:::
+
+---
+
+### 10. Streaming in LangGraph
+ 
+::: columns
+::: {.column width="50%"}
+#### Real-Time Progress for UIs
+LangGraph supports 3 built-in streaming modes via `graph.stream()`:
+
+- **`stream_mode="updates"`**: Emits node state deltas.
+- **`stream_mode="values"`**: Emits full state after superstep.
+- **`stream_mode="messages"`**: Streams LLM token chunks.
+
+```python
+config = {"configurable": {"thread_id": "live_chat_1"}}
+input_data = {"user_query": "Audit DB security"}
+
+# Stream incremental node updates
+for chunk in graph.stream(input_data, config, stream_mode="updates"):
+    for node_name, delta in chunk.items():
+        print(f"Node [{node_name}]: {delta}")
+```
+:::
+
+::: {.column width="50%"}
+#### FastAPI SSE Integration
+Exposing agent execution via Server-Sent Events (SSE):
+
+```python
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+
+@app.post("/agent/stream")
+async def stream_agent(query: str):
+    async def generate():
+        cfg = {"configurable": {"thread_id": "sse_demo"}}
+        async for chunk in graph.astream(
+            {"user_query": query}, cfg, stream_mode="updates"
+        ):
+            yield f"data: {chunk}\n\n"
+            
+    return StreamingResponse(generate(), media_type="text/event-stream")
+```
+:::
+:::
+
+---
+
+### 11. The Functional API: `@entrypoint` & `@task`
+
+::: columns
+::: {.column width="50%"}
+#### Decorators for Imperative Python
+Add persistence and interrupts to standard functions without graphs:
+
+```python
+from langgraph.func import entrypoint, task
+from langgraph.types import interrupt
+
+@task
+def research(topic: str) -> str:
+    return f"Research on {topic}: High Availability"
+
+@task
+def format_rfc(notes: str) -> str:
+    return f"# RFC\n\n{notes}"
+```
+
+- **`@task`**: Discrete unit of work cached to checkpoints.
+- **`@entrypoint`**: Orchestrator managing flow and interrupts.
+:::
+
+::: {.column width="50%"}
+#### Standard Control Flow with Interrupts
+
+```python
+@entrypoint()
+def rfc_pipeline(topic: str) -> str:
+    notes = research(topic).result()
+    draft = format_rfc(notes).result()
+    
+    # Pauses execution natively!
+    decision = interrupt({"review": draft})
+    
+    return f"Published:\n{draft}" if decision == "APPROVED" else "Aborted"
+```
+
+- **Functional API:** Fast, minimal boilerplate for linear/tree workflows.
+- **Graph API:** Preferred for complex cyclic loops and multi-agent teams.
+:::
+:::
+
+---
+
+### Lab 5 Scenario: Production RFC Drafting Agent
+
+::: columns
+::: {.column width="55%"}
+#### The Engineering Challenge
+We will build a complete, stateful **Technical RFC Generator** using **Gemini 2.5 Flash** and **LangGraph**:
+
+1. **Step 1 (Research Node):** User submits a technical goal (e.g., *"Design an event-driven notification service"*). The agent searches technical requirements.
+2. **Step 2 (Drafting Node):** Synthesizes research into a structured RFC with architecture, database schema, and trade-offs.
+3. **Step 3 (Human Review Gate):** Graph calls `interrupt()`. Halts execution until tech lead approves or requests revision.
+4. **Step 4 (Commit Node):** Upon `"APPROVED"`, writes RFC to disk or returns finalized markdown.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph TD
+    Start([User Request]) --> Research[Research Node]
+    Research --> Draft[RFC Drafter Node]
+    Draft --> Gate{Human interrupt}
+    Gate -- "APPROVED" --> Commit[Commit RFC Node]
+    Gate -- "REVISE" --> Draft
+    Commit --> End([END: Final RFC])
+    style Start fill:#262626,stroke:#737373,color:#fff
+    style Research fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style Draft fill:#0c4a6e,stroke:#0284c7,color:#fff
+    style Gate fill:#451a03,stroke:#f97316,color:#fff
+    style Commit fill:#064e3b,stroke:#10b981,color:#fff
+    style End fill:#262626,stroke:#737373,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 5: Complete Reference Implementation (Part 1: Setup & State)
+
+```python
+"""Lab 5: Production RFC Drafting Agent with LangGraph & Gemini 2.5 Flash."""
+import os
+from typing import TypedDict, Annotated, Literal
+import operator
+from google import genai
+from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import interrupt, Command
+
+# Initialize official Gemini 2.5 client
+client = genai.Client()
+
+class RFCState(TypedDict):
+    """Immutable state blackboard passed between graph nodes."""
+    topic: str
+    research_bullets: Annotated[list[str], operator.add]
+    rfc_draft: str
+    feedback_history: Annotated[list[str], operator.add]
+    final_status: str
+```
+
+- Uses `Annotated[list[str], operator.add]` for append-only log channels.
+- Backed by `MemorySaver` (or `SqliteSaver`) for full persistence.
+
+---
+
+### Lab 5: Complete Reference Implementation (Part 2: Nodes & Gate)
+
+```python
+def research_node(state: RFCState) -> dict:
+    """Performs domain lookup and requirements gathering."""
+    prompt = f"List 3 critical engineering requirements for building: {state['topic']}. Be concise."
+    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    return {"research_bullets": [resp.text.strip()]}
+
+def draft_rfc_node(state: RFCState) -> dict:
+    """Drafts formal RFC combining research and any prior human feedback."""
+    context = "\n".join(state["research_bullets"])
+    feedback = "\n".join(state.get("feedback_history", [])) or "None (initial draft)"
+    prompt = f"Draft a concise RFC for '{state['topic']}'.\nRequirements:\n{context}\nFeedback:\n{feedback}"
+    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    return {"rfc_draft": resp.text.strip()}
+
+def approval_gate_node(state: RFCState) -> Command[Literal["commit_node", "draft_rfc_node"]]:
+    """Pauses execution for human tech lead approval."""
+    human_response = interrupt({
+        "topic": state["topic"],
+        "draft_preview": state["rfc_draft"][:300] + "..."
+    })
+    
+    if human_response.get("decision") == "APPROVED":
+        return Command(goto="commit_node", update={"final_status": "APPROVED"})
+    else:
+        critique = human_response.get("critique", "Please improve structure.")
+        return Command(goto="draft_rfc_node", update={"feedback_history": [f"Revision requested: {critique}"]})
+
+def commit_node(state: RFCState) -> dict:
+    """Finalizes RFC commit."""
+    return {"final_status": "COMMITTED_TO_REPOSITORY"}
+```
+
+---
+
+### Lab 5: Complete Reference Implementation (Part 3: Wiring & Execution)
+
+```python
+# 1. Wire the StateGraph
+builder = StateGraph(RFCState)
+builder.add_node("research_node", research_node)
+builder.add_node("draft_rfc_node", draft_rfc_node)
+builder.add_node("approval_gate_node", approval_gate_node)
+builder.add_node("commit_node", commit_node)
+
+builder.add_edge(START, "research_node")
+builder.add_edge("research_node", "draft_rfc_node")
+builder.add_edge("draft_rfc_node", "approval_gate_node")
+builder.add_edge("commit_node", END)
+
+# 2. Compile with checkpointer
+checkpointer = MemorySaver()
+graph = builder.compile(checkpointer=checkpointer)
+
+# 3. Step 1: Initial run (executes research, drafts RFC, and PAUSES at interrupt)
+thread_config = {"configurable": {"thread_id": "rfc_project_001"}}
+initial_run = graph.invoke({"topic": "Distributed Rate Limiter with Redis & FastAPI"}, config=thread_config)
+
+# 4. Step 2: Tech Lead reviews pending interrupt payload
+snapshot = graph.get_state(thread_config)
+print("Graph is paused at interrupt!")
+print("Pending Review:", snapshot.tasks[0].interrupts[0].value)
+
+# 5. Step 3: Tech Lead resumes with approval!
+final_run = graph.invoke(Command(resume={"decision": "APPROVED"}), config=thread_config)
+print("Final Status:", final_run["final_status"])
+```
+
+---
+
+### Day 2 Session 5 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **State First:** Design your state schema before writing a single line of node logic.
+- **Reducers Prevent Overwrite:** Always use `Annotated[..., operator.add]` for message and result accumulation.
+- **Safe Persistence:** Always attach a checkpointer and pass an explicit `thread_id`.
+- **Atomic Routing:** Use the modern `Command` API to combine routing and state updates cleanly.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] State graph compiled with a persistent checkpointer.
+- [x] Cyclic loops protected by `recursion_limit`.
+- [x] Destructive actions gated by `interrupt()`.
+- [x] Node prefixes idempotent before interrupts.
+- [x] Streaming configured with `stream_mode="updates"` for live UI feedback.
+:::
+:::

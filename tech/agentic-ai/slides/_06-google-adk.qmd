@@ -1,0 +1,697 @@
+# Session 6: Google Gen AI Agent Development Kit (ADK) {#session-6}
+
+---
+
+### What is the Agent Development Kit (ADK)?
+
+::: columns
+::: {.column width="52%"}
+#### Google's Open-Source Multi-Agent Toolkit
+The **Agent Development Kit (ADK)** (`adk.dev`) is a code-first framework by Google for building, evaluating, and deploying production AI agents:
+
+- **Multi-Model Flexibility:** Built for Gemini 2.5, supports Claude, GPT-4o, Ollama.
+- **Team-First Architecture:** First-class sub-agents with automatic delegation.
+- **Hybrid Workflows:** `SequentialAgent`, `ParallelAgent`, and dynamic graphs.
+- **Local-to-Cloud Runtime:** CLI (`adk run`), web UI (`adk web`), and Cloud Run.
+
+::: {.callout-note appearance="simple"}
+📦 **Install:** `uv add google-adk` &middot; **Docs:** [adk.dev](https://adk.dev)
+:::
+:::
+
+::: {.column width="48%"}
+#### ADK Architecture Overview
+
+```{mermaid}
+graph LR
+    U[User / API] --> R[Runner]
+    R --> S[(Session)]
+    R --> A[Root Agent]
+    A --> SA[Sub-Agents]
+    A --> T[Tools & MCP]
+    style U fill:#262626,stroke:#737373,color:#fff
+    style R fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style S fill:#451a03,stroke:#f97316,color:#fff
+    style A fill:#172554,stroke:#3b82f6,color:#fff
+    style SA fill:#064e3b,stroke:#10b981,color:#fff
+    style T fill:#3b0764,stroke:#a855f7,color:#fff
+```
+:::
+:::
+
+---
+
+### Core Primitives: LlmAgent, Runner & SessionService
+
+::: columns
+::: {.column width="50%"}
+#### 1. LlmAgent (`llm_agent.Agent`)
+The central declarative unit defining model, system instructions, tools, and sub-agents:
+
+```python
+from google.adk.agents.llm_agent import Agent
+
+triage_agent = Agent(
+    model="gemini-2.5-flash",
+    name="triage_agent",
+    description="Diagnoses cloud infrastructure alerts.",
+    instruction="Analyze alerts and query metrics tools.",
+)
+```
+
+- **`description`**: Crucial for delegation; parent agents inspect this to route tasks.
+:::
+
+::: {.column width="50%"}
+#### 2. Runner & SessionService
+- **`Runner`**: Drives the interaction event loop, streaming, and tool execution.
+- **`SessionService`**: Persists conversation history and state across turns.
+
+```python
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+
+session_svc = InMemorySessionService()
+runner = Runner(agent=triage_agent, session_service=session_svc)
+
+response = runner.run(
+    user_input="Investigate spike in 502 errors",
+    session_id="incident-902"
+)
+```
+:::
+:::
+
+---
+
+### Multi-Model Flexibility & Edge Inference (LiteRT-LM)
+
+::: columns
+::: {.column width="50%"}
+#### Cloud Frontier to On-Device Edge
+ADK is model-agnostic, supporting cloud frontier models and **local on-device inference**:
+
+- **Gemini 2.5 Flash / Pro:** Native high-speed reasoning & multimodal input.
+- **LiteRT-LM:** Google's lightweight runtime for **on-device local inference** (Gemma 2B) with zero network dependency.
+- **LiteLLM Provider:** Seamless fallback to Anthropic Claude, OpenAI GPT-4o, or local Ollama.
+:::
+
+::: {.column width="50%"}
+#### Hybrid Cloud & Edge Configuration
+
+```python
+from google.adk.agents.llm_agent import Agent
+
+# Cloud frontier model for complex synthesis
+cloud_agent = Agent(
+    model="gemini-2.5-flash",
+    name="cloud_analyst",
+    instruction="Analyze enterprise incident patterns."
+)
+
+# On-device offline model via LiteRT-LM
+edge_agent = Agent(
+    model="litert-lm:gemma-2b",
+    name="edge_sensor_agent",
+    instruction="Process local telemetry on edge hardware."
+)
+```
+:::
+:::
+
+---
+
+### Tool Authoring, ToolContext & Action Escalation
+
+::: columns
+::: {.column width="50%"}
+#### Python Function Tools & Type Hints
+Any Python function with docstrings and type hints auto-generates JSON tool schemas:
+
+```python
+from google.adk.tools import ToolContext
+
+def query_prometheus(metric: str, context: ToolContext) -> dict:
+    """Fetch real-time cluster metrics from Prometheus.
+    
+    Args:
+        metric: The Prometheus query string.
+    """
+    cluster = context.state.get("cluster", "prod-us-1")
+    return {"cluster": cluster, "value": "99.4%"}
+```
+
+- Type hints define parameter validation.
+- Docstrings guide the LLM's calling rationale.
+:::
+
+::: {.column width="50%"}
+#### Session State & Loop Escalation
+`ToolContext` reads/writes session blackboard and provides runtime control signals:
+
+```python
+def trigger_escalation(reason: str, context: ToolContext) -> dict:
+    """Signals ADK runtime to halt loop and escalate to human."""
+    # Write to session memory
+    context.state["escalation_reason"] = reason
+    
+    # Programmatic runtime signal
+    context.actions.escalate = True
+    context.actions.skip_summarization = True
+    return {"status": "Escalated to human supervisor"}
+```
+:::
+:::
+
+---
+
+### Multi-Agent Teams: Auto-Flow & Sub-Agent Delegation
+
+::: columns
+::: {.column width="50%"}
+#### Specialist Sub-Agents
+Divide responsibilities into specialist sub-agents with narrow descriptions:
+
+```python
+from google.adk.agents.llm_agent import Agent
+
+researcher = Agent(
+    model="gemini-2.5-flash",
+    name="research_agent",
+    description="Searches docs and knowledge bases.",
+    instruction="Provide concise technical summaries."
+)
+
+coder = Agent(
+    model="gemini-2.5-flash",
+    name="code_agent",
+    description="Writes and refactors Python code.",
+    instruction="Write clean, PEP8 compliant code."
+)
+```
+:::
+
+::: {.column width="50%"}
+#### Auto-Flow Delegation on Coordinator
+
+```python
+coordinator = Agent(
+    model="gemini-2.5-flash",
+    name="lead_coordinator",
+    instruction="Coordinate tasks between research and coding.",
+    sub_agents=[researcher, coder]
+)
+```
+
+- **Auto-Flow Routing:** When a user asks a coding question, the coordinator automatically hands off context to `coder`.
+- **Result Synthesis:** Sub-agent results bubble back to the coordinator or stream directly to the client.
+:::
+:::
+
+---
+
+### Template Workflows: SequentialAgent & ParallelAgent
+
+::: columns
+::: {.column width="50%"}
+#### Sequential Workflow (`SequentialAgent`)
+Executes sub-agents in a strict, deterministic sequence without relying on LLM routing decisions:
+
+```python
+from google.adk.agents.workflow_agents import SequentialAgent
+
+code_pipeline = SequentialAgent(
+    name="pr_review_pipeline",
+    sub_agents=[
+        code_writer_agent,    # Step 1: Draft code
+        security_audit_agent, # Step 2: Audit
+        refactor_agent        # Step 3: Refactor
+    ]
+)
+```
+
+- Output of Step 1 is placed in `context.state` and consumed by Step 2.
+- 100% predictable; zero risk of hallucinations.
+:::
+
+::: {.column width="50%"}
+#### Parallel Workflow (`ParallelAgent`)
+Fans out multiple agents concurrently across the same input:
+
+```python
+from google.adk.agents.workflow_agents import ParallelAgent
+
+security_audit_team = ParallelAgent(
+    name="multi_audit",
+    sub_agents=[
+        sast_scanner_agent,
+        dependency_vuln_agent,
+        license_checker_agent
+    ]
+)
+```
+
+- All three audit agents execute in parallel.
+- Results are merged into session state.
+:::
+:::
+
+---
+
+### Iterative Refinement: LoopAgent & Termination Controls
+
+::: columns
+::: {.column width="50%"}
+#### Deterministic Loops (`LoopAgent`)
+`LoopAgent` repeatedly invokes sub-agents for iterative refinement until a condition is met:
+
+```python
+from google.adk.agents import LoopAgent, LlmAgent
+from google.adk.tools.tool_context import ToolContext
+
+def exit_loop(context: ToolContext) -> dict:
+    """Signals completion when quality passes."""
+    context.actions.escalate = True
+    return {"status": "Complete"}
+```
+
+- Ideal for code generation & self-healing, document critique, or image re-prompting.
+:::
+
+::: {.column width="50%"}
+#### Wiring the Critique-Refine Loop
+
+```python
+critic = LlmAgent(
+    name="CriticAgent",
+    model="gemini-2.5-flash",
+    instruction="Critique draft. If approved, call exit_loop.",
+    tools=[exit_loop]
+)
+
+refinement_loop = LoopAgent(
+    name="doc_refinement",
+    sub_agents=[writer_agent, critic],
+    max_iterations=5 # Safety ceiling prevents infinite loops
+)
+```
+
+- **Dual-Termination:** Exits early when `exit_loop` sets `escalate=True`, or halts at `max_iterations`.
+:::
+:::
+
+---
+
+### ADK 2.0 Graph Workflows: Deterministic DAGs & Node Schemas
+
+::: columns
+::: {.column width="50%"}
+#### Combining Code Functions & AI Agents
+ADK 2.0 introduces graph-based workflows (`Workflow`) connecting functions, agents, and events:
+
+```python
+from google.adk import Agent, Workflow
+from pydantic import BaseModel
+
+class IncidentPayload(BaseModel):
+    service_id: str
+    severity: str
+
+def parse_alert_function(raw_alert: str) -> IncidentPayload:
+    """Pure Python deterministic node (Zero LLM cost)."""
+    return IncidentPayload(service_id="auth-svc", severity="HIGH")
+```
+
+- Functions execute pure code without invoking LLMs.
+:::
+
+::: {.column width="50%"}
+#### Declarative DAG Edges with Contracts
+
+```python
+diagnostician = Agent(
+    name="diagnostician",
+    model="gemini-2.5-flash",
+    input_schema=IncidentPayload, # Strict Pydantic contract
+    instruction="Analyze parsed incident and diagnose root cause."
+)
+
+incident_graph = Workflow(
+    name="incident_dag",
+    edges=[
+        ("START", parse_alert_function, diagnostician)
+    ]
+)
+```
+
+- Node return values pass directly as inputs to subsequent nodes.
+:::
+:::
+
+---
+
+### Dynamic Workflows & Agent Routing (`RoutedAgent`)
+
+::: columns
+::: {.column width="50%"}
+#### Runtime Selection & Automated Failover
+`RoutedAgent` selects exactly **one** agent per invocation based on a custom routing function:
+
+- **Cost Optimization:** Route simple queries to `flash` and complex code tasks to `pro`.
+- **Automatic Failover:** If the selected agent encounters an error before yielding events, the router retries with a fallback.
+- **Failover Context:** Router receives `failedKeys` and `lastError` to select alternatives.
+:::
+
+::: {.column width="50%"}
+#### Router Function Implementation
+
+```python
+from google.adk.agents import RoutedAgent, LlmAgent
+
+fast_agent = LlmAgent(name="fast", model="gemini-2.5-flash")
+expert_agent = LlmAgent(name="expert", model="gemini-2.5-pro")
+
+def route_query(agents: dict, context) -> str:
+    """Routes by complexity with failover."""
+    user_msg = context.user_input.lower()
+    if "architecture" in user_msg or len(user_msg) > 300:
+        return "expert"
+    return "fast"
+
+router = RoutedAgent(
+    name="smart_router",
+    agents=[fast_agent, expert_agent],
+    router_fn=route_query
+)
+```
+:::
+:::
+
+---
+
+### Safety Guardrails: Callback Lifecycle & Approval Gates
+
+::: columns
+::: {.column width="50%"}
+#### Callback Lifecycle Hooks
+ADK provides callback hooks to inspect, modify, or block actions before and after execution:
+
+- **`before_model_callback`**: Audit prompts, sanitize PII, or inject dynamic rules.
+- **`before_tool_callback`**: Human approval gates before executing destructive tools.
+- **`after_tool_callback`**: Validate tool outputs against Pydantic schemas.
+:::
+
+::: {.column width="50%"}
+#### Human-in-the-Loop Approval Gate
+
+```python
+def require_human_approval(tool_name: str, args: dict) -> bool:
+    """Blocks destructive tools until verified."""
+    destructive = ["drop_database", "restart_production_pod"]
+    
+    if tool_name in destructive:
+        print(f"⚠️ Approval Gate: Tool '{tool_name}' triggered!")
+        return False # Intercept & block execution
+    return True
+
+agent = Agent(
+    model="gemini-2.5-flash",
+    name="ops_agent",
+    tools=[restart_production_pod, get_pod_status],
+    before_tool_callback=require_human_approval
+)
+```
+:::
+:::
+
+---
+
+### Agent-to-Agent (A2A) Federation Protocol
+
+::: columns
+::: {.column width="52%"}
+#### Decentralized Multi-Agent Collaboration
+Google's **Agent-to-Agent (A2A)** protocol enables agents across independent services to collaborate securely:
+
+- **Capability Manifests:** Machine-readable skill schemas.
+- **Federated Requests:** Cross-service invocations without shared runtime.
+- **Perimeter Isolation:** Services preserve separate secrets and VPCs.
+- **Context Preservation:** Trace IDs propagate across network hops.
+:::
+
+::: {.column width="48%"}
+```{mermaid}
+graph LR
+    User[Client App] --> SvcA[Billing Agent]
+    SvcA -->|A2A Request| SvcB[Infra Agent]
+    SvcB -->|A2A Response| SvcA
+    style User fill:#262626,stroke:#737373,color:#fff
+    style SvcA fill:#172554,stroke:#3b82f6,color:#fff
+    style SvcB fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Generative UI: A2UI (Agent-to-UI) Integration
+
+::: columns
+::: {.column width="50%"}
+#### Emitting Real Interactive UI
+The **A2UI** protocol (`a2ui.org`) allows ADK agents to generate structured UI cards, forms, and charts:
+
+- **Beyond Markdown:** Agents return typed JSON components rendered natively by Web/Flutter frontends.
+- **A2uiSchemaManager:** Injects component schemas (Cards, Tables, Buttons) into system prompts.
+- **Transport Agnostic:** Works over REST, SSE, WebSockets, or A2A federation.
+:::
+
+::: {.column width="50%"}
+#### Integrating A2UI with ADK
+
+```python
+from a2ui.core.schema.manager import A2uiSchemaManager
+from google.adk.agents.llm_agent import LlmAgent
+
+# 1. Generate UI prompt with component catalog
+schema_mgr = A2uiSchemaManager()
+instruction = schema_mgr.generate_system_prompt(
+    role_description="Cloud Operations Assistant",
+    workflow_description="Present cluster metrics with UI cards.",
+    allowed_components=["Heading", "Card", "Table", "Button"]
+)
+
+# 2. ADK agent outputs validated UI JSON
+ui_agent = LlmAgent(
+    model="gemini-2.5-flash",
+    name="ui_ops_agent",
+    instruction=instruction
+)
+```
+:::
+:::
+
+---
+
+### Local CLI, Visual Playground & Cloud Run Deployment
+
+::: columns
+::: {.column width="50%"}
+#### Local Development & Evaluation
+ADK includes a built-in CLI, visual debugger, and evaluation benchmarks:
+
+```bash
+# 1. Interactive terminal chat
+adk run my_agent
+
+# 2. Local visual web UI with trace viewer
+adk web --port 8000
+
+# 3. Automated evaluation benchmark
+adk eval --agent my_agent --dataset eval.json
+```
+
+- Accessible at `http://localhost:8000`.
+- Visualizes tool calls, session state, and latency.
+:::
+
+::: {.column width="50%"}
+#### Serverless Cloud Run Deployment
+Containerize and deploy to Google Cloud Run in one command:
+
+```bash
+# Deploy to serverless container runtime
+gcloud run deploy incident-agent \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_API_KEY="secret-key" \
+  --min-instances 0 \
+  --max-instances 10
+```
+
+- Auto-scales to zero when no alerts are active.
+- Instant scale-up during incident surges.
+:::
+:::
+
+---
+
+### Architectural Choice: LangGraph vs. Google ADK
+
+::: {style="font-size: 0.72em;"}
+| Architectural Dimension | LangGraph (LangChain) | Google Gen AI ADK (`adk.dev`) |
+| :--- | :--- | :--- |
+| **Core Paradigm** | Directed Cyclic Graph (Pregel supersteps) | Declarative Hierarchical Agent Teams |
+| **State Model** | Channel-based `TypedDict` with reducers | Blackboard via `SessionService` & `ToolContext` |
+| **Control Flow** | Dynamic graphs, edges, and `Command` routing | `SequentialAgent`, `ParallelAgent`, `LoopAgent`, Graphs |
+| **Persistence & Replay** | `SqliteSaver`, checkpoints & time-travel replay | Pluggable `SessionService` & turn history |
+| **Microservice Federation** | LangGraph Cloud / Self-hosted REST API | Native Agent-to-Agent (A2A) protocol |
+| **Best Production Fit** | Complex cyclic loops, code self-healing | Enterprise microservices & Google Cloud Run |
+
+: {tbl-colwidths="[25,37,38]"}
+:::
+
+---
+
+### Lab 6 Scenario: Enterprise SRE Incident Response Team
+
+::: columns
+::: {.column width="55%"}
+#### The Multi-Agent Mission
+We will build a hierarchical **SRE Incident Response Team** using **Google ADK** and **Gemini 2.5 Flash**:
+
+1. **Root Coordinator:** Receives alerts, inspects severity, and assigns work.
+2. **Metrics Specialist (`sub-agent`):** Queries cluster performance metrics.
+3. **Remediation Specialist (`sub-agent`):** Recommends safe recovery commands.
+4. **Safety Callback:** Intercepts restart commands, halting until verified by human.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    Alert[504 Alert] --> Coord[Coordinator]
+    Coord --> Met[Metrics Agent]
+    Coord --> Rem[Remediation Agent]
+    Rem --> Gate{Safety Gate}
+    Gate --> Fix[Patch]
+    style Alert fill:#451a03,stroke:#f97316,color:#fff
+    style Coord fill:#172554,stroke:#3b82f6,color:#fff
+    style Met fill:#064e3b,stroke:#10b981,color:#fff
+    style Rem fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style Gate fill:#b91c1c,stroke:#ef4444,color:#fff
+    style Fix fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 6: Complete Reference Implementation (Part 1: Tools & Specialists)
+
+```python
+"""Lab 6: Enterprise SRE Incident Team with Google ADK."""
+from google.adk.agents.llm_agent import Agent
+from google.adk.tools import ToolContext
+
+# 1. Specialist Diagnostic Tool
+def query_kubernetes_health(service_name: str, context: ToolContext) -> dict:
+    """Checks pod restart counts and error logs for a service."""
+    return {
+        "service": service_name,
+        "pod_status": "CrashLoopBackOff",
+        "restarts": 14,
+        "last_error": "OutOfMemory: Container killed"
+    }
+
+# 2. Metrics Specialist Sub-Agent
+metrics_agent = Agent(
+    model="gemini-2.5-flash",
+    name="metrics_specialist",
+    description="Queries cluster health and error diagnostics.",
+    instruction="Inspect pod status and return memory/CPU bottlenecks.",
+    tools=[query_kubernetes_health]
+)
+```
+
+- Sub-agents are configured with narrow, task-specific instructions and tools.
+
+---
+
+### Lab 6: Complete Reference Implementation (Part 2: Safety Gate & Coordinator)
+
+```python
+# 3. Remediation Specialist Sub-Agent
+remediation_agent = Agent(
+    model="gemini-2.5-flash",
+    name="remediation_specialist",
+    description="Generates Kubernetes fix manifests and safe patch commands.",
+    instruction="Generate kubectl commands to scale memory limits."
+)
+
+# 4. Human Approval Callback for destructive operations
+def verify_kubectl_actions(tool_name: str, args: dict) -> bool:
+    """Approval gate preventing unverified cluster modifications."""
+    if "patch" in tool_name or "restart" in tool_name:
+        print(f"Gate Triggered: Review required for '{tool_name}' with {args}")
+        return True # Approved for lab demo
+    return True
+
+# 5. Lead Coordinator Agent with Sub-Agents
+incident_coordinator = Agent(
+    model="gemini-2.5-flash",
+    name="incident_coordinator",
+    instruction="Coordinate incident diagnosis using metrics and remediation sub-agents.",
+    sub_agents=[metrics_agent, remediation_agent],
+    before_tool_callback=verify_kubectl_actions
+)
+```
+
+---
+
+### Lab 6: Complete Reference Implementation (Part 3: Runner & Execution)
+
+```python
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+
+# 6. Run Team with Session Memory
+session_service = InMemorySessionService()
+runner = Runner(agent=incident_coordinator, session_service=session_service)
+
+response = runner.run(
+    user_input="CRITICAL: 'auth-service' pods are crash looping in prod-east. Investigate and patch.",
+    session_id="incident-404"
+)
+
+print("# SRE Team Incident Resolution Plan\n")
+print(response.text)
+```
+
+- `Runner` orchestrates the multi-agent delegation loop automatically.
+- All state and conversational memory persist across turns in `InMemorySessionService`.
+
+---
+
+### Day 2 Session 6 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **Sub-Agents Over Giant Prompts:** Divide complex roles into specialist agents with clear `description` strings.
+- **Deterministic Workflows First:** Use `SequentialAgent` or `Workflow` DAGs when the sequence is known ahead of time.
+- **Loop with Escalation:** Use `LoopAgent` with `context.actions.escalate=True` for self-healing code loops.
+- **Safety at the Tool Boundary:** Use `before_tool_callback` for approval gates before mutating infrastructure.
+- **A2A for Microservices:** Federate agents across team perimeters using the A2A protocol.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] Sub-agents configured with distinct system instructions.
+- [x] Tools utilize `ToolContext` for state & escalation.
+- [x] Destructive actions protected by `before_tool_callback`.
+- [x] Iterative loops bounded by `max_iterations`.
+- [x] Tested locally via `adk run`, `adk web`, and `adk eval`.
+- [x] Ready for deployment on Google Cloud Run.
+:::
+:::

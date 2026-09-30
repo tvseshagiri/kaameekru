@@ -10,3 +10,5 @@ slide-number: true
 {{< include slides/_02-anatomy-of-agent.qmd >}}
 {{< include slides/_03-patterns-and-types.qmd >}}
 {{< include slides/_04-framework-landscape.qmd >}}
+{{< include slides/_05-langgraph.qmd >}}
+{{< include slides/_06-google-adk.qmd >}}
