@@ -8,6 +8,7 @@
 ::: columns
 ::: {.column width="50%"}
 #### Categorized by How They Live & Work
+
 Agents are not one-size-fits-all. In modern software engineering, they fall into **four operational types**:
 
 1. **Conversational Agents (Surface / Copilot)**
@@ -17,7 +18,7 @@ Agents are not one-size-fits-all. In modern software engineering, they fall into
 :::
 
 ::: {.column width="50%"}
-```mermaid
+```{mermaid}
 graph TD
     A["Agentic System Types"] --> C["1. Conversational<br>(Interactive Copilot)"]
     A --> W["2. Workflow<br>(Event Pipeline)"]
@@ -51,6 +52,7 @@ graph TD
 ::: columns
 ::: {.column width="50%"}
 #### Single-Agent Architecture
+
 - One model managing one set of tools.
 - **Pros:** Simple to build, fast, inexpensive, easy to trace and debug.
 - **Cons:** Fails when tasks require conflicting personas or large tool lists (>20 tools).
@@ -59,6 +61,7 @@ graph TD
 
 ::: {.column width="50%"}
 #### Multi-Agent Architecture
+
 - Multiple specialized agents coordinating to solve a complex objective.
 - **Pros:** Separation of concerns, smaller focused contexts, modular testing.
 - **Cons:** High token cost, coordination overhead, harder to debug.
@@ -70,45 +73,81 @@ graph TD
 
 ### Agent Integration Patterns: How Agents Connect
 
-```mermaid
+::: columns
+::: {.column width="50%"}
+#### 1. Sequential (Pipeline)
+
+```{mermaid}
 graph LR
-    subgraph P1["1. Sequential (Pipeline)"]
-        A1[Agent A] --> B1[Agent B] --> C1[Agent C]
-    end
-    subgraph P2["2. Parallel (Fan-Out / Fan-In)"]
-        D2[Input] --> E2[Agent A]
-        D2 --> F2[Agent B]
-        E2 --> G2[Aggregator]
-        F2 --> G2
-    end
-    style P1 fill:#f0f8ff,stroke:#1a73e8
-    style P2 fill:#f0fff0,stroke:#34a853
+    A1[Agent A] --> B1[Agent B] --> C1[Agent C]
+    style A1 fill:#e8f0fe,stroke:#1a73e8
+    style B1 fill:#e8f0fe,stroke:#1a73e8
+    style C1 fill:#e8f0fe,stroke:#1a73e8
 ```
 
-- **Sequential Pattern:** Output of Agent A directly feeds Agent B (e.g. Spec Writer $\rightarrow$ Code Generator $\rightarrow$ Test Writer).
-- **Parallel Pattern:** Multiple agents run concurrently on the same input (e.g. Security Auditor & Performance Auditor run together).
+- Output of Agent A directly feeds Agent B.
+- Analogous to a Unix pipe (`A | B | C`).
+- **Example:** Spec Writer $\rightarrow$ Code Generator $\rightarrow$ Test Writer.
+:::
+
+::: {.column width="50%"}
+#### 2. Parallel (Fan-Out / Fan-In)
+
+```{mermaid}
+graph LR
+    Input[Input] --> E2[Agent A]
+    Input --> F2[Agent B]
+    E2 --> G2[Aggregator]
+    F2 --> G2
+    style E2 fill:#e6f4ea,stroke:#34a853
+    style F2 fill:#e6f4ea,stroke:#34a853
+    style G2 fill:#e6f4ea,stroke:#34a853
+```
+
+- Multiple agents run concurrently on the same input.
+- Combines specialized perspectives via `asyncio.gather`.
+- **Example:** Security Auditor + Performance Auditor run together.
+:::
+:::
 
 ---
 
 ### Integration Patterns: Hierarchical & Debate
 
-```mermaid
+::: columns
+::: {.column width="52%"}
+#### 3. Hierarchical (Supervisor)
+
+```{mermaid}
 graph TD
-    subgraph Hierarchical["3. Hierarchical (Supervisor / Orchestrator)"]
-        Lead[Supervisor / Tech Lead] -->|Assigns| W1[Worker A: Backend]
-        Lead -->|Assigns| W2[Worker B: Database]
-        W1 -->|Reports| Lead
-        W2 -->|Reports| Lead
-    end
-    subgraph Debate["4. Collaborative / Critique (Debate)"]
-        Gen[Generator Agent] <-->|Drafts & Critiques| Rev[Reviewer Agent]
-    end
-    style Hierarchical fill:#fdf7e7,stroke:#fbbc04
-    style Debate fill:#fbf0f0,stroke:#ea4335
+    Lead[Supervisor / Lead] --> W1[Worker A: Backend]
+    Lead --> W2[Worker B: Database]
+    W1 --> Lead
+    W2 --> Lead
+    style Lead fill:#fef7e0,stroke:#fbbc04
+    style W1 fill:#e8f0fe,stroke:#1a73e8
+    style W2 fill:#e8f0fe,stroke:#1a73e8
 ```
 
-- **Hierarchical:** A supervisor breaks down a complex goal, delegates sub-tasks, and aggregates outputs.
-- **Collaborative / Debate:** Two agents challenge each other until quality criteria are met (e.g. Generator $\leftrightarrow$ Judge).
+- Supervisor breaks down goal, assigns tasks, aggregates outputs.
+- Centralized orchestrator model.
+:::
+
+::: {.column width="48%"}
+#### 4. Collaborative / Debate
+
+```{mermaid}
+graph LR
+    Gen[Generator] <-->|Drafts & Critiques| Rev[Reviewer]
+    style Gen fill:#fce8e6,stroke:#ea4335
+    style Rev fill:#e8f0fe,stroke:#1a73e8
+```
+
+- Two or more agents challenge each other until criteria are met.
+- **Example:** Generator $\leftrightarrow$ Judge / Critic.
+- Ideal for high-stakes precision code generation.
+:::
+:::
 
 ---
 
@@ -117,6 +156,7 @@ graph TD
 ::: columns
 ::: {.column width="55%"}
 #### The Pull Request Approval Model
+
 Agents should not execute state-modifying actions autonomously without human review:
 
 - **Safe Actions (Read-Only):** Agent queries database, analyzes logs, drafts fixes.
@@ -125,7 +165,7 @@ Agents should not execute state-modifying actions autonomously without human rev
 :::
 
 ::: {.column width="45%"}
-```mermaid
+```{mermaid}
 graph TD
     A[Agent Analyzes PR] --> B[Drafts Hotfix]
     B --> Gate{Human Approval}
@@ -159,6 +199,7 @@ graph TD
 ::: columns
 ::: {.column width="55%"}
 #### Architectural Comparison
+
 We will build and compare two integration patterns for automated code review using **Gemini 2.5 Flash**:
 
 1. **Pattern 1: Sequential Handoff**
@@ -261,6 +302,7 @@ async def run_parallel_team(code: str) -> str:
 ::: columns
 ::: {.column width="50%"}
 #### Key Insights
+
 - **4 System Types:** Conversational, Workflow, Deep, and Ambient.
 - **Topologies:** Single-Agent (start simple) vs. Multi-Agent (specialization).
 - **Integration Patterns:** Sequential, Parallel, Hierarchical, and Debate.
@@ -270,6 +312,7 @@ async def run_parallel_team(code: str) -> str:
 ::: {.column width="50%"}
 ::: {.callout-tip}
 ### Self-Check Questions
+
 1. *What distinguishes a Deep Agent (like Claude Code) from a Conversational Copilot?*
 2. *Why does the Parallel (Fan-Out) pattern reduce overall latency compared to Sequential?*
 3. *When is a Single-Agent architecture preferred over a Multi-Agent system?*

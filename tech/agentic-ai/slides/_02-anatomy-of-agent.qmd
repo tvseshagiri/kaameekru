@@ -8,6 +8,7 @@
 ::: columns
 ::: {.column width="55%"}
 #### Agents Are Not Magic
+
 An AI agent is a software program built from **four standard software components** wrapped around a foundation model:
 
 1. **Persona & Instructions:** The agent's role, rules, and boundaries.
@@ -17,7 +18,7 @@ An AI agent is a software program built from **four standard software components
 :::
 
 ::: {.column width="45%"}
-```mermaid
+```{mermaid}
 graph TD
     P["1. Persona / Rules"] --> C["Context Window"]
     M["4. Simple Memory (Turns)"] --> C
@@ -38,6 +39,7 @@ graph TD
 ::: columns
 ::: {.column width="50%"}
 #### Setting the Ground Rules
+
 The system instruction defines **who the agent is** and **how it behaves**:
 
 - **Role:** *"You are an SRE incident response assistant."*
@@ -49,6 +51,7 @@ The system instruction defines **who the agent is** and **how it behaves**:
 ::: {.column width="50%"}
 ::: {.callout-note}
 ### Why System Instructions Matter
+
 Without clear constraints, LLMs default to generic conversational tone. 
 
 Strict instructions keep the agent focused on task execution and prevent hallucinating fake tool capabilities.
@@ -63,6 +66,7 @@ Strict instructions keep the agent focused on task execution and prevent halluci
 ::: columns
 ::: {.column width="50%"}
 #### The Reasoning Engine
+
 The model is **not** the entire agent—it is the decision-making engine:
 
 - Ingests the current context (system instructions + memory).
@@ -71,7 +75,7 @@ The model is **not** the entire agent—it is the decision-making engine:
 :::
 
 ::: {.column width="50%"}
-```mermaid
+```{mermaid}
 graph TD
     Input["Context & History"] --> Model["Gemini 2.5 Flash"]
     Model --> Decision{"Need External Data?"}
@@ -90,7 +94,9 @@ graph TD
 ::: columns
 ::: {.column width="55%"}
 #### How the Model "Sees" Tools
+
 A tool is simply a normal Python function with two critical elements:
+
 1. **Type Annotations:** Tells the model what data type each argument expects (`str`, `int`, `float`).
 2. **Clear Docstrings:** Explains **what** the tool does and **when** the model should pick it.
 
@@ -118,9 +124,11 @@ def query_ticket_status(
 ::: columns
 ::: {.column width="50%"}
 #### How an Agent "Remembers"
+
 By default, LLM APIs are completely **stateless**. 
 
 To maintain context across multiple tool calls and user turns:
+
 - We maintain a simple list of messages (`list[dict]`).
 - Each turn appends:
   - User request
@@ -149,6 +157,7 @@ history = [
 ::: columns
 ::: {.column width="55%"}
 #### The Working Whiteboard
+
 Think of the context window as a **conference room whiteboard**:
 
 - Everything the model needs to make a decision must fit on the board.
@@ -160,6 +169,7 @@ Think of the context window as a **conference room whiteboard**:
 ::: {.column width="45%"}
 ::: {.callout-tip}
 ### Golden Rule for Beginners
+
 **Keep tool outputs concise.** 
 
 Return only the fields the agent actually needs to decide the next step, not raw 5,000-line JSON dumps!
@@ -174,7 +184,9 @@ Return only the fields the agent actually needs to decide the next step, not raw
 ::: columns
 ::: {.column width="55%"}
 #### Lab Objective
+
 Build an agent from scratch in **pure Python** (no agent frameworks) with:
+
 1. A clear system persona: `SupportAgent`.
 2. Two typed tools: `lookup_user` and `reset_password`.
 3. An internal message history list for memory.
@@ -182,7 +194,7 @@ Build an agent from scratch in **pure Python** (no agent frameworks) with:
 :::
 
 ::: {.column width="45%"}
-```mermaid
+```{mermaid}
 graph TD
     User["User Request"] --> Loop["ScratchAgent Loop"]
     Loop --> Model["Gemini API"]
@@ -302,6 +314,7 @@ In Turn 2, the agent **does not call the tool again**! It reads Bob's status dir
 ::: columns
 ::: {.column width="50%"}
 #### What We Mastered
+
 - **The 4 Pillars:** Persona, Foundation Model, Tools, and Memory.
 - **The Whiteboard Model:** Managing context as a finite working space.
 - **Tools as Contracts:** How docstrings and types guide the LLM.
@@ -311,6 +324,7 @@ In Turn 2, the agent **does not call the tool again**! It reads Bob's status dir
 ::: {.column width="50%"}
 ::: {.callout-tip}
 ### Self-Check Questions
+
 1. *Where does an agent store its memory during a multi-turn session?*
 2. *Why does omitting docstrings from tool functions cause models to fail?*
 3. *What happens if tool outputs are thousands of lines of unneeded data?*

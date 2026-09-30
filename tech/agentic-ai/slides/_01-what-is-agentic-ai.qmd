@@ -8,6 +8,7 @@
 ::: columns
 ::: {.column width="50%"}
 #### Traditional LLM Programming
+
 - **Model:** Prompt in $\rightarrow$ Text out.
 - **State:** Stateless, single-turn completion.
 - **Capabilities:** Limited to static pre-trained weights.
@@ -16,6 +17,7 @@
 
 ::: {.column width="50%"}
 #### Agentic AI Paradigm
+
 - **Model:** Goal in $\rightarrow$ Multi-step execution.
 - **State:** Stateful loop with memory.
 - **Capabilities:** Queries APIs, databases & tools.
@@ -23,7 +25,7 @@
 :::
 :::
 
-```mermaid
+```{mermaid}
 graph LR
     A[User Goal] --> B[LLM Reasoning]
     B --> C{Action Needed?}
@@ -44,6 +46,7 @@ graph LR
 ::: columns
 ::: {.column width="50%"}
 #### Generative AI
+
 - **Primary Focus:** Content creation (text, images, synthetic data, code).
 - **Core Engine:** The LLM is the direct output generator.
 - **Interaction:** Synchronous input/output; single-shot or basic chat.
@@ -52,6 +55,7 @@ graph LR
 
 ::: {.column width="50%"}
 #### Agentic AI
+
 - **Primary Focus:** Goal achievement and business workflow execution.
 - **Core Engine:** The LLM acts as the **cognitive brain** orchestrating tools.
 - **Interaction:** Autonomous, iterative, multi-turn execution.
@@ -77,7 +81,7 @@ graph LR
 
 ### The 5-Stage Cognitive Loop
 
-```mermaid
+```{mermaid}
 graph LR
     P[1. Perception] --> R[2. Reasoning]
     R --> PL[3. Planning]
@@ -93,12 +97,14 @@ graph LR
 
 ::: columns
 ::: {.column width="50%"}
+
 - **1. Perception:** Ingests prompt, conversation history, and live tool responses.
 - **2. Reasoning:** Analyzes context with Gemini to infer state and next step.
 - **3. Planning:** Decomposes objective into ordered sub-goals and tool calls.
 :::
 
 ::: {.column width="50%"}
+
 - **4. Action:** Emits structured function calls to query databases or APIs.
 - **5. Reflection:** Evaluates tool results, detects failures, and refines strategy.
 :::
@@ -111,6 +117,7 @@ graph LR
 ::: columns
 ::: {.column width="50%"}
 #### By Interaction Mode
+
 - **Interactive Partners (Surface Agents):**
   - Synchronous, user-facing assistants.
   - User-prompt triggered; provides immediate answers and recommendations.
@@ -121,6 +128,7 @@ graph LR
 
 ::: {.column width="50%"}
 #### By System Topology
+
 - **Single-Agent System:**
   - One model managing one set of tools.
   - Ideal for well-scoped, deterministic domains.
@@ -138,6 +146,7 @@ graph LR
 ::: {.column width="50%"}
 ::: {.callout-tip}
 ### High-Value Agent Use Cases
+
 - **Dynamic Exploration:** Investigating incident logs or debugging code.
 - **Variable Tool Paths:** The exact sequence of tools cannot be hardcoded in advance.
 - **Self-Healing Workflows:** Tasks where tool errors provide corrective signal.
@@ -148,6 +157,7 @@ graph LR
 ::: {.column width="50%"}
 ::: {.callout-caution}
 ### When to Avoid Agents
+
 - **Deterministic Workflows:** When a simple Python script or DAG always works.
 - **Strict Latency Limits:** Sub-500ms requirements (agent turns take seconds).
 - **High-Stakes Blind Writes:** Financial transfers or production drops without human gates.
@@ -163,7 +173,9 @@ graph LR
 ::: columns
 ::: {.column width="55%"}
 #### The Engineering Challenge
+
 Build an autonomous diagnostic agent using **Gemini 2.5 Flash** that:
+
 1. Receives an alert: *"Why is checkout failing?"*
 2. Dispatches `search_service_status` to inspect `auth-service` and `checkout-api`.
 3. Calls `calculate_latency_delta` to compare current p99 vs SLA threshold.
@@ -171,7 +183,7 @@ Build an autonomous diagnostic agent using **Gemini 2.5 Flash** that:
 :::
 
 ::: {.column width="45%"}
-```mermaid
+```{mermaid}
 graph TD
     Alert["Alert Received"] --> Agent["Gemini 2.5 Flash"]
     Agent -->|"1. Lookup"| T1["search_service_status"]
