@@ -88,7 +88,7 @@ A skill is a self-contained module encapsulating domain expertise, instructions,
 skills/
 └── k8s-canary-rollback/
     ├── SKILL.md          # Frontmatter + instructions
-    ├── scripts/          # Helper scripts (Python/Bash)
+    ├── scripts/          # Isolated helper scripts
     │   └── verify_pods.py
     └── examples/         # Reference inputs & outputs
         └── incident_log.json
@@ -113,6 +113,120 @@ tools:
 2. If error rate > 5%, trigger rollback:
    `kubectl rollout undo deployment/canary-app`
 3. Verify zero CrashLoopBackOff restarts.
+```
+:::
+:::
+
+---
+
+### Self-Contained Dependencies with PEP 723 & `uv`
+
+::: columns
+::: {.column width="50%"}
+#### The Dependency Pollution Problem
+Skills often require third-party libraries (`kubernetes`, `httpx`, `boto3`):
+
+- **Anti-Pattern:** Installing all libraries into the host agent's global environment causes dependency version conflicts and massive Docker images.
+- **PEP 723 Solution:** Skills declare their own isolated dependencies inline directly within script headers.
+- **`uv` Execution:** `uv run script.py` creates an ephemeral virtual environment on-the-fly and caches it instantly.
+:::
+
+::: {.column width="50%"}
+#### Inline Script Metadata
+
+```python
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "kubernetes>=30.0.0",
+#     "httpx>=0.27.0",
+# ]
+# ///
+import sys
+
+def verify_canary_pods(namespace: str = "production") -> bool:
+    """Verifies canary pod health without host venv pollution."""
+    print(f"Inspecting namespace: {namespace} via isolated uv runtime.")
+    return True
+
+if __name__ == "__main__":
+    verify_canary_pods()
+```
+:::
+:::
+
+---
+
+### Multi-Skill Orchestration & Chaining Patterns
+
+::: columns
+::: {.column width="50%"}
+#### Coordinating Multiple Skills
+Complex enterprise incidents require composing multiple specialized skills in sequence:
+
+- **Step 1:** `db-migration-validator` verifies database schema backwards compatibility.
+- **Step 2:** `k8s-canary-rollback` reverts unhealthy container pods.
+- **Step 3:** `slack-incident-notifier` posts root-cause summary to engineering channels.
+- **State Passing:** Orchestrator carries shared state across skills without keeping all instructions in active context.
+:::
+
+::: {.column width="50%"}
+#### Skill State Blackboard
+
+```python
+from typing import TypedDict, Annotated
+import operator
+
+class MultiSkillState(TypedDict):
+    incident_id: str
+    active_skill: str
+    completed_skills: Annotated[list[str], operator.add]
+    cluster_status: dict
+
+def dispatch_next_skill(state: MultiSkillState) -> dict:
+    """Orchestrates transition between skills based on blackboard state."""
+    if not state.get("cluster_status"):
+        return {"active_skill": "k8s-canary-rollback"}
+    return {
+        "active_skill": "slack-incident-notifier",
+        "completed_skills": ["k8s-canary-rollback"]
+    }
+```
+:::
+:::
+
+---
+
+### Zero-Trust Skill Sandboxing & Permission Boundaries
+
+::: columns
+::: {.column width="50%"}
+#### Threat Model for External Skills
+Skill scripts can execute arbitrary Python/Bash commands. In multi-tenant environments, skills must be sandboxed:
+
+- **Filesystem Isolation:** Mount host repository as read-only, providing only a transient scratch directory.
+- **Network Boundaries:** Whitelist outbound access only to specific internal APIs and cluster endpoints.
+- **Process Boundaries:** Execute via Linux bubblewrap (`bwrap`) or ephemeral Docker containers.
+:::
+
+::: {.column width="50%"}
+#### Sandboxed Skill Subprocess Runner
+
+```python
+import subprocess, shlex
+
+def execute_sandboxed_skill(script_path: str, args: list[str]) -> tuple[int, str]:
+    """Executes skill script inside an isolated process boundary."""
+    # Runs with strict timeout and isolated virtual environment
+    cmd = ["uv", "run", "--isolated", script_path] + args
+    
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=30
+        )
+        return proc.returncode, proc.stdout
+    except subprocess.TimeoutExpired:
+        return 124, "ERROR: Skill execution exceeded 30s timeout."
 ```
 :::
 :::
@@ -266,7 +380,6 @@ user_query = "Our canary-app is failing health checks in production. Roll it bac
 # Model selects skill, loads playbook, and executes
 print("Skill Catalog Tokens: ~80 tokens")
 print(f"Triggering query: '{user_query}'")
-# In production: dispatch load_skill via function_declarations
 activated_playbook = load_skill("k8s-canary-rollback")
 print("\nPlaybook Activated Dynamically:\n", activated_playbook[:220], "...")
 ```
@@ -279,17 +392,17 @@ print("\nPlaybook Activated Dynamically:\n", activated_playbook[:220], "...")
 ::: {.column width="50%"}
 #### Production Principles
 - **Index Over Injection:** Never dump all domain knowledge into system prompts; index skill metadata instead.
-- **Self-Contained Modules:** Every skill package must include instructions, deterministic helper scripts, and validation tests.
-- **Lazy Evaluation:** Load detailed instructions only when intent matches, keeping base context <2,000 tokens.
-- **Predictable Playbooks:** Write operational steps as crisp, numbered commands to reduce hallucination risk.
+- **PEP 723 Isolation:** Use inline script dependencies (`# /// script`) with `uv run` to prevent host environment pollution.
+- **Sandboxed Boundaries:** Run external skill scripts inside container or subprocess jail perimeters with strict timeouts.
+- **Skill Chaining:** Pass shared blackboard state across sequential skills rather than bloating context.
 :::
 
 ::: {.column width="50%"}
 #### Pre-Flight Checklist
 - [x] Every skill contains valid YAML frontmatter (`name`, `description`).
-- [x] Skill descriptions accurately reflect triggering conditions.
+- [x] Skill scripts declare inline PEP 723 dependencies for `uv`.
 - [x] Discovery index overhead remains <50 tokens per skill.
-- [x] Dynamic loader handles missing skill fallbacks safely.
-- [x] Playbook instructions verified for idempotency.
+- [x] Subprocess execution sandboxed with hard timeout ceilings.
+- [x] Dynamic loader handles missing skill fallbacks gracefully.
 :::
 :::

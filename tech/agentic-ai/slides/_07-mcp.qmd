@@ -204,9 +204,153 @@ def get_schema() -> str:
 def calculate_tax(amount: float, rate: float = 0.08) -> float:
     """Calculates tax on sales volume."""
     return amount * rate
+```
+:::
+:::
 
-if __name__ == "__main__":
-    mcp.run() # Starts stdio loop
+---
+
+### Production Deployment: Mounting FastMCP in FastAPI
+
+::: columns
+::: {.column width="50%"}
+#### Enterprise Microservice Pattern
+In production Kubernetes environments, deploy MCP servers as remote SSE services mounted directly into **FastAPI**:
+
+- **Shared Team Access:** Multiple agents and engineers access the same central server over HTTP.
+- **Centralized Auth:** Protect endpoints with OAuth2, API keys, or mTLS at the API gateway layer.
+- **Unified OpenAPI & SSE:** Run standard REST endpoints alongside streaming MCP endpoints.
+:::
+
+::: {.column width="50%"}
+#### Mounting FastMCP into FastAPI
+
+```python
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Enterprise-Analytics-Service")
+
+@mcp.tool()
+def query_metrics(metric_name: str) -> dict:
+    """Fetches real-time cluster metrics."""
+    return {"metric": metric_name, "status": "nominal"}
+
+# Mount FastMCP SSE transport directly into FastAPI
+app = FastAPI(title="Production Agent Gateway")
+app.mount("/mcp", mcp.get_asgi_app())
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "mcp_endpoint": "/mcp/sse"}
+```
+:::
+:::
+
+---
+
+### Dynamic Resources & Real-Time Subscriptions
+
+::: columns
+::: {.column width="50%"}
+#### Passive Reads vs. Push Subscriptions
+While standard resources are fetched on-demand (`resources/read`), MCP supports **live subscriptions**:
+
+- **`resources/subscribe`**: Client registers interest in a URI (e.g. `logs://app.log`, `sqlite://schema`).
+- **Push Notifications**: When data changes, the server fires `notifications/resources/updated`.
+- **Live Agent Context:** The agent runtime updates its context blackboard automatically without polling.
+:::
+
+::: {.column width="50%"}
+#### Subscribing to Live Resource Updates
+
+```python
+from mcp import ClientSession
+
+async def setup_resource_watcher(session: ClientSession):
+    # Subscribe to dynamic schema changes
+    await session.subscribe_resource("db://schema")
+    print("Subscribed to live schema updates.")
+
+    # Server pushes notification when table structure changes
+    async for notification in session.incoming_notifications:
+        if notification.method == "notifications/resources/updated":
+            print(f"Resource updated: {notification.params.uri}")
+```
+:::
+:::
+
+---
+
+### Reusable Prompts & Client Execution
+
+::: columns
+::: {.column width="50%"}
+#### Standardizing Reusable Workflows
+MCP Prompts (`@mcp.prompt()`) enable server authors to package validated, pre-engineered prompts:
+
+- **Consistent Engineering:** Enforces team prompt guidelines and required output formats across all agent hosts.
+- **Parameterized Input:** Accepts dynamic arguments (e.g. `quarter`, `target_service`).
+- **Client Discovery:** Host displays available prompts as slash commands (e.g. `/audit-revenue`).
+:::
+
+::: {.column width="50%"}
+#### FastMCP Prompt Definition & Usage
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Template-Hub")
+
+# 1. Server defines standardized prompt template
+@mcp.prompt("financial-audit")
+def financial_audit_prompt(quarter: str = "Q3", threshold: float = 50000.0) -> str:
+    """Standardized prompt for financial risk reviews."""
+    return (
+        f"Perform an audit for {quarter} revenue.\n"
+        f"Flag all transactions exceeding ${threshold:,.2f}.\n"
+        "Cite specific anomaly indicators."
+    )
+```
+:::
+:::
+
+---
+
+### Multi-Server Aggregation in Agent Clients
+
+::: columns
+::: {.column width="50%"}
+#### Aggregating Multiple MCP Servers
+Enterprise agents typically need tools from multiple distinct systems simultaneously:
+
+- **Multi-Server Clients:** The agent client maintains parallel connections to a Database Server, a GitHub Server, and an Internal Metrics Server.
+- **Unified Toolset:** Merges tool lists across servers and provides them to Gemini 2.5 Flash in a single prompt.
+- **Namespacing:** Servers can prefix tool names (e.g. `db_query`, `git_commit`) to prevent collisions.
+:::
+
+::: {.column width="50%"}
+#### Aggregating Client Connections
+
+```python
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def aggregate_mcp_servers():
+    db_params = StdioServerParameters(command="python3", args=["db_server.py"])
+    git_params = StdioServerParameters(command="python3", args=["git_server.py"])
+    
+    # Connect to both servers concurrently
+    async with stdio_client(db_params) as (r1, w1), stdio_client(git_params) as (r2, w2):
+        async with ClientSession(r1, w1) as s_db, ClientSession(r2, w2) as s_git:
+            await asyncio.gather(s_db.initialize(), s_git.initialize())
+            
+            # Combine tools into a unified catalog
+            db_tools = await s_db.list_tools()
+            git_tools = await s_git.list_tools()
+            all_tools = db_tools.tools + git_tools.tools
+            print(f"Aggregated {len(all_tools)} tools across 2 MCP servers!")
 ```
 :::
 :::
@@ -250,7 +394,6 @@ from google import genai
 
 client = genai.Client()
 
-# Server process parameters
 params = StdioServerParameters(
     command="uv",
     args=["run", "server.py"]
@@ -271,8 +414,8 @@ async with stdio_client(params) as (read, write):
         
         # 2. Call tool dynamically on model request
         result = await session.call_tool(
-            "calculate_tax", 
-            arguments={"amount": 1000.0}
+            "query_sales_metrics", 
+            arguments={"sql_query": "SELECT SUM(amount) FROM sales;"}
         )
         print("MCP Tool Output:", result.content)
 ```
@@ -289,7 +432,7 @@ async with stdio_client(params) as (read, write):
 We will build a complete, production-grade **SQLite Analytics MCP Server** using **Python FastMCP**:
 
 1. **Resource (`sqlite://schema`):** Exposes the database schema to the LLM as read-only context.
-2. **Prompt (`revenue-analysis`):** Standardizes prompts for regional revenue breakdown.
+2. **Prompt (`revenue-breakdown`):** Standardizes prompts for regional revenue breakdown.
 3. **Safe Tool (`query_sales`):** Implements an AST query validator that strictly enforces read-only `SELECT` queries.
 4. **Agent Client:** Connects Gemini 2.5 Flash to the MCP server to answer analytical queries.
 :::
@@ -410,17 +553,18 @@ if __name__ == "__main__":
 ::: {.column width="50%"}
 #### Production Principles
 - **Decouple with MCP:** Never build hardcoded tools inside agents; expose them through standardized MCP servers.
-- **Use FastMCP First:** Build Python MCP servers with `mcp.server.fastmcp` for automatic Pydantic schemas.
+- **FastAPI for Remote SSE:** Mount FastMCP into FastAPI with `mcp.get_asgi_app()` for Kubernetes deployments.
 - **Three Distinct Primitives:** Use **Tools** for side-effects, **Resources** for static context, and **Prompts** for templates.
-- **Enforce Zero-Trust:** Protect databases with query sanitizers and read-only database connections.
+- **Multi-Server Aggregation:** Combine specialized MCP servers into a single unified client toolset.
 :::
 
 ::: {.column width="50%"}
 #### Pre-Flight Checklist
 - [x] Server runs cleanly via `stdio` and passes JSON-RPC handshake.
+- [x] Remote deployments mounted into FastAPI via SSE transport.
 - [x] Tools expose explicit type annotations and complete docstrings.
 - [x] Read-only resources partitioned with standard URI schemes.
+- [x] Dynamic resources configured with push subscriptions.
 - [x] Mutating SQL keywords sanitized before query execution.
-- [x] Client validates tool schemas before calling LLM.
 :::
 :::

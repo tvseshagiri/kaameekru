@@ -61,6 +61,150 @@ graph LR
 
 ---
 
+### Exact-Match Block Edits vs. Unified Diffs
+
+::: columns
+::: {.column width="50%"}
+#### Why LLMs Struggle with Unified Diffs
+Standard unified diffs (`@@ -45,7 +45,8 @@`) frequently fail in LLM coding agents:
+
+- **Line Number Hallucinations:** Models miscalculate line offsets, causing patch rejections.
+- **Cascading Drift:** Editing line 20 breaks all subsequent hunk line numbers in the same turn.
+- **Exact-Match Standard:** Matching a contiguous, unique string block (`replace_file_content`) provides 100% deterministic edits without line counting.
+:::
+
+::: {.column width="50%"}
+#### Deterministic Block Replacement Engine
+
+```python
+def replace_file_content(filepath: str, target: str, replacement: str) -> None:
+    """Safely updates file content via exact block matching."""
+    with open(filepath, "r") as f:
+        content = f.read()
+    
+    if target not in content:
+        raise ValueError("Target block not found in file.")
+    if content.count(target) > 1:
+        raise ValueError("Target block is ambiguous (found multiple matches).")
+        
+    updated = content.replace(target, replacement, 1)
+    with open(filepath, "w") as f:
+        f.write(updated)
+```
+:::
+:::
+
+---
+
+### Long-Horizon Context Compaction & Scratchpads
+
+::: columns
+::: {.column width="50%"}
+#### Surviving 100+ Turn Engineering Sessions
+Large refactoring projects easily generate 300,000+ tokens of raw logs and code:
+
+- **Output Truncation:** Cap verbose terminal logs (e.g. `pytest` or `npm install`) to the last 50 lines.
+- **Superseded File Eviction:** Evict older `view_file` snippets from context once a file has been edited.
+- **Scratchpad Checkpointing:** Agent records decisions and progress to a persistent `scratch/notes.md` file rather than bloating conversation turns.
+:::
+
+::: {.column width="50%"}
+#### Context Compaction Logic
+
+```python
+def compact_context_history(messages: list[dict], max_tokens: int = 120000) -> list[dict]:
+    """Prunes stale tool outputs and truncates oversized terminal logs."""
+    compacted = []
+    for msg in messages:
+        if msg.get("role") == "tool" and len(msg.get("content", "")) > 4000:
+            # Keep top summary and bottom error lines
+            full = msg["content"]
+            compacted.append({
+                **msg, 
+                "content": full[:1500] + "\n... [TRUNCATED LOGS] ...\n" + full[-1500:]
+            })
+        else:
+            compacted.append(msg)
+    return compacted
+```
+:::
+:::
+
+---
+
+### Permission Tiers & Dual-Mode Sandbox Execution
+
+::: columns
+::: {.column width="50%"}
+#### The Dual-Tier Permission Model
+Autonomous coding agents must balance speed with enterprise security:
+
+- **Tier 1 (Auto-Approvable):** Read-only exploration tools (`view_file`, `grep_search`, `git status`) and sandboxed unit tests run automatically without interrupting the user.
+- **Tier 2 (Human Approval Gate):** Destructive terminal operations (`git push`, `rm -rf`, modifying environment credentials, network access) halt execution for user sign-off.
+:::
+
+::: {.column width="50%"}
+#### Sandbox Command Evaluator
+
+```python
+from typing import Literal
+
+def evaluate_command_safety(command: str) -> Literal["auto_run", "require_approval"]:
+    """Classifies commands into safe sandboxed vs. human-gated actions."""
+    safe_prefixes = [
+        "pytest", "python -m unittest", "uv run pytest", 
+        "git status", "git diff", "git log"
+    ]
+    destructive_keywords = ["rm -rf", "drop", "sudo", "git push", "chmod", "curl"]
+    
+    if any(keyword in command for keyword in destructive_keywords):
+        return "require_approval"
+        
+    if any(command.startswith(prefix) for prefix in safe_prefixes):
+        return "auto_run"
+        
+    return "require_approval"
+```
+:::
+:::
+
+---
+
+### Multi-Agent Coding Swarms: Planner, Coder & Tester
+
+::: columns
+::: {.column width="50%"}
+#### Decomposing the Coding Lifecycle
+Complex code changes succeed when divided among specialized roles:
+
+- **Architect / Planner:** Creates the implementation plan and enforces architecture invariants.
+- **Codebase Researcher:** Read-only subagent searching symbols and usages without modifying files.
+- **Surgical Coder:** Applies exact AST / block replacements.
+- **Test Engineer:** Runs test suites and evaluates compiler/linter error feedback.
+:::
+
+::: {.column width="50%"}
+#### Swarm Topology
+
+```{mermaid}
+graph LR
+    User[User Goal] --> Planner[Lead Architect]
+    Planner --> Res[Researcher Subagent]
+    Res --> Planner
+    Planner --> Coder[Implementer Subagent]
+    Coder --> Tester[Tester Subagent]
+    Tester -->|Failure Stack| Coder
+    Tester -->|All Pass| Planner
+    style Planner fill:#172554,stroke:#3b82f6,color:#fff
+    style Res fill:#262626,stroke:#737373,color:#fff
+    style Coder fill:#064e3b,stroke:#10b981,color:#fff
+    style Tester fill:#451a03,stroke:#f97316,color:#fff
+```
+:::
+:::
+
+---
+
 ### Spec-Driven Engineering: Planning vs. Execution Mode
 
 ::: columns
@@ -223,7 +367,8 @@ def repair_code(source_code: str, error_log: str) -> str:
         f"Pytest Failure Output:\n{error_log}\n\n"
         "Return ONLY raw executable Python code. No markdown fences, no explanations."
     )
-    # Remove any markdown code fences cleanly
+    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    # Remove any markdown code fences cleanly using hex escape
     clean_text = resp.text.replace("\x60\x60\x60python", "").replace("\x60\x60\x60", "")
     return clean_text.strip()
 ```
@@ -266,19 +411,19 @@ else:
 ::: columns
 ::: {.column width="50%"}
 #### Production Principles
-- **Tooling Over Raw Chat:** Autonomous coding agents succeed because of real runtime tools (`view_file`, `grep_search`, `pytest`), not just prompting.
-- **Spec First, Code Second:** Always require an implementation plan and verification criteria before executing multi-file edits.
-- **Bounded Loops:** Enforce hard recursion ceilings on self-healing loops to prevent infinite retries.
-- **Surgical Edits:** Favor targeted block edits over full-file overwrites to avoid context blowouts.
+- **Exact-Match Edits:** Use block replacement instead of unified diffs to eliminate line drift bugs.
+- **Active Compaction:** Prune stale logs and evict old file views to survive 100+ turns without context blowout.
+- **Dual-Tier Permissions:** Auto-approve read tools sandboxed; gate destructive terminal actions with human sign-off.
+- **Multi-Agent Specialization:** Divide planning, research, coding, and testing into distinct sub-agents.
 :::
 
 ::: {.column width="50%"}
 #### Day 2 Complete Checkpoint
 - [x] **Session 5:** LangGraph cyclic state & Pregel channels.
 - [x] **Session 6:** Google ADK multi-agent teams & workflows.
-- [x] **Session 7:** Model Context Protocol (FastMCP + SQLite).
-- [x] **Session 8:** Progressive disclosure & `SKILL.md` packaging.
-- [x] **Session 9:** Autonomous coding agents & self-healing loops.
+- [x] **Session 7:** Model Context Protocol (FastMCP + FastAPI).
+- [x] **Session 8:** Progressive disclosure & PEP 723 skill packaging.
+- [x] **Session 9:** Autonomous coding agents, block diffs & swarms.
 
 ::: {.callout-tip appearance="simple"}
 🚀 **Ready for Day 3:** Evaluation, Observability & Enterprise Governance.
