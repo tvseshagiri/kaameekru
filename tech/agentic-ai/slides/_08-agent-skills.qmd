@@ -5,28 +5,43 @@
 ### The Context Window Dilemma: Why Monolithic Prompts Fail
 
 ::: columns
-::: {.column width="50%"}
+::: {.column width="48%"}
 #### The Bloated Prompt Anti-Pattern
 As agents scale to enterprise tasks, they require knowledge of dozens of specialized domains:
 
-- **Prompt Bloat:** Injecting instructions for 50+ workflows consumes 40,000+ tokens on *every single interaction*.
-- **Attention Degradation:** Models suffer from "Lost in the Middle" syndrome, ignoring critical system rules.
-- **Latency & Cost:** Skyrocketing Time-to-First-Token (TTFT) and unsustainable token costs.
+- **Prompt Bloat:** Injecting 50+ workflows consumes 40,000+ tokens on *every single interaction*.
+- **Attention Degradation:** Models suffer from "Lost in the Middle" syndrome, missing critical instructions.
+- **Cost & Latency:** Skyrocketing Time-to-First-Token (TTFT) and high recurring compute bills.
 :::
 
-::: {.column width="50%"}
-```{mermaid}
-graph LR
-    subgraph Monolithic["Monolithic Anti-Pattern (40k Tokens)"]
-        M1[System Prompt: Skill 1 + Skill 2 + ... + Skill 50] --> LLM1[LLM Attention Degraded]
-    end
-    subgraph Progressive["Progressive Disclosure (<2k Tokens)"]
-        Index[Lean Skill Index: Name + Summary] --> LLM2[LLM Selects Skill]
-        LLM2 --> Load[Lazy Load: SKILL.md On Demand]
-    end
-    style Index fill:#172554,stroke:#3b82f6,color:#fff
-    style Load fill:#064e3b,stroke:#10b981,color:#fff
-```
+::: {.column width="52%"}
+::: {style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;"}
+::: {style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 12px 16px;"}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+  <span style="font-weight: 700; color: #ef4444; font-size: 0.9em;">❌ Monolithic Prompt: Static Dump</span>
+  <span style="font-size: 0.72em; background: #451a03; color: #f97316; padding: 2px 8px; border-radius: 4px; font-weight: 600;">40k+ Tokens</span>
+</div>
+<div style="font-size: 0.82em; color: #d4d4d4; line-height: 1.4;">
+All 50+ playbooks injected into root prompt. Wastes context, degrades reasoning, and inflates cost.
+</div>
+<div style="margin-top: 8px; font-family: monospace; font-size: 0.82em; color: #f87171; text-align: center; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 4px;">
+50 Skills × 800 Tokens = <b>40,000 Overhead Tokens</b>
+</div>
+:::
+
+::: {style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 12px 16px;"}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+  <span style="font-weight: 700; color: #10b981; font-size: 0.9em;">✅ Progressive Disclosure: Just-in-Time</span>
+  <span style="font-size: 0.72em; background: #064e3b; color: #34d399; padding: 2px 8px; border-radius: 4px; font-weight: 600;">&lt;2k Tokens</span>
+</div>
+<div style="font-size: 0.82em; color: #d4d4d4; line-height: 1.4;">
+Lean metadata catalog upfront (~30 tok/skill). Agent lazily loads detailed SKILL.md on demand.
+</div>
+<div style="margin-top: 8px; font-family: monospace; font-size: 0.82em; color: #34d399; text-align: center; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 4px;">
+50 Skills in Index = <b>~1,500 Tokens (96% Saved)</b>
+</div>
+:::
+:::
 :::
 :::
 
