@@ -1,0 +1,287 @@
+# Session 9: Coding Agents in Modern Engineering {#session-9}
+
+---
+
+### The Evolution of Developer AI
+
+::: columns
+::: {.column width="50%"}
+#### From Code Completion to Autonomous Agents
+Developer AI has evolved across three distinct generations:
+
+- **Gen 1 (Autocomplete):** Line-level ghost text completions (Copilot inline tab suggestions). Passive.
+- **Gen 2 (Chat Assistants):** Sidebar chat windows. Required manual copy-pasting of code back and forth.
+- **Gen 3 (Autonomous Agents):** Goal-directed agents with tool execution (Antigravity, Cursor, Claude Code).
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    subgraph Gen3["Gen 3: Autonomous Loop"]
+        Goal[User Goal] --> Plan[Plan Architecture]
+        Plan --> Edit[Surgical Code Edit]
+        Edit --> Test[Run pytest / Build]
+        Test -->|Fail| Heal[Self-Healing Loop]
+        Heal --> Edit
+        Test -->|Pass| Done([Verified Code])
+    end
+    style Plan fill:#172554,stroke:#3b82f6,color:#fff
+    style Edit fill:#064e3b,stroke:#10b981,color:#fff
+    style Heal fill:#451a03,stroke:#f97316,color:#fff
+    style Done fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### The 5 Tooling Pillars of Coding Agents
+
+::: columns
+::: {.column width="50%"}
+#### 1. Codebase Exploration
+- **Line-Sliced File Views:** Paging large files with `view_file(start, end)` to conserve context.
+- **Regex & AST Search:** Fast searching with `ripgrep` across thousands of repository files.
+
+#### 2. Surgical Code Edits
+- **Precise Block Replacement:** Match exact target content and swap with replacement chunk.
+- **Anti-Pattern:** Rewriting entire 600-line files wastes tokens and introduces regression bugs.
+:::
+
+::: {.column width="50%"}
+#### 3. Sandboxed Execution
+- Executes bash commands (`pytest`, `uv sync`, `git`) in isolated environments with strict timeouts.
+
+#### 4. Specialized Sub-Agent Swarms
+- **Codebase Researcher:** Read-only exploration.
+- **Implementation Engineer:** Writes code diffs.
+- **Test Engineer:** Runs and verifies test suites.
+:::
+:::
+
+---
+
+### Spec-Driven Engineering: Planning vs. Execution Mode
+
+::: columns
+::: {.column width="52%"}
+#### Why Jumping Directly to Code Fails
+Complex refactors fail when models write code without discovering existing patterns:
+
+- **Stage 1 (Research):** Read existing interfaces, inspect dependencies, run baseline tests. Zero modifications.
+- **Stage 2 (Implementation Plan):** Produce `implementation_plan.md` defining components, diffs, and verification steps.
+- **Stage 3 (Human Review Gate):** Lead architect reviews and approves the plan before execution begins.
+- **Stage 4 (Execution):** Apply surgical edits step-by-step.
+- **Stage 5 (Walkthrough):** Document evidence of passing tests.
+:::
+
+::: {.column width="48%"}
+#### The Dual-Artifact Lifecycle
+
+```{mermaid}
+graph LR
+    Req[Requirement] --> Plan[implementation_plan.md]
+    Plan --> Review{Human Approval?}
+    Review -- Approved --> Exec[Execution Mode]
+    Exec --> Verify[Run Test Suites]
+    Verify --> Walk[walkthrough.md]
+    style Plan fill:#172554,stroke:#3b82f6,color:#fff
+    style Review fill:#b91c1c,stroke:#ef4444,color:#fff
+    style Exec fill:#064e3b,stroke:#10b981,color:#fff
+    style Walk fill:#1e1b4b,stroke:#6366f1,color:#fff
+```
+:::
+:::
+
+---
+
+### Automated Self-Healing: The Test-Driven Repair Loop
+
+::: columns
+::: {.column width="50%"}
+#### The Self-Healing Mechanic
+When code fails a test or build, the error stack trace becomes high-signal input for the next prompt:
+
+1. **Agent Executes Test:** `uv run pytest tests/test_auth.py`
+2. **Capture Traceback:** Process returns exit code `1` with exact line number and assertion failure.
+3. **Targeted Diagnosis:** Model inspects the specific failing function and crafts a focused fix.
+4. **Re-Test:** Loop continues until exit code is `0`.
+:::
+
+::: {.column width="50%"}
+#### Safety Limits on Healing Loops
+
+```python
+MAX_REPAIR_ATTEMPTS = 4
+
+for attempt in range(1, MAX_REPAIR_ATTEMPTS + 1):
+    result = run_pytest()
+    if result.returncode == 0:
+        print(f"✅ Tests passed on attempt {attempt}!")
+        break
+    
+    # Extract traceback and diagnose
+    error_trace = result.stderr or result.stdout
+    patch = agent.diagnose_and_repair(error_trace)
+    apply_patch(patch)
+else:
+    raise RuntimeError("Self-healing loop exceeded retry limit.")
+```
+:::
+:::
+
+---
+
+### Lab 9 Scenario: Autonomous Self-Healing Refactoring Agent
+
+::: columns
+::: {.column width="55%"}
+#### The Production Mission
+We will build an **Autonomous Self-Healing Refactoring Agent** using **Google Gemini 2.5 Flash**:
+
+1. **Target:** A legacy Python rate-limiting token bucket with an off-by-one concurrency bug.
+2. **Test Suite:** A `pytest` test module with strict assertions exposing the edge-case failure.
+3. **Diagnostic Engine:** Agent executes `pytest`, captures failure trace, and queries Gemini 2.5 Flash.
+4. **Surgical Patch:** Agent parses proposed fix, overwrites target module, and re-executes tests to verify exit code `0`.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    Buggy[Buggy Code] --> Test1[Run pytest]
+    Test1 -->|Exit 1: Failed| Agent[Gemini Agent]
+    Agent -->|Analyze Traceback| Patch[Generate Patch]
+    Patch --> Apply[Apply Surgical Fix]
+    Apply --> Test2[Re-run pytest]
+    Test2 -->|Exit 0: Passed| Verified([Success])
+    style Buggy fill:#451a03,stroke:#f97316,color:#fff
+    style Agent fill:#172554,stroke:#3b82f6,color:#fff
+    style Verified fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 9: Complete Reference Implementation (Part 1: Target & Test Suite)
+
+```python
+"""Lab 9: Buggy Target Module & Automated Pytest Suite."""
+import pathlib
+
+# 1. Target legacy module with a known bug (burst limit exceeded)
+TARGET_CODE = """
+class TokenBucket:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.tokens = capacity
+
+    def consume(self, amount: int = 1) -> bool:
+        # BUG: Off-by-one check prevents using the last available token!
+        if self.tokens - amount <= 0:
+            return False
+        self.tokens -= amount
+        return True
+"""
+
+# 2. Pytest test module
+TEST_CODE = """
+def test_consume_to_empty():
+    bucket = TokenBucket(capacity=2)
+    assert bucket.consume(1) is True
+    assert bucket.consume(1) is True # Fails on buggy code!
+    assert bucket.consume(1) is False
+"""
+pathlib.Path("rate_limiter.py").write_text(TARGET_CODE)
+pathlib.Path("test_limiter.py").write_text(TEST_CODE)
+```
+
+---
+
+### Lab 9: Complete Reference Implementation (Part 2: Self-Healing Runtime)
+
+```python
+import subprocess
+from google import genai
+
+client = genai.Client()
+
+def run_tests() -> tuple[int, str]:
+    """Runs pytest and returns (exit_code, output)."""
+    proc = subprocess.run(
+        ["python3", "-m", "pytest", "test_limiter.py"],
+        capture_output=True, text=True
+    )
+    return proc.returncode, proc.stdout + proc.stderr
+
+def repair_code(source_code: str, error_log: str) -> str:
+    """Uses Gemini 2.5 Flash to generate a bugfix from error traceback."""
+    prompt = (
+        "You are an expert Python engineer.\n"
+        "Fix the bug in the code below so all tests pass.\n\n"
+        f"Code:\n{source_code}\n\n"
+        f"Pytest Failure Output:\n{error_log}\n\n"
+        "Return ONLY raw executable Python code. No markdown fences, no explanations."
+    )
+    # Remove any markdown code fences cleanly
+    clean_text = resp.text.replace("\x60\x60\x60python", "").replace("\x60\x60\x60", "")
+    return clean_text.strip()
+```
+
+---
+
+### Lab 9: Complete Reference Implementation (Part 3: Autonomous Loop)
+
+```python
+# Run the autonomous test-and-repair loop
+print("Initiating Baseline Verification...")
+exit_code, output = run_tests()
+
+if exit_code == 0:
+    print("Baseline tests already passing.")
+else:
+    print("⚠️ Baseline Failed as expected. Starting Autonomous Repair...")
+    source = pathlib.Path("rate_limiter.py").read_text()
+    fixed_code = repair_code(source, output)
+    
+    # Apply surgical repair
+    pathlib.Path("rate_limiter.py").write_text(fixed_code)
+    print("Patch applied to rate_limiter.py. Re-running tests...")
+    
+    # Re-verify
+    new_code, new_output = run_tests()
+    if new_code == 0:
+        print("🎉 SUCCESS: All tests passed! Bug autonomously healed.")
+    else:
+        print("❌ Repair failed. Re-initiating diagnosis...")
+```
+
+- Automates the complete developer feedback loop.
+- Produces verifiable code backed by test assertions.
+
+---
+
+### Day 2 Session 9 Takeaways & Day 2 Checkpoint
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **Tooling Over Raw Chat:** Autonomous coding agents succeed because of real runtime tools (`view_file`, `grep_search`, `pytest`), not just prompting.
+- **Spec First, Code Second:** Always require an implementation plan and verification criteria before executing multi-file edits.
+- **Bounded Loops:** Enforce hard recursion ceilings on self-healing loops to prevent infinite retries.
+- **Surgical Edits:** Favor targeted block edits over full-file overwrites to avoid context blowouts.
+:::
+
+::: {.column width="50%"}
+#### Day 2 Complete Checkpoint
+- [x] **Session 5:** LangGraph cyclic state & Pregel channels.
+- [x] **Session 6:** Google ADK multi-agent teams & workflows.
+- [x] **Session 7:** Model Context Protocol (FastMCP + SQLite).
+- [x] **Session 8:** Progressive disclosure & `SKILL.md` packaging.
+- [x] **Session 9:** Autonomous coding agents & self-healing loops.
+
+::: {.callout-tip appearance="simple"}
+🚀 **Ready for Day 3:** Evaluation, Observability & Enterprise Governance.
+:::
+:::
+:::

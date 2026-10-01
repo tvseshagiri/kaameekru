@@ -1,0 +1,414 @@
+# Session 7: Model Context Protocol (MCP) {#session-7}
+
+---
+
+### The $M \times N$ Integration Nightmare
+
+::: columns
+::: {.column width="50%"}
+#### Fragmentation Before MCP
+Before MCP, every AI framework had to build custom, bespoke integrations for every tool and data source:
+
+- **$M$ Frameworks $\times N$ Tools:** LangChain, LlamaIndex, AutoGen, and custom apps each maintained separate connectors for GitHub, Slack, Postgres, Jira.
+- **Fragile Schemas:** Incompatible tool formats, broken type conversions, and redundant schema maintenance.
+- **Vendor Lock-in:** Code written for one framework could not be reused in another.
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    subgraph Fragmented["Before: M x N Connectors"]
+        L1[LangGraph] -.-> G1[GitHub]
+        L1 -.-> P1[Postgres]
+        A1[AutoGen] -.-> G1
+        A1 -.-> P1
+    end
+    subgraph Unified["With MCP: M + N Standard"]
+        App1[Any Agent Host] --> Proto((MCP Protocol))
+        Proto --> S1[GitHub Server]
+        Proto --> S2[Postgres Server]
+    end
+    style Proto fill:#1e1b4b,stroke:#6366f1,color:#fff
+```
+:::
+:::
+
+---
+
+### What is the Model Context Protocol?
+
+::: columns
+::: {.column width="52%"}
+#### The Universal Open Standard
+The **Model Context Protocol (MCP)** is an open, JSON-RPC 2.0 based standard created by Anthropic and adopted across the AI ecosystem:
+
+- **Universal Connectivity:** Decouples AI applications from the data and tools they interact with.
+- **Client-Server Architecture:** Clean separation of concerns between agent orchestration and resource access.
+- **Protocol-First:** Language agnostic (Python, TypeScript, Go, Kotlin) with first-class SDKs.
+
+::: {.callout-note appearance="simple"}
+📦 **Install:** `uv add mcp` &middot; **Documentation:** [modelcontextprotocol.io](https://modelcontextprotocol.io)
+:::
+:::
+
+::: {.column width="48%"}
+#### Core MCP Topology
+
+```{mermaid}
+graph LR
+    Host[MCP Host App<br>Cursor / IDE / Agent] --> Client[MCP Client]
+    Client <-->|JSON-RPC 2.0| Server[MCP Server]
+    Server <--> Tools[(Databases / APIs)]
+    style Host fill:#262626,stroke:#737373,color:#fff
+    style Client fill:#172554,stroke:#3b82f6,color:#fff
+    style Server fill:#064e3b,stroke:#10b981,color:#fff
+    style Tools fill:#451a03,stroke:#f97316,color:#fff
+```
+:::
+:::
+
+---
+
+### MCP Architecture: Host, Client & Server
+
+::: columns
+::: {.column width="50%"}
+#### 1. MCP Host
+The outer runtime application that orchestrates the user interaction and AI models:
+- Examples: IDEs (Antigravity, Cursor), Desktop apps (Claude Desktop), or custom FastAPI services.
+- Manages security boundaries, user authorizations, and context assembly.
+
+#### 2. MCP Client
+Maintains stateful 1:1 connections with individual MCP servers:
+- Discovers server capabilities via handshake.
+- Translates model function calls into JSON-RPC messages.
+:::
+
+::: {.column width="50%"}
+#### 3. MCP Server
+Lightweight service providing specific capabilities to clients:
+- Exposes tools, resources, and prompt templates.
+- Runs locally as a subprocess (`stdio`) or remotely as a network service (`SSE` over HTTP).
+- Implements least-privilege access to local databases, enterprise APIs, or filesystems.
+:::
+:::
+
+---
+
+### The 3 Core Primitives of MCP
+
+::: columns
+::: {.column width="50%"}
+#### 1. Tools (`tools/call`)
+Callable executable functions with side effects:
+- Model invokes tools to query databases, write code, or execute API requests.
+- Accepts structured JSON arguments; returns string/content payloads.
+
+#### 2. Resources (`resources/read`)
+Read-only context data attached to prompts:
+- URI-addressable (`sqlite://schema`, `file:///logs/app.log`).
+- Passive context that does not perform actions.
+:::
+
+::: {.column width="50%"}
+#### 3. Prompts (`prompts/get`)
+Standardized, reusable prompt templates:
+- Exposes pre-engineered workflows (e.g. `/audit-code`, `/explain-schema`).
+- Parameterized inputs formatted into message turns.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "query_db",
+    "arguments": {"sql": "SELECT COUNT(*) FROM users"}
+  },
+  "id": 1
+}
+```
+:::
+:::
+
+---
+
+### MCP Transports: Local stdio vs. Remote HTTP SSE
+
+::: columns
+::: {.column width="50%"}
+#### Local `stdio` Transport
+- **Mechanism:** Host spawns server as a child process, communicating over `stdin` and `stdout`.
+- **Pros:** Zero network latency, immune to network partition, local OS process isolation.
+- **Best For:** Developer tooling, local file inspection, CLI automation, desktop IDEs.
+
+```bash
+# Host spawns MCP server process locally
+uv run mcp-server-sqlite --db analytics.db
+```
+:::
+
+::: {.column width="50%"}
+#### Remote `SSE` with FastAPI
+- **Mechanism:** Server runs as a remote HTTP service. Client sends POST requests; server streams responses via Server-Sent Events.
+- **Pros:** Shared enterprise microservices, centralized secrets, Kubernetes scaling.
+- **Best For:** Multi-tenant agent architectures, production cloud clusters.
+
+```bash
+# Remote SSE service on port 8000
+uv run uvicorn mcp_server:app --port 8000
+```
+:::
+:::
+
+---
+
+### FastMCP: High-Level Python Framework
+
+::: columns
+::: {.column width="50%"}
+#### Ergonomic Decorator Syntax
+The official `mcp.server.fastmcp` SDK eliminates low-level JSON-RPC boilerplate:
+
+- **Type-Driven Schemas:** Generates tool definitions directly from Python type hints and docstrings.
+- **Unified Handlers:** Decorators for `@mcp.tool()`, `@mcp.resource()`, and `@mcp.prompt()`.
+- **Dual Runtime:** Run as CLI `stdio` or mount directly into a FastAPI HTTP application.
+:::
+
+::: {.column width="50%"}
+#### FastMCP Server Example
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+# Create MCP server instance
+mcp = FastMCP("Analytics-Server")
+
+@mcp.resource("db://schema")
+def get_schema() -> str:
+    """Read-only database table definitions."""
+    return "TABLE sales (id INT, region TEXT, amount REAL);"
+
+@mcp.tool()
+def calculate_tax(amount: float, rate: float = 0.08) -> float:
+    """Calculates tax on sales volume."""
+    return amount * rate
+
+if __name__ == "__main__":
+    mcp.run() # Starts stdio loop
+```
+:::
+:::
+
+---
+
+### Security, Sandboxing & Capability Negotiation
+
+::: columns
+::: {.column width="50%"}
+#### The Handshake Protocol
+Before exchanging tools, Host and Server negotiate capabilities:
+
+1. **`initialize`**: Client sends protocol version and desired capabilities.
+2. **Capabilities Response**: Server returns supported primitives (`tools`, `resources`, `prompts`).
+3. **`initialized` Notification**: Client confirms; channel opens for live calls.
+:::
+
+::: {.column width="50%"}
+#### Production Security Checklist
+- **Least-Privilege Scoping:** Expose only narrow, dedicated tools rather than raw shell execution.
+- **Input Sanitization:** Validate all SQL and CLI arguments against injection attacks.
+- **Human Approval Gate:** Require explicit user confirmation in the Host before executing destructive tools.
+- **Audit Logging:** Record every `tools/call` invocation with timestamp, user ID, and parameters.
+:::
+:::
+
+---
+
+### Client-Side Integration with Google Gemini 2.5
+
+::: columns
+::: {.column width="50%"}
+#### Converting MCP Tools to Gemini
+The MCP Client retrieves tool schemas and maps them directly to Gemini `Tool` definitions:
+
+```python
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+from google import genai
+
+client = genai.Client()
+
+# Server process parameters
+params = StdioServerParameters(
+    command="uv",
+    args=["run", "server.py"]
+)
+```
+:::
+
+::: {.column width="50%"}
+#### Dynamic Execution Loop
+
+```python
+async with stdio_client(params) as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+        
+        # 1. Discover available MCP tools
+        mcp_tools = await session.list_tools()
+        
+        # 2. Call tool dynamically on model request
+        result = await session.call_tool(
+            "calculate_tax", 
+            arguments={"amount": 1000.0}
+        )
+        print("MCP Tool Output:", result.content)
+```
+:::
+:::
+
+---
+
+### Lab 7 Scenario: Enterprise FastMCP Analytics Server
+
+::: columns
+::: {.column width="55%"}
+#### The Production Mission
+We will build a complete, production-grade **SQLite Analytics MCP Server** using **Python FastMCP**:
+
+1. **Resource (`sqlite://schema`):** Exposes the database schema to the LLM as read-only context.
+2. **Prompt (`revenue-analysis`):** Standardizes prompts for regional revenue breakdown.
+3. **Safe Tool (`query_sales`):** Implements an AST query validator that strictly enforces read-only `SELECT` queries.
+4. **Agent Client:** Connects Gemini 2.5 Flash to the MCP server to answer analytical queries.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    Gemini[Gemini 2.5 Agent] <--> Client[MCP Client]
+    Client <-->|stdio JSON-RPC| FastMCP[FastMCP Server]
+    FastMCP --> Res[Resource: Schema]
+    FastMCP --> Tool[Tool: Safe SQL]
+    Tool --> DB[(SQLite DB)]
+    style Gemini fill:#172554,stroke:#3b82f6,color:#fff
+    style FastMCP fill:#064e3b,stroke:#10b981,color:#fff
+    style DB fill:#451a03,stroke:#f97316,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 7: Complete Reference Implementation (Part 1: Server Setup & Resources)
+
+```python
+"""Lab 7: Enterprise FastMCP SQLite Server - Resources & Prompts."""
+import sqlite3
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Enterprise-Analytics-Hub")
+
+# Initialize in-memory SQLite table
+conn = sqlite3.connect(":memory:", check_same_thread=False)
+with conn:
+    conn.execute("CREATE TABLE sales (id INTEGER PRIMARY KEY, region TEXT, amount REAL);")
+    conn.executemany("INSERT INTO sales VALUES (?, ?, ?);", [
+        (1, "North America", 145000.0), (2, "EMEA", 98000.0), (3, "APAC", 112000.0)
+    ])
+
+@mcp.resource("sqlite://schema")
+def get_schema() -> str:
+    """Exposes current database schema as a read-only MCP resource."""
+    return "TABLE sales (id INTEGER PRIMARY KEY, region TEXT, amount REAL);"
+
+@mcp.prompt("revenue-breakdown")
+def revenue_prompt(region: str = "all") -> str:
+    """Generates standard prompt template for financial reporting."""
+    return f"Analyze revenue performance for region: '{region}'. Cite total and trends."
+```
+
+---
+
+### Lab 7: Complete Reference Implementation (Part 2: Secure SQL Query Tool)
+
+```python
+@mcp.tool()
+def query_sales_metrics(sql_query: str) -> list[dict]:
+    """Executes read-only SQL queries on the enterprise sales database.
+    
+    Args:
+        sql_query: The SQL SELECT statement to execute.
+    """
+    clean_sql = sql_query.strip().upper()
+    
+    # Strict AST query sanitizer blocking mutations
+    forbidden = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE"]
+    if any(keyword in clean_sql for keyword in forbidden):
+        raise ValueError(f"Security Violation: Mutating keywords detected in query: {clean_sql}")
+    
+    if not clean_sql.startswith("SELECT"):
+        raise ValueError("Security Violation: Only SELECT queries are permitted.")
+        
+    cursor = conn.cursor()
+    cursor.execute(sql_query)
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+if __name__ == "__main__":
+    mcp.run() # Starts stdio JSON-RPC server loop
+```
+
+---
+
+### Lab 7: Complete Reference Implementation (Part 3: Gemini Agent Client)
+
+```python
+"""Lab 7: Gemini Agent Client consuming the FastMCP Server."""
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def run_analytics_agent():
+    params = StdioServerParameters(command="python3", args=["server.py"])
+    
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            
+            # Read schema resource
+            schema_res = await session.read_resource("sqlite://schema")
+            print("Resource Loaded:", schema_res.contents[0].text)
+            
+            # Execute tool call
+            result = await session.call_tool(
+                "query_sales_metrics",
+                arguments={"sql_query": "SELECT region, amount FROM sales WHERE amount > 100000.0"}
+            )
+            print("Analytics Result:", result.content[0].text)
+
+if __name__ == "__main__":
+    asyncio.run(run_analytics_agent())
+```
+
+---
+
+### Day 2 Session 7 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **Decouple with MCP:** Never build hardcoded tools inside agents; expose them through standardized MCP servers.
+- **Use FastMCP First:** Build Python MCP servers with `mcp.server.fastmcp` for automatic Pydantic schemas.
+- **Three Distinct Primitives:** Use **Tools** for side-effects, **Resources** for static context, and **Prompts** for templates.
+- **Enforce Zero-Trust:** Protect databases with query sanitizers and read-only database connections.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] Server runs cleanly via `stdio` and passes JSON-RPC handshake.
+- [x] Tools expose explicit type annotations and complete docstrings.
+- [x] Read-only resources partitioned with standard URI schemes.
+- [x] Mutating SQL keywords sanitized before query execution.
+- [x] Client validates tool schemas before calling LLM.
+:::
+:::

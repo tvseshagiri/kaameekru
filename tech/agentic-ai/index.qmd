@@ -12,3 +12,6 @@ slide-number: true
 {{< include slides/_04-framework-landscape.qmd >}}
 {{< include slides/_05-langgraph.qmd >}}
 {{< include slides/_06-google-adk.qmd >}}
+{{< include slides/_07-mcp.qmd >}}
+{{< include slides/_08-agent-skills.qmd >}}
+{{< include slides/_09-coding-agents.qmd >}}

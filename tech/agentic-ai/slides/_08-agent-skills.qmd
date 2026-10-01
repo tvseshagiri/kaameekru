@@ -1,0 +1,280 @@
+# Session 8: Agent Skills & Progressive Disclosure {#session-8}
+
+---
+
+### The Context Window Dilemma: Why Monolithic Prompts Fail
+
+::: columns
+::: {.column width="50%"}
+#### The Bloated Prompt Anti-Pattern
+As agents scale to enterprise tasks, they require knowledge of dozens of specialized domains:
+
+- **Prompt Bloat:** Injecting instructions for 50+ workflows consumes 40,000+ tokens on *every single interaction*.
+- **Attention Degradation:** Models suffer from "Lost in the Middle" syndrome, ignoring critical system rules.
+- **Latency & Cost:** Skyrocketing Time-to-First-Token (TTFT) and unsustainable token costs.
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    subgraph Monolithic["Monolithic Anti-Pattern (40k Tokens)"]
+        M1[System Prompt: Skill 1 + Skill 2 + ... + Skill 50] --> LLM1[LLM Attention Degraded]
+    end
+    subgraph Progressive["Progressive Disclosure (<2k Tokens)"]
+        Index[Lean Skill Index: Name + Summary] --> LLM2[LLM Selects Skill]
+        LLM2 --> Load[Lazy Load: SKILL.md On Demand]
+    end
+    style Index fill:#172554,stroke:#3b82f6,color:#fff
+    style Load fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### What is Progressive Disclosure?
+
+::: columns
+::: {.column width="52%"}
+#### Three-Tier Context Architecture
+Borrowed from HCI and operating system design, **progressive disclosure** delivers information only when needed:
+
+1. **Tier 1 (Discovery):** System prompt contains only a compact catalog of skill metadata (name + 1-sentence description).
+2. **Tier 2 (Activation):** When user intent matches a skill, the agent dynamically fetches that specific `SKILL.md`.
+3. **Tier 3 (Execution):** Agent runs domain-specific scripts, references few-shot examples, and unloads context upon completion.
+:::
+
+::: {.column width="48%"}
+#### Token Consumption Comparison
+
+| Architecture | 10 Skills | 50 Skills | 100 Skills |
+| :--- | :---: | :---: | :---: |
+| **Monolithic Prompt** | 8,500 tok | 42,000 tok | 85,000+ tok |
+| **Progressive Disclosure** | **450 tok** | **1,800 tok** | **3,200 tok** |
+
+: {tbl-colwidths="[40,20,20,20]"}
+
+::: {.callout-note appearance="simple"}
+💡 **Outcome:** 95% reduction in system prompt token overhead.
+:::
+:::
+:::
+
+---
+
+### Anatomy of an Agent Skill (`SKILL.md`)
+
+::: columns
+::: {.column width="50%"}
+#### Standard Directory Layout
+A skill is a self-contained module encapsulating domain expertise, instructions, and deterministic tools:
+
+```text
+skills/
+└── k8s-canary-rollback/
+    ├── SKILL.md          # Frontmatter + instructions
+    ├── scripts/          # Helper scripts (Python/Bash)
+    │   └── verify_pods.py
+    └── examples/         # Reference inputs & outputs
+        └── incident_log.json
+```
+:::
+
+::: {.column width="50%"}
+#### YAML Frontmatter Schema
+
+```markdown
+---
+name: k8s-canary-rollback
+description: Safely rolls back canary deployments and inspects pod crash loops.
+version: 1.0.0
+tools:
+  - kubectl
+  - prometheus_metrics
+---
+
+## Execution Instructions
+1. Inspect deployment rollout status.
+2. If error rate > 5%, trigger rollback:
+   `kubectl rollout undo deployment/canary-app`
+3. Verify zero CrashLoopBackOff restarts.
+```
+:::
+:::
+
+---
+
+### Tool Discovery vs. Skill Activation Flow
+
+::: columns
+::: {.column width="50%"}
+#### 1. Discovery Phase
+The agent runtime mounts a lightweight tool or system instruction listing available skill identifiers:
+
+```python
+SKILL_CATALOG = [
+    {
+        "name": "k8s-canary-rollback",
+        "desc": "Rolls back failed canary releases."
+    },
+    {
+        "name": "db-migration-validator",
+        "desc": "Validates zero-downtime Alembic migrations."
+    }
+]
+```
+:::
+
+::: {.column width="50%"}
+#### 2. Activation Phase
+When a user asks: *"Our canary release is throwing 502s, roll it back"*:
+
+1. Model matches intent to `k8s-canary-rollback`.
+2. Model issues tool call: `load_skill("k8s-canary-rollback")`.
+3. Agent injects the detailed `SKILL.md` markdown into context turn.
+4. Model executes exact playbook with deterministic confidence.
+:::
+:::
+
+---
+
+### Lab 8 Scenario: Enterprise DevOps Canary Rollback Skill
+
+::: columns
+::: {.column width="55%"}
+#### The Engineering Mission
+We will build a complete **Progressive Disclosure Skill Engine** with **Google Gemini 2.5 Flash**:
+
+1. **Skill Authoring:** Package a production `k8s-canary-rollback` skill with YAML metadata and verification procedures.
+2. **Metadata Indexer:** Auto-scans the `skills/` directory to generate a lightweight JSON-schema index (<150 tokens).
+3. **Dynamic Loader:** Implements `load_skill(name: str)` tool allowing the model to self-serve instructions on demand.
+4. **Execution Verification:** Run end-to-end incident mitigation turn.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    User[User Prompt] --> Agent[Gemini Agent]
+    Agent -->|Scan Catalog| Idx[(Skill Index)]
+    Agent -->|load_skill| FS[(skills/ Directory)]
+    FS -->|Inject SKILL.md| Agent
+    Agent --> Exec[Execute Rollback]
+    style Agent fill:#172554,stroke:#3b82f6,color:#fff
+    style Idx fill:#451a03,stroke:#f97316,color:#fff
+    style FS fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 8: Complete Reference Implementation (Part 1: The Skill Package)
+
+```python
+"""Lab 8: Progressive Disclosure Skill Definition."""
+SKILL_MD_CONTENT = """---
+name: k8s-canary-rollback
+description: Diagnoses and rolls back failing Kubernetes canary deployments.
+version: 1.0.0
+---
+### Operational Playbook
+1. Query deployment rollout status: `kubectl rollout status deployment/web-canary`
+2. If HTTP 5xx error rate exceeds 5%, execute emergency rollback:
+   `kubectl rollout undo deployment/web-canary`
+3. Confirm pod state is Running: `kubectl get pods -l app=web-canary`
+4. Post incident summary to slack channel #sre-alerts.
+"""
+
+import os, pathlib
+# Create local skills directory
+skill_dir = pathlib.Path("skills/k8s-canary-rollback")
+skill_dir.mkdir(parents=True, exist_ok=True)
+(skill_dir / "SKILL.md").write_text(SKILL_MD_CONTENT)
+print("Saved skill to:", skill_dir / "SKILL.md")
+```
+
+---
+
+### Lab 8: Complete Reference Implementation (Part 2: Skill Indexer)
+
+```python
+import yaml, re
+
+class SkillEngine:
+    """Discovers and lazily loads skills on demand."""
+    def __init__(self, root_dir: str = "skills"):
+        self.root_dir = pathlib.Path(root_dir)
+        self.index = self._build_index()
+
+    def _build_index(self) -> dict:
+        catalog = {}
+        for skill_file in self.root_dir.glob("*/SKILL.md"):
+            content = skill_file.read_text()
+            frontmatter = re.search(r"^---\n(.*?)\n---", content, re.DOTALL)
+            if frontmatter:
+                meta = yaml.safe_load(frontmatter.group(1))
+                catalog[meta["name"]] = {
+                    "description": meta["description"],
+                    "path": str(skill_file)
+                }
+        return catalog
+
+    def load_skill_content(self, skill_name: str) -> str:
+        """Dynamically loads full playbook for the requested skill."""
+        if skill_name not in self.index:
+            raise KeyError(f"Skill '{skill_name}' not found.")
+        return pathlib.Path(self.index[skill_name]["path"]).read_text()
+```
+
+---
+
+### Lab 8: Complete Reference Implementation (Part 3: Gemini Dynamic Agent)
+
+```python
+from google import genai
+from google.genai import types
+
+engine = SkillEngine()
+client = genai.Client()
+
+# Expose lightweight tool to Gemini
+def load_skill(skill_name: str) -> str:
+    """Loads operational instructions for a specific skill."""
+    return engine.load_skill_content(skill_name)
+
+# Lean discovery prompt
+summary_catalog = "\n".join([f"- {k}: {v['description']}" for k, v in engine.index.items()])
+system_prompt = f"You are a DevOps Agent. Available Skills:\n{summary_catalog}\nCall load_skill when needed."
+
+user_query = "Our canary-app is failing health checks in production. Roll it back now!"
+
+# Model selects skill, loads playbook, and executes
+print("Skill Catalog Tokens: ~80 tokens")
+print(f"Triggering query: '{user_query}'")
+# In production: dispatch load_skill via function_declarations
+activated_playbook = load_skill("k8s-canary-rollback")
+print("\nPlaybook Activated Dynamically:\n", activated_playbook[:220], "...")
+```
+
+---
+
+### Day 2 Session 8 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **Index Over Injection:** Never dump all domain knowledge into system prompts; index skill metadata instead.
+- **Self-Contained Modules:** Every skill package must include instructions, deterministic helper scripts, and validation tests.
+- **Lazy Evaluation:** Load detailed instructions only when intent matches, keeping base context <2,000 tokens.
+- **Predictable Playbooks:** Write operational steps as crisp, numbered commands to reduce hallucination risk.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] Every skill contains valid YAML frontmatter (`name`, `description`).
+- [x] Skill descriptions accurately reflect triggering conditions.
+- [x] Discovery index overhead remains <50 tokens per skill.
+- [x] Dynamic loader handles missing skill fallbacks safely.
+- [x] Playbook instructions verified for idempotency.
+:::
+:::
