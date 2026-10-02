@@ -1,0 +1,341 @@
+# Session 10: Evaluation & Testing (Eval-Driven Development) {#session-10}
+
+---
+
+### The Death of "Vibes-Based" Testing
+
+::: columns
+::: {.column width="50%"}
+#### Why Eyeballing Prompts Fails
+In traditional software, tests are deterministic. In agentic systems, stochastic outputs introduce hidden regressions:
+
+- **The "Vibes" Anti-Pattern:** A developer tweaks a system prompt, tests 3 manual questions, sees good results, and deploys to production.
+- **Silent Degradation:** Fixing one prompt edge case silently breaks tool selection in 15 other scenarios.
+- **Eval-Driven Development (EDD):** Define quantitative benchmark datasets and scoring rubrics *before* modifying agent instructions.
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    subgraph AntiPattern["Vibes-Based (Fragile)"]
+        P1[Tweak Prompt] --> Manual[Manual Spot Check]
+        Manual --> Deploy1[Deploy & Hope]
+    end
+    subgraph EDD["Eval-Driven (Production)"]
+        Dataset[(Golden Dataset)] --> Runner[Automated Eval Harness]
+        Runner --> Gate{Pass Rate > 95%?}
+        Gate -- Yes --> Deploy2([Safe Deploy])
+        Gate -- No --> P2[Refine Prompt]
+    end
+    style Deploy2 fill:#064e3b,stroke:#10b981,color:#fff
+    style Gate fill:#172554,stroke:#3b82f6,color:#fff
+```
+:::
+:::
+
+---
+
+### The 3 Levels of Agent Evaluation
+
+::: columns
+::: {.column width="50%"}
+#### 1. Level 1: Deterministic Assertions
+- **Scope:** JSON schema validation, regex matching, argument type validation, forbidden keyword checks.
+- **Cost & Speed:** Free (0 LLM tokens), executes in milliseconds in CI/CD.
+
+#### 2. Level 2: Trajectory & Step Evaluation
+- **Scope:** Did the agent invoke the expected tools in the correct order? Did it recover from failed API calls?
+- **Metric:** Tool Selection Accuracy & Substep Precision.
+:::
+
+::: {.column width="50%"}
+#### 3. Level 3: LLM-as-a-Judge
+- **Scope:** Semantic correctness, factual groundedness, and adherence to company policies.
+- **Mechanism:** A stronger model (e.g. Gemini 2.5 Pro) scores the agent output against a rubric.
+
+```python
+# Level 1 Deterministic Tool Assertion
+def assert_tool_call(actual_tool: str, expected_tool: str) -> None:
+    assert actual_tool == expected_tool, (
+        f"Tool mismatch: expected {expected_tool}, got {actual_tool}"
+    )
+```
+:::
+:::
+
+---
+
+### Designing Golden Evaluation Datasets
+
+::: columns
+::: {.column width="50%"}
+#### Dataset Architecture
+A production evaluation dataset consists of curated test cases representing realistic user traffic:
+
+- **Happy Path Cases (60%):** Standard requests with complete information.
+- **Ambiguous & Missing Info (25%):** Queries requiring follow-up questions before calling tools.
+- **Adversarial & Edge Cases (15%):** Out-of-scope requests, prompt injection, and forbidden tool triggers.
+:::
+
+::: {.column width="50%"}
+#### Pydantic Eval Case Schema
+
+```python
+from pydantic import BaseModel, Field
+
+class EvalCase(BaseModel):
+    id: str = Field(description="Unique test identifier")
+    user_query: str = Field(description="Simulated user input")
+    expected_tool: str = Field(description="Expected tool invocation")
+    expected_args: dict = Field(default_factory=dict)
+    ground_truth: str = Field(description="Reference answer")
+    category: str = Field(default="happy_path")
+
+# Example Golden Test Case
+order_test = EvalCase(
+    id="TC-001",
+    user_query="Track status for order ORD-9921",
+    expected_tool="get_order_status",
+    expected_args={"order_id": "ORD-9921"},
+    ground_truth="Order ORD-9921 is Shipped and arriving tomorrow."
+)
+```
+:::
+:::
+
+---
+
+### Trajectory Evaluation: Auditing Tool Sequences
+
+::: columns
+::: {.column width="50%"}
+#### Auditing the Execution Path
+Evaluating an agent is not just checking final text; you must evaluate **how** the agent arrived at the solution:
+
+- **Excessive Looping:** Did the agent cycle 10 times when 2 steps were sufficient?
+- **Tool Hallucination:** Did the agent call non-existent tools or pass fabricated IDs?
+- **Error Recovery:** When an API returned a 503 error, did the agent back off or crash?
+:::
+
+::: {.column width="50%"}
+#### Trajectory Asserter
+
+```python
+def verify_trajectory(actual_steps: list[str], expected_dag: list[str]) -> bool:
+    """Verifies tool call sequence matches expected execution path."""
+    if len(actual_steps) > len(expected_dag) + 2:
+        print("⚠️ Warning: Agent exhibited excessive step looping.")
+        return False
+        
+    for expected in expected_dag:
+        if expected not in actual_steps:
+            print(f"❌ Missing critical step: '{expected}'")
+            return False
+            
+    return True
+```
+:::
+:::
+
+---
+
+### LLM-as-a-Judge: Automated Semantic Scoring
+
+::: columns
+::: {.column width="50%"}
+#### Using Gemini as an Evaluator
+For unstructured text responses, use a judge model prompted with an objective rubric:
+
+- **Groundedness (1-5):** Is every claim in the response supported by the tool outputs?
+- **Completeness (1-5):** Did the agent address all parts of the user request?
+- **Safety & Policy (Pass/Fail):** Did the agent adhere to brand voice and privacy guidelines?
+:::
+
+::: {.column width="50%"}
+#### Structured Judge Verdict Schema
+
+```python
+from pydantic import BaseModel, Field
+
+class JudgeVerdict(BaseModel):
+    score: int = Field(ge=1, le=5, description="1 to 5 quality score")
+    passed: bool = Field(description="True if score >= 4 and safe")
+    reasoning: str = Field(description="Concrete critique citing evidence")
+    hallucination_detected: bool = Field(default=False)
+
+JUDGE_PROMPT = """You are an impartial evaluator.
+Assess the Agent Response against the Reference Ground Truth.
+Output strict JSON matching the JudgeVerdict schema."""
+```
+:::
+:::
+
+---
+
+### CI/CD Regression Gating: Automated Quality Gates
+
+::: columns
+::: {.column width="50%"}
+#### Automated Merge Gates
+Treat agent evals like unit tests in your GitHub Actions pipeline:
+
+- **Pre-Merge Gate:** Every pull request editing prompts or tool schemas triggers the eval harness.
+- **Pass/Fail Thresholds:**
+  - Tool Calling Accuracy: **$\ge$ 95%**
+  - Schema Conformance: **100%**
+  - Average Judge Score: **$\ge$ 4.2 / 5.0**
+- **Regression Detection:** Block merge if any previously passing test case fails.
+:::
+
+::: {.column width="50%"}
+#### GitHub Actions CI Workflow
+
+```yaml
+name: Agent Evaluation Gate
+on: [pull_request]
+
+jobs:
+  run-evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v2
+      - run: uv sync
+      - run: uv run python -m tests.eval_runner
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+```
+:::
+:::
+
+---
+
+### Lab 10 Scenario: 20-Case Customer Support Eval Harness
+
+::: columns
+::: {.column width="55%"}
+#### The Production Mission
+We will build an **Automated 20-Case Evaluation Harness** for an enterprise Customer Support Agent using **Gemini 2.5 Flash**:
+
+1. **Test Dataset:** 20 test cases covering order lookup, refund requests, missing IDs, and policy violations.
+2. **Deterministic Validator:** Asserts exact tool calling and parameter extraction.
+3. **Judge Evaluator:** Gemini 2.5 scores semantic quality and flags policy breaches.
+4. **Summary Scorecard:** Generates pass/fail metrics and logs regression reports.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    Dataset[(20 Eval Cases)] --> Harness[Eval Runner Engine]
+    Harness --> Agent[Target Agent]
+    Agent --> Det[Level 1 & 2: Trajectory Asserter]
+    Agent --> Judge[Level 3: LLM Judge]
+    Det --> Report[Scorecard Report]
+    Judge --> Report
+    style Harness fill:#172554,stroke:#3b82f6,color:#fff
+    style Report fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 10: Complete Reference Implementation (Part 1: Eval Dataset)
+
+```python
+"""Lab 10: Evaluation Dataset & Schemas."""
+from pydantic import BaseModel, Field
+
+class TestCase(BaseModel):
+    id: str
+    query: str
+    expected_tool: str | None = None
+    expected_args: dict = {}
+    require_human_escalation: bool = False
+
+EVAL_DATASET = [
+    TestCase(id="TC-01", query="Status of order 101", expected_tool="lookup_order", expected_args={"order_id": "101"}),
+    TestCase(id="TC-02", query="Cancel order 202", expected_tool="cancel_order", expected_args={"order_id": "202"}),
+    TestCase(id="TC-03", query="Refund $5000 without receipt", require_human_escalation=True),
+    TestCase(id="TC-04", query="What are your return policies?", expected_tool=None),
+] # Scalable to 20+ test cases in production
+```
+
+- Distinguishes between standard tool execution, read-only inquiries, and policy escalations.
+
+---
+
+### Lab 10: Complete Reference Implementation (Part 2: Trajectory Validator)
+
+```python
+def run_deterministic_eval(test_case: TestCase, agent_result: dict) -> dict:
+    """Asserts tool calling accuracy and argument conformance."""
+    actual_tool = agent_result.get("tool_called")
+    actual_args = agent_result.get("tool_args", {})
+    
+    tool_passed = actual_tool == test_case.expected_tool
+    args_passed = all(actual_args.get(k) == v for k, v in test_case.expected_args.items())
+    escalation_passed = agent_result.get("escalated", False) == test_case.require_human_escalation
+    
+    passed = tool_passed and args_passed and escalation_passed
+    return {
+        "test_id": test_case.id,
+        "passed": passed,
+        "tool_match": tool_passed,
+        "args_match": args_passed
+    }
+```
+
+- Executes instantly without incurring LLM judging costs.
+
+---
+
+### Lab 10: Complete Reference Implementation (Part 3: Judge & Scorecard)
+
+```python
+from google import genai
+
+client = genai.Client()
+
+def run_judge_eval(query: str, response: str) -> bool:
+    """Uses Gemini 2.5 to evaluate semantic safety and helpfulness."""
+    prompt = f"Evaluate this customer response: '{response}' for query: '{query}'. Reply PASS or FAIL."
+    res = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    return "PASS" in res.text.upper()
+
+# Execute evaluation pipeline
+print("Executing Evaluation Suite...")
+scorecard = {"passed": 0, "total": len(EVAL_DATASET)}
+for tc in EVAL_DATASET:
+    # Simulated agent execution
+    mock_res = {"tool_called": tc.expected_tool, "tool_args": tc.expected_args, "escalated": tc.require_human_escalation}
+    eval_res = run_deterministic_eval(tc, mock_res)
+    if eval_res["passed"]:
+        scorecard["passed"] += 1
+
+pass_rate = (scorecard["passed"] / scorecard["total"]) * 100
+print(f"✅ Evaluation Complete: {scorecard['passed']}/{scorecard['total']} ({pass_rate:.1f}% Pass Rate)")
+```
+
+---
+
+### Day 3 Session 10 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **No Vibes in Production:** Measure agent capabilities with quantitative, versioned evaluation datasets.
+- **Tiered Evaluation:** Use fast deterministic assertions in CI/CD; reserve LLM-as-a-judge for semantic quality.
+- **Trajectory Auditing:** Check the sequence of tool calls, not just the final output text.
+- **Regression Gating:** Block prompt changes that lower accuracy on golden benchmark test cases.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] Golden dataset includes happy path, missing arguments, and edge cases.
+- [x] Level 1 deterministic schema checks run on every pull request.
+- [x] LLM-as-a-judge prompts use strict structured Pydantic schemas.
+- [x] Pass/fail threshold enforced in CI/CD pipeline ($\ge$ 95%).
+- [x] Evaluation results logged to central telemetry dashboard.
+:::
+:::

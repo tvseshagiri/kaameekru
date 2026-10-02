@@ -15,3 +15,7 @@ slide-number: true
 {{< include slides/_07-mcp.qmd >}}
 {{< include slides/_08-agent-skills.qmd >}}
 {{< include slides/_09-coding-agents.qmd >}}
+{{< include slides/_10-evaluation.qmd >}}
+{{< include slides/_11-observability.qmd >}}
+{{< include slides/_12-security-guardrails.qmd >}}
+{{< include slides/_13-governance-capstone.qmd >}}

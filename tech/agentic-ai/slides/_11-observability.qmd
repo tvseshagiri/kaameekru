@@ -1,0 +1,264 @@
+# Session 11: Observability & Telemetry {#session-11}
+
+---
+
+### The Black Box Problem: Why Traditional APM Fails
+
+::: columns
+::: {.column width="50%"}
+#### Beyond HTTP 200 OK
+Traditional APM (Datadog, New Relic) measures HTTP status codes and CPU load. For AI agents, this is dangerously blind:
+
+- **Silent Multi-Hop Failure:** An API returns `200 OK`, but the agent looped 8 times, hallucinated tool arguments, and cost $2.40 on a single customer turn.
+- **Latency Attribution:** Did the delay come from the LLM time-to-first-token, a slow database query, or a retry loop?
+- **Semantic Observability:** Tracing every token, prompt version, tool argument, and reasoning thought across time.
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+graph LR
+    subgraph Traditional["Traditional APM (Blind)"]
+        User1[User] --> Web1[FastAPI 200 OK]
+    end
+    subgraph AgentTracing["Agent Semantic Trace"]
+        Root[Trace: agent.run] --> Span1[LLM: generate_content]
+        Root --> Span2[Tool: query_prometheus]
+        Root --> Span3[LLM: synthesize_answer]
+    end
+    style Root fill:#172554,stroke:#3b82f6,color:#fff
+    style Span1 fill:#1e1b4b,stroke:#6366f1,color:#fff
+    style Span2 fill:#064e3b,stroke:#10b981,color:#fff
+    style Span3 fill:#1e1b4b,stroke:#6366f1,color:#fff
+```
+:::
+:::
+
+---
+
+### OpenTelemetry (OTel) for Agent Systems
+
+::: columns
+::: {.column width="50%"}
+#### Standardized Distributed Tracing
+OpenTelemetry provides vendor-neutral semantic conventions for instrumenting AI agents:
+
+- **Root Span (`agent.run`):** Overall interaction turn containing user session ID and final outcome.
+- **Child Spans (`llm.call`):** Model name (`gemini-2.5-flash`), temperature, prompt tokens, completion tokens, latency.
+- **Tool Spans (`tool.call`):** Tool name, serialized JSON inputs, execution latency, and return status.
+:::
+
+::: {.column width="50%"}
+#### Trace Hierarchy
+
+```text
+[Trace: incident-triage-turn-401] - Duration: 1,420ms | Cost: $0.0032
+├── [Span: llm.plan] - 420ms | 412 in / 65 out
+├── [Span: tool.query_k8s] - 180ms | args: {"pod": "auth-svc"}
+├── [Span: tool.fetch_logs] - 210ms | args: {"tail": 50}
+└── [Span: llm.diagnose] - 610ms | 850 in / 140 out
+```
+
+::: {.callout-note appearance="simple"}
+📊 **Baggage Propagation:** Session IDs and tenant tags flow seamlessly across microservice hops.
+:::
+:::
+:::
+
+---
+
+### The 4 Golden Signals of Agent Telemetry
+
+::: columns
+::: {.column width="50%"}
+#### 1. Cost & Token Efficiency
+- Input tokens, output tokens, cached token hit-ratio.
+- Cost attribution tagged by user, customer tenant, and agent role.
+
+#### 2. Latency Breakdown
+- **Time-to-First-Token (TTFT):** Measures streaming responsiveness.
+- **Tool Execution Duration:** Pinpoints bottleneck external APIs.
+:::
+
+::: {.column width="50%"}
+#### 3. Tool Error & Fallback Rate
+- Frequency of malformed JSON arguments, schema rejections, and network timeouts.
+
+#### 4. Trajectory Step Efficiency
+- Number of tool execution loops taken vs. optimal path.
+- Flags runaway agents thrashing in unrecoverable loops.
+:::
+:::
+
+---
+
+### Local SQLite Logger vs. Enterprise Backends
+
+::: columns
+::: {.column width="50%"}
+#### Zero-Friction Local Tracing
+- **Local Embedded SQLite:** Store traces directly in a local `.sqlite` file during development.
+- **Zero Overhead:** No Docker containers, no SaaS subscription, zero network egress.
+- **Instant Querying:** Inspect traces via SQL or a local lightweight FastAPI endpoint.
+:::
+
+::: {.column width="50%"}
+#### Enterprise Telemetry Backends
+- **OpenTelemetry Collector:** Aggregates and sanitizes traces before forwarding.
+- **Specialized LLM Observability:**
+  - **Langfuse / Phoenix:** Deep trace visualizations and token cost tracking.
+  - **Google Cloud Trace:** Seamless integration with Cloud Run and BigQuery audit logs.
+:::
+:::
+
+---
+
+### Lab 11 Scenario: Zero-Friction SQLite Trace Logger
+
+::: columns
+::: {.column width="55%"}
+#### The Production Mission
+We will build a **Zero-Friction Local SQLite Trace Logger** and **FastAPI Trace Explorer**:
+
+1. **Span Storage:** Lightweight SQLite database recording trace ID, span ID, parent ID, duration, and token usage.
+2. **Context Manager:** Python `@tracer.span("name")` that auto-measures latency and captures tool arguments.
+3. **Agent Integration:** Instrument an end-to-end Gemini 2.5 turn.
+4. **FastAPI Explorer:** Expose `/api/traces/{trace_id}` returning a structured execution timeline.
+:::
+
+::: {.column width="45%"}
+```{mermaid}
+graph LR
+    Agent[Agent Runtime] -->|Context Manager| Tracer[SQLite Tracer]
+    Tracer --> DB[(local_traces.sqlite)]
+    DB --> API[FastAPI Trace Explorer]
+    API --> UI[Developer Inspector]
+    style Tracer fill:#172554,stroke:#3b82f6,color:#fff
+    style DB fill:#451a03,stroke:#f97316,color:#fff
+    style API fill:#064e3b,stroke:#10b981,color:#fff
+```
+:::
+:::
+
+---
+
+### Lab 11: Complete Reference Implementation (Part 1: Storage & Context Manager)
+
+```python
+"""Lab 11: Zero-Friction SQLite Trace Logger."""
+import sqlite3, time, uuid
+from contextlib import contextmanager
+
+class SQLiteTracer:
+    def __init__(self, db_path: str = "traces.sqlite"):
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
+        with self.conn:
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS spans (
+                    span_id TEXT PRIMARY KEY, trace_id TEXT,
+                    parent_id TEXT, name TEXT, duration_ms REAL,
+                    input_tokens INT, output_tokens INT, status TEXT
+                );
+            """)
+
+    @contextmanager
+    def span(self, trace_id: str, name: str, parent_id: str = None, in_tok: int = 0, out_tok: int = 0):
+        span_id = str(uuid.uuid4())[:8]
+        start = time.perf_counter()
+        status = "OK"
+        try:
+            yield span_id
+        except Exception:
+            status = "ERROR"
+            raise
+        finally:
+            dur = (time.perf_counter() - start) * 1000
+            with self.conn:
+                self.conn.execute(
+                    "INSERT INTO spans VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (span_id, trace_id, parent_id, name, dur, in_tok, out_tok, status)
+                )
+```
+
+---
+
+### Lab 11: Complete Reference Implementation (Part 2: Instrumenting Agent Loop)
+
+```python
+from google import genai
+
+client = genai.Client()
+tracer = SQLiteTracer()
+
+def execute_instrumented_turn(user_query: str, trace_id: str = "trace-101"):
+    with tracer.span(trace_id, "agent.turn") as root_id:
+        print(f"Executing Agent Turn [{trace_id}]...")
+        
+        # 1. Instrument LLM inference call
+        with tracer.span(trace_id, "llm.generate", parent_id=root_id, in_tok=420, out_tok=65):
+            time.sleep(0.15) # Simulated LLM latency
+            decision = "call_metric_tool"
+            
+        # 2. Instrument Tool execution
+        if decision == "call_metric_tool":
+            with tracer.span(trace_id, "tool.query_prometheus", parent_id=root_id):
+                time.sleep(0.08) # Simulated tool execution
+                metric_result = {"status": "healthy", "cpu": "34%"}
+                
+        # 3. Final Synthesis
+        with tracer.span(trace_id, "llm.synthesize", parent_id=root_id, in_tok=550, out_tok=80):
+            time.sleep(0.12)
+            
+    print("✅ Turn completed and persisted to SQLite.")
+```
+
+---
+
+### Lab 11: Complete Reference Implementation (Part 3: FastAPI Trace API)
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI(title="Local Agent Trace Explorer")
+
+@app.get("/traces/{trace_id}")
+def get_trace(trace_id: str):
+    """Returns timeline of all spans for a specific interaction turn."""
+    cursor = tracer.conn.cursor()
+    cursor.execute("""
+        SELECT span_id, parent_id, name, duration_ms, input_tokens + output_tokens, status 
+        FROM spans WHERE trace_id = ? ORDER BY rowid ASC
+    """, (trace_id,))
+    rows = cursor.fetchall()
+    
+    total_duration = sum(r[3] for r in rows if r[1] is None) # Root span duration
+    total_tokens = sum(r[4] for r in rows)
+    
+    timeline = [{"span_id": r[0], "name": r[2], "duration_ms": round(r[3], 2), "tokens": r[4]} for r in rows]
+    return {"trace_id": trace_id, "total_duration_ms": round(total_duration, 2), "total_tokens": total_tokens, "timeline": timeline}
+```
+
+- Run locally with `uv run uvicorn tracer:app --port 8080`.
+- Provides instant developer visibility without external network egress.
+
+---
+
+### Day 3 Session 11 Takeaways & Checklist
+
+::: columns
+::: {.column width="50%"}
+#### Production Principles
+- **Semantic Over Synthetic:** Track the contents of prompts, tool arguments, and model thoughts, not just HTTP codes.
+- **OTel Standard:** Structure spans using OpenTelemetry conventions (`trace_id`, `span_id`, `parent_id`).
+- **Zero-Friction Dev:** Use embedded SQLite for instant zero-dependency local debugging.
+- **Track the 4 Signals:** Cost/tokens, latency/TTFT, tool error rates, and step efficiency.
+:::
+
+::: {.column width="50%"}
+#### Pre-Flight Checklist
+- [x] Every agent turn generates a unique distributed `trace_id`.
+- [x] Spans track input/output tokens and cost attribution tags.
+- [x] Tool arguments and error stack traces serialized safely.
+- [x] Trace latency overhead accounts for <5% of total request time.
+- [x] Ready to export to Langfuse, Phoenix, or Cloud Trace.
+:::
+:::
