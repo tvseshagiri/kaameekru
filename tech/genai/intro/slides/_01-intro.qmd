@@ -104,6 +104,292 @@ The "Attention is All You Need" paper by Google introduced self-attention — th
 
 ---
 
+### Model Types — A Taxonomy
+
+::: columns
+::: {.column width="50%"}
+<div style="display:flex;flex-direction:column;gap:6px;font-size:0.8em;">
+<div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:6px;padding:8px;">
+  <div style="color:#60a5fa;font-weight:700;">💬 Text Generation (LLM)</div>
+  <div>Conversational AI, summarization, translation, code generation</div>
+  <div style="color:#94a3b8;margin-top:2px;">GPT-4o · Gemini 2.5 · Claude 3.7</div>
+</div>
+<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:6px;padding:8px;">
+  <div style="color:#34d399;font-weight:700;">🧠 Reasoning Models</div>
+  <div>Multi-step logic, math, planning — think before answering</div>
+  <div style="color:#94a3b8;margin-top:2px;">o3 · o4-mini · Claude 3.7 Thinking · Gemini 2.5 Flash Thinking</div>
+</div>
+<div style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b;border-radius:6px;padding:8px;">
+  <div style="color:#fbbf24;font-weight:700;">👁️ Vision / Multimodal</div>
+  <div>Input: text + images + audio + video → text output</div>
+  <div style="color:#94a3b8;margin-top:2px;">GPT-4o · Gemini 2.5 Pro · Llama 4 Scout</div>
+</div>
+<div style="background:rgba(168,85,247,0.1);border:1px solid #a855f7;border-radius:6px;padding:8px;">
+  <div style="color:#c084fc;font-weight:700;">📊 Embedding Models</div>
+  <div>Convert text/images to numeric vectors for semantic search & RAG</div>
+  <div style="color:#94a3b8;margin-top:2px;">text-embedding-3-large · voyage-3 · BGE-M3</div>
+</div>
+</div>
+:::
+
+::: {.column width="50%"}
+<div style="display:flex;flex-direction:column;gap:6px;font-size:0.8em;">
+<div style="background:rgba(239,68,68,0.1);border:1px solid #ef4444;border-radius:6px;padding:8px;">
+  <div style="color:#f87171;font-weight:700;">🖼️ Image Generation</div>
+  <div>Text-to-image synthesis; inpainting; image editing</div>
+  <div style="color:#94a3b8;margin-top:2px;">DALL-E 3 · Stable Diffusion 3 · Midjourney · Imagen 3</div>
+</div>
+<div style="background:rgba(20,184,166,0.1);border:1px solid #14b8a6;border-radius:6px;padding:8px;">
+  <div style="color:#2dd4bf;font-weight:700;">🔊 Speech Models</div>
+  <div>TTS (Text-to-Speech) · STT (Speech-to-Text / ASR)</div>
+  <div style="color:#94a3b8;margin-top:2px;">Whisper v3 · TTS-HD · ElevenLabs · Gemini Audio</div>
+</div>
+<div style="background:rgba(234,179,8,0.1);border:1px solid #eab308;border-radius:6px;padding:8px;">
+  <div style="color:#facc15;font-weight:700;">💻 Code Specialist Models</div>
+  <div>Optimized for code completion, debugging, refactoring</div>
+  <div style="color:#94a3b8;margin-top:2px;">Codestral · Claude 5.5 · GitHub Copilot (GPT-4o fine-tune)</div>
+</div>
+<div style="background:rgba(99,102,241,0.1);border:1px solid #6366f1;border-radius:6px;padding:8px;">
+  <div style="color:#818cf8;font-weight:700;">🎬 Video Generation</div>
+  <div>Text/image → video synthesis</div>
+  <div style="color:#94a3b8;margin-top:2px;">Sora · Veo 3 · Kling · Wan · Pika</div>
+</div>
+</div>
+:::
+:::
+
+---
+
+### Key Model Attributes
+
+::: columns
+::: {.column width="55%"}
+When evaluating any LLM, assess these attributes:
+
+| Attribute | What it means |
+|---|---|
+| **Parameters** | Model size (billions of weights). Larger ≠ always better — MoE changes the equation |
+| **Modality** | Input types accepted: text, image, audio, video. Output types: text, code, image, audio |
+| **Architecture** | Dense Transformer, MoE, SSM (Mamba), Hybrid |
+| **Context Window** | Max tokens per request (prompt + response). Critical for long docs & conversations |
+| **Training Cutoff** | Date after which the model has no knowledge. Always verify for time-sensitive tasks |
+| **License** | Proprietary (API-only), Open-Weight (downloadable), Fully Open (weights + data) |
+| **Benchmarks** | MMLU, HumanEval, MATH, GPQA — compare apples-to-apples |
+:::
+
+::: {.column width="45%"}
+```python
+# Example: Checking model info at runtime
+from openai import OpenAI
+client = OpenAI()
+
+# List available models
+models = client.models.list()
+for m in models.data[:5]:
+    print(m.id, m.created)
+
+# Key attributes to check in docs:
+model_card = {
+    "model": "gpt-4o",
+    "parameters": "~200B (estimated)",
+    "modality_in": ["text", "image", "audio"],
+    "modality_out": ["text"],
+    "context_window": 128_000,
+    "training_cutoff": "2024-04",
+    "architecture": "Dense Transformer",
+    "license": "Proprietary",
+}
+print(model_card)
+```
+:::
+:::
+
+---
+
+### Model Architecture Types
+
+::: columns
+::: {.column width="55%"}
+#### Dense Transformer (2017 → present)
+- All parameters activate for every token
+- Predictable scaling — more params = better
+- Inference cost scales linearly with model size
+- **Examples:** GPT-4, Claude, Gemma 3
+
+#### Mixture-of-Experts (MoE)
+- Model split into N expert sub-networks
+- A router selects **2–4 experts** per token (not all)
+- Same or better quality at fraction of inference cost
+- **Examples:** GPT-4o (rumored), Mixtral 8x22B, Llama 4 Scout (17B active / 109B total)
+
+#### SSM / State Space Models (Mamba, Jamba)
+- Non-attention architecture — linear vs quadratic scaling
+- Very long contexts at low memory cost
+- **Examples:** AI21 Jamba (SSM + Transformer hybrid)
+:::
+
+::: {.column width="45%"}
+<div style="display:flex;flex-direction:column;gap:8px;font-size:0.82em;">
+<div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:8px;padding:10px;">
+  <div style="color:#60a5fa;font-weight:700;">Dense: GPT-4o</div>
+  <div>All 200B+ params active per token. High quality, high cost.</div>
+</div>
+<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:8px;padding:10px;">
+  <div style="color:#34d399;font-weight:700;">MoE: Mixtral 8×22B</div>
+  <div>141B total, 39B active. Near-GPT-4 quality at 28% cost.</div>
+</div>
+<div style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b;border-radius:8px;padding:10px;">
+  <div style="color:#fbbf24;font-weight:700;">SSM: Jamba 1.5</div>
+  <div>256K context at 3× cheaper memory than Transformer equivalent.</div>
+</div>
+</div>
+
+::: {.callout-tip}
+**License Quick Reference**
+
+- **Apache 2.0 / MIT** → commercial use OK, modify OK
+- **Llama Community License** → requires attribution; >700M MAU needs Meta approval
+- **Proprietary API** → no weights, pay per token, no self-hosting
+:::
+:::
+:::
+
+---
+
+### Model Creators vs Service Providers
+
+::: columns
+::: {.column width="55%"}
+**Model Creator** — Research lab or company that *trains* the model from scratch. Controls architecture, data, safety alignment.
+
+**Model Service Provider** — Platform that *hosts and serves* model inference via API. May add tooling (fine-tuning, guardrails, observability) on top.
+
+**The overlap:** Many creators also provide the API (OpenAI, Anthropic, Google). But the *same model* can be served by many providers.
+
+**Why it matters:**
+- Provider choice affects: latency, pricing, SLA, compliance
+- Data residency, logging policies differ per provider
+- Fine-tuning support varies
+- Feature availability differs (e.g. structured output, tool calling)
+:::
+
+::: {.column width="45%"}
+```python
+# Same model, different providers
+# Claude 3.7 via Anthropic directly:
+import anthropic
+client = anthropic.Anthropic()
+msg = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=200,
+    messages=[{"role": "user",
+               "content": "Hello!"}]
+)
+
+# Claude 3.7 via AWS Bedrock:
+import boto3
+bedrock = boto3.client("bedrock-runtime",
+                       region_name="us-east-1")
+bedrock.invoke_model(
+    modelId="anthropic.claude-3-7-sonnet"
+           "-20250219-v1:0",
+    body=b'{"messages": [...]}'
+)
+# Same model weights — different provider,
+# different SLA, pricing, and data policy
+```
+:::
+:::
+
+---
+
+### Creators vs Providers — The Map
+
+::: columns
+::: {.column width="55%"}
+#### Model Creators (train the model)
+| Creator | Flagship Models |
+|---|---|
+| **OpenAI** | GPT-4o, o3, o4-mini, GPT-5 |
+| **Google DeepMind** | Gemini 2.5 Pro, Gemini 4, Gemma 3 |
+| **Anthropic** | Claude 3.7 Sonnet, Claude 5.5 Opus |
+| **Meta AI** | Llama 3.x, Llama 4 Scout/Maverick |
+| **Mistral AI** | Mixtral 8x22B, Mistral Large 3, Codestral |
+| **DeepSeek** | DeepSeek-R1, DeepSeek-V3 |
+| **Alibaba/Qwen** | Qwen3-235B, QwQ-32B |
+| **Microsoft Research** | Phi-4 (3.8B), Phi-4-Mini |
+| **xAI (Musk)** | Grok 3, Grok 3 Mini |
+| **Cohere** | Command R+, Aya Expanse |
+:::
+
+::: {.column width="45%"}
+#### Service Providers (serve the model)
+| Provider | What they offer |
+|---|---|
+| **OpenAI API** | GPT-4o, o-series, DALL-E |
+| **Anthropic API** | Claude family |
+| **Google AI/Vertex AI** | Gemini + 3rd party models |
+| **AWS Bedrock** | Llama, Claude, Mistral, Titan |
+| **Azure OpenAI** | GPT-4o, o-series with enterprise SLA |
+| **Groq** | Llama, Mixtral — ultra-fast LPU |
+| **Together AI** | 100+ open-source models |
+| **Fireworks AI** | Fast OSS inference |
+| **Hugging Face** | Hub + Inference Endpoints |
+| **Replicate** | Any model via API |
+:::
+:::
+
+---
+
+### The "Silent" Model Creators
+
+Well-known in research but less visible to end-users:
+
+::: columns
+::: {.column width="55%"}
+| Creator | Country | Notable Models | License |
+|---|---|---|---|
+| **DeepSeek** | 🇨🇳 China | R1, V3, Coder V2 | MIT (open!) |
+| **Alibaba / Qwen** | 🇨🇳 China | Qwen3-235B, QwQ-32B | Apache 2.0 |
+| **AI21 Labs** | 🇮🇱 Israel | Jamba 1.5 (SSM+Transformer) | Commercial |
+| **Cohere** | 🇨🇦 Canada | Command R+ (enterprise RAG) | Commercial |
+| **01.AI** | 🇨🇳 China | Yi-34B, Yi-Lightning | Apache 2.0 |
+| **TII (UAE)** | 🇦🇪 UAE | Falcon 180B, Falcon 2 | Apache 2.0 |
+| **Reka AI** | 🇺🇸 US | Reka Flash, Core, Edge | Proprietary |
+| **Stability AI** | 🇬🇧 UK | Stable Diffusion 3.5 | Open |
+:::
+
+::: {.column width="45%"}
+::: {.callout-important}
+**DeepSeek — The Surprise of 2025**
+
+DeepSeek-R1 (Jan 2025) matched or beat o1 performance at a fraction of the training cost — released fully open-source under MIT license.
+
+DeepSeek-V3 uses only 37B active parameters (671B total MoE) — cheaper to run than GPT-4o while competitive on coding and reasoning benchmarks.
+
+**Why it matters:** Proved that frontier-quality AI is not exclusive to US tech giants.
+:::
+
+```python
+# DeepSeek via OpenAI-compatible API
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="your-deepseek-key",
+    base_url="https://api.deepseek.com"
+)
+response = client.chat.completions.create(
+    model="deepseek-reasoner",  # R1
+    messages=[{"role": "user",
+               "content": "Explain MoE."}]
+)
+print(response.choices[0].message.content)
+```
+:::
+:::
+
+---
+
 ### OpenAI Models (2026)
 
 | Model | Context | Key Features |
@@ -627,7 +913,7 @@ print(chat.choices[0].message.content)
 
 ---
 
-### Key Model Attributes
+### Inference Parameters — Tuning Output Quality
 
 ::: columns
 ::: {.column width="55%"}
