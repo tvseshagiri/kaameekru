@@ -1,0 +1,313 @@
+# Modern RAG Patterns {#modern-rag}
+
+---
+
+### The RAG Evolution
+
+::: columns
+::: {.column width="50%"}
+#### Naive RAG (2023)
+- Fixed chunk size → embed → retrieve → generate
+- Simple but: loses context, misses related info, no quality check
+- Good for: simple Q&A on small, clean document sets
+
+#### Advanced RAG (2024)
+- Query transformation before retrieval
+- Hybrid search (vector + keyword)
+- Cross-encoder reranking of candidates
+- Parent document retrieval
+:::
+
+::: {.column width="50%"}
+#### Agentic RAG (2025)
+- Orchestrator agent decides *which* retrieval strategy to use
+- Grades retrieved docs — re-queries if insufficient
+- Multi-hop: decomposes complex questions into sub-queries
+- Uses multiple sources: vector DB + web search + SQL + APIs
+- Critiques generated answer — retries if hallucinated
+
+::: {.callout-tip}
+**Start with Advanced RAG.** Add agentic patterns only when query complexity demands it.
+:::
+:::
+:::
+
+---
+
+### Query Transformation — Multi-Query Retriever
+
+```python
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_chroma import Chroma
+
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
+)
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+# Generates 3 alternative phrasings of the user query
+# to retrieve more relevant documents
+retriever = MultiQueryRetriever.from_llm(
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 4}),
+    llm=llm,
+    prompt=None  # uses default multi-query prompt
+)
+
+# Internally generates:
+# "What is the vacation policy?"
+# "How many days off do employees get?"
+# "Annual leave entitlement rules?"
+# Then retrieves unique documents across all 3 queries
+docs = retriever.invoke("What's the vacation policy?")
+print(f"Retrieved {len(docs)} unique docs (vs ~4 with basic retrieval)")
+```
+
+---
+
+### Hypothetical Document Embeddings (HyDE)
+
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_chroma import Chroma
+from langchain_core.runnables import RunnablePassthrough
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
+embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=embedding_model
+)
+
+# HyDE: Generate a hypothetical answer, then find documents similar to THAT
+hyde_prompt = ChatPromptTemplate.from_template(
+    "Write a detailed paragraph answering: {question}\n"
+    "Even if you're uncertain, write a plausible answer."
+)
+
+# Chain: question → hypothetical doc → embed → retrieve
+hyde_chain = (
+    hyde_prompt
+    | llm
+    | StrOutputParser()
+    | (lambda hypothetical_doc: vectorstore.similarity_search(
+        hypothetical_doc, k=4
+    ))
+)
+
+results = hyde_chain.invoke({"question": "How does the leave approval process work?"})
+print(f"HyDE retrieved {len(results)} docs")
+print(results[0].page_content[:200])
+```
+
+---
+
+### Hybrid Search — Dense + Sparse
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain.retrievers import EnsembleRetriever
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
+
+docs = [
+    Document(page_content="FastAPI is a modern Python web framework."),
+    Document(page_content="LangChain enables LLM application development."),
+    Document(page_content="ChromaDB stores vector embeddings for semantic search."),
+    Document(page_content="Pydantic v2 provides data validation for Python."),
+]
+
+# Sparse retriever — keyword-based BM25
+bm25_retriever = BM25Retriever.from_documents(docs, k=2)
+
+# Dense retriever — semantic vector search
+vectorstore = Chroma.from_documents(
+    docs, OpenAIEmbeddings(model="text-embedding-3-small")
+)
+vector_retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
+
+# Hybrid: combine both with Reciprocal Rank Fusion
+ensemble_retriever = EnsembleRetriever(
+    retrievers=[bm25_retriever, vector_retriever],
+    weights=[0.4, 0.6]  # 40% keyword, 60% semantic
+)
+
+results = ensemble_retriever.invoke("FastAPI web framework")
+for doc in results:
+    print(doc.page_content)
+```
+
+---
+
+### Cross-Encoder Reranking
+
+```python
+# Install: uv add sentence-transformers langchain-community
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import CrossEncoderReranker
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+# Step 1: Base retriever — fast but approximate (top 20 candidates)
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
+)
+base_retriever = vectorstore.as_retriever(search_kwargs={"k": 20})
+
+# Step 2: Cross-encoder reranker — slow but precise (top 4 of 20)
+model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
+compressor = CrossEncoderReranker(model=model, top_n=4)
+
+# Step 3: Combine: retrieve 20 → rerank to 4
+compression_retriever = ContextualCompressionRetriever(
+    base_compressor=compressor,
+    base_retriever=base_retriever
+)
+
+docs = compression_retriever.invoke("What is the refund policy?")
+print(f"Reranked to top {len(docs)} most relevant docs")
+for doc in docs:
+    print(f"  - {doc.page_content[:80]}")
+```
+
+---
+
+### Parent Document Retriever
+
+```python
+from langchain.retrievers import ParentDocumentRetriever
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma
+from langchain.storage import InMemoryStore
+from langchain_core.documents import Document
+
+# Small chunks for precise embedding/matching
+child_splitter = RecursiveCharacterTextSplitter(chunk_size=200)
+
+# Large parent chunks for rich context
+parent_splitter = RecursiveCharacterTextSplitter(chunk_size=2000)
+
+vectorstore = Chroma(
+    collection_name="child_chunks",
+    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
+)
+
+# Store full parent documents in memory/Redis
+store = InMemoryStore()
+
+# Retriever: index small children, return large parents
+retriever = ParentDocumentRetriever(
+    vectorstore=vectorstore,
+    docstore=store,
+    child_splitter=child_splitter,
+    parent_splitter=parent_splitter,
+)
+
+docs = [Document(page_content="Long policy document content..." * 50)]
+retriever.add_documents(docs)
+
+# Returns full parent section, not tiny chunk
+results = retriever.invoke("What is the refund process?")
+print(f"Parent doc size: {len(results[0].page_content)} chars")
+```
+
+---
+
+### RAG Evaluation with RAGAS
+
+```python
+# Install: uv add ragas langchain-openai
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness,       # Is the answer grounded in the retrieved context?
+    answer_relevancy,  # Does the answer address the question?
+    context_recall,    # Did we retrieve the right chunks?
+    context_precision, # Are retrieved chunks actually relevant?
+)
+from datasets import Dataset
+
+# Build evaluation dataset from your RAG system
+eval_data = {
+    "question": [
+        "What is the annual leave policy?",
+        "How do I submit an expense report?",
+    ],
+    "answer": [
+        "Employees get 20 days annual leave per year.",
+        "Submit expenses via the HR portal within 30 days.",
+    ],
+    "contexts": [
+        ["Annual leave: 20 days per calendar year for full-time employees."],
+        ["Expense reports must be submitted within 30 days via hr.company.com."],
+    ],
+    "ground_truth": [
+        "20 days annual leave per year",
+        "Submit via HR portal within 30 days",
+    ]
+}
+
+dataset = Dataset.from_dict(eval_data)
+
+results = evaluate(
+    dataset=dataset,
+    metrics=[faithfulness, answer_relevancy, context_recall, context_precision],
+)
+
+print(results.to_pandas())
+# faithfulness: 0.95  (answer supported by context)
+# answer_relevancy: 0.92  (answer addresses question)
+```
+
+---
+
+### Agentic RAG Pattern
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small")
+)
+
+@tool
+def search_docs(query: str) -> str:
+    """Search internal documentation for information."""
+    docs = vectorstore.similarity_search(query, k=3)
+    return "\n\n".join(d.page_content for d in docs)
+
+@tool
+def search_web(query: str) -> str:
+    """Search the web for current information not in docs."""
+    # In real code: use Tavily, Serper, or DuckDuckGo API
+    return f"Web results for '{query}': [placeholder]"
+
+tools = [search_docs, search_web]
+tool_map = {t.name: t for t in tools}
+llm_with_tools = llm.bind_tools(tools)
+
+# Agent autonomously decides which source to query
+messages = [HumanMessage(
+    content="What's our refund policy, and has there been any news about return fraud recently?"
+)]
+response = llm_with_tools.invoke(messages)
+print("Tool calls:", [tc["name"] for tc in response.tool_calls])
+# ['search_docs', 'search_web'] — agent uses both sources
+```
+
+---
+
+[Back to Index](#index)

@@ -3,217 +3,365 @@
 
 ---
 
-#### LangChain 🦜🔗 \ {.center}
+### Why LangChain?
 
-\ 
-\
+::: columns
+::: {.column width="55%"}
+Building LLM apps requires solving the same problems repeatedly:
 
-A framework for developing \
+- How to structure prompts consistently?
+- How to chain multiple model calls together?
+- How to connect to vector databases for RAG?
+- How to build agents that use tools?
+- How to test and monitor LLM chains?
 
-- Context Aware
-- Reasoning
+**LangChain** provides a unified, composable framework that solves all of these — with integrations for 100+ LLMs, vector stores, tools, and data sources.
 
-LLM applications.
-
----
-
-### LangChain Echo System
-
-:::: {.columns}
-
-::: {.column width="50%"}
-![](images/langchain.png)
+::: {.callout-tip}
+**LangChain is the industry standard** for building LLM applications in Python. Understanding it deeply is essential for production Agentic AI development.
+:::
 :::
 
-::: {.column width="50%"}
-
-- **LangSmith:** platform for debug, test, evaluate, and monitor LLM applications
-- **langserve:** Deploy LangChain chains as REST APIs.
-- **LangChain:** Set of development libraries for developing LLM applications.
-  - **langchain-core**: Base abstractions components and LangChain Expression Language 
-  - **langchain:** Chains, agents, and retrieval strategies components.
-  - **langchain-community**: third party integration components.
-  
+::: {.column width="45%"}
+<div style="display:flex;flex-direction:column;gap:8px;">
+<div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:8px;padding:10px;font-size:0.82em;">
+  <div style="color:#60a5fa;font-weight:700;">🦜 langchain-core</div>
+  <div>Abstractions, LCEL, Runnable protocol</div>
+</div>
+<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:8px;padding:10px;font-size:0.82em;">
+  <div style="color:#34d399;font-weight:700;">📦 langchain</div>
+  <div>Chains, agents, retrievers — ready-made components</div>
+</div>
+<div style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b;border-radius:8px;padding:10px;font-size:0.82em;">
+  <div style="color:#fbbf24;font-weight:700;">🌐 langchain-community</div>
+  <div>100+ third-party integrations</div>
+</div>
+<div style="background:rgba(168,85,247,0.1);border:1px solid #a855f7;border-radius:8px;padding:10px;font-size:0.82em;">
+  <div style="color:#c084fc;font-weight:700;">🔭 LangSmith</div>
+  <div>Observability, testing, tracing</div>
+</div>
+</div>
+:::
 :::
 
-::::
+---
+
+### Installation with `uv`
+
+::: columns
+::: {.column width="55%"}
+```bash
+# Create new LangChain project
+uv init my-langchain-app
+cd my-langchain-app
+
+# Core LangChain + provider integrations
+uv add langchain langchain-core
+uv add langchain-openai      # OpenAI integration
+uv add langchain-google-genai # Google Gemini
+uv add langchain-anthropic    # Anthropic Claude
+
+# For observability (highly recommended)
+uv add langsmith
+
+# For env management
+uv add python-dotenv
+```
+:::
+
+::: {.column width="45%"}
+::: {.callout-note}
+**Package Strategy (v0.3+)**
+
+Don't install `langchain-community` for everything — use dedicated provider packages:
+
+- `langchain-openai` (OpenAI, Azure OpenAI)
+- `langchain-google-genai` (Gemini API)
+- `langchain-anthropic` (Claude)
+- `langchain-aws` (Bedrock)
+- `langchain-ollama` (local models)
+
+Smaller install footprint, faster import times.
+:::
+:::
+:::
 
 ---
 
-### Installation
+### LCEL — The Pipe Operator
 
-``` sh
-#  for all langchain components
-pip install langchain
+::: columns
+::: {.column width="55%"}
+**LangChain Expression Language (LCEL)** uses the `|` (pipe) operator to chain components:
 
-# Only for core
-#pip install langchain-core
-
-# Only for community
-#pip install langchain-community
-
-# installs OpenAI integration module
-pip install langchain-openai
-
-#install Google Gemini Langchain module
-#pip install langchain-google-genai
-
+```python
+chain = prompt | llm | output_parser
+result = chain.invoke({"variable": "value"})
 ```
 
----
+Every component implements the **Runnable** interface — the same `.invoke()`, `.stream()`, and `.batch()` API.
 
-### Hello World
+**Built-in resilience:**
+- `.with_retry(stop_after_attempt=3)` — automatic retries
+- `.with_fallbacks([backup_llm])` — failover to backup model
+- `.with_config(run_name="my-chain")` — tracing metadata
+:::
 
-``` python
-
-from langchain_core.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
-
-prompt = PromptTemplate.from_template("What is the capital city of Germany?")
-
-llm = GoogleGenerativeAI(model="gemini-pro")
-response = llm.invoke(prompt.format())
-print(response)
-
-
-```
-
----
-
-### Model IO 
-
-![](images/iocomponents.png)
-
-
----
-
-### Prompts
-
-* Prompting and Prompts are key for interacting with LLM
-* LangChain provides components  to manage prompt templates well.
-* `langchain_core.prompts` package contains prompt components
-
-
-`PromptTemplate` class is key for basic prompting
-
-
-``` py
-
-from langchain_core.prompts import PromptTemplate
-
-# Instantiation using from_template (recommended)
-prompt = PromptTemplate.from_template("What is the Capital City of {country}?")
-prompt.format(country="India")
-
-
-# Instantiation using initializer
-prompt = PromptTemplate(input_variables=["country"], template="What is the Capital City of {country}?")
-```
-
----
-
-### ChatPrompts
-
-* chat Prompts going to have content, and also an additional parameter called role.
-
-
-``` python
-
+::: {.column width="45%"}
+```python
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
 
-chat_template = ChatPromptTemplate.from_messages(
-    [
-        ("system", "You are a helpful AI bot. Your name is {name}."),
-        ("human", "Hello, how are you doing?"),
-        ("ai", "I'm doing well, thanks!"),
-        ("human", "{user_input}"),
-    ]
+# Each component is a Runnable
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("human", "{question}")
+])
+llm = ChatOpenAI(model="gpt-4o-mini")
+parser = StrOutputParser()
+
+# Compose with | operator
+chain = prompt | llm | parser
+
+# Invoke
+result = chain.invoke({"question": "What is LangChain?"})
+print(result)  # string output
+
+# Batch: process multiple inputs
+results = chain.batch([
+    {"question": "What is LangChain?"},
+    {"question": "What is LangGraph?"},
+])
+```
+:::
+:::
+
+---
+
+### PromptTemplate — Basic Usage
+
+```python
+from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import StrOutputParser
+
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+parser = StrOutputParser()
+
+# Simple template with one variable
+prompt = PromptTemplate.from_template(
+    "What is the capital city of {country}?"
 )
 
-messages = chat_template.format_messages(name="Proxima", user_input="What is your name?")
+chain = prompt | llm | parser
+result = chain.invoke({"country": "Japan"})
+print(result)  # Tokyo
 
+# Template with multiple variables
+detailed_prompt = PromptTemplate.from_template(
+    "List {count} famous {category} from {country}, "
+    "with a brief description of each."
+)
+
+chain2 = detailed_prompt | llm | parser
+result2 = chain2.invoke({
+    "count": "3",
+    "category": "historical monuments",
+    "country": "India"
+})
+print(result2)
 ```
 
 ---
 
-### FewShotPromptTemplate
+### ChatPromptTemplate — Role-Based Conversations
 
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
 
-``` python
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
 
-from langchain.prompts.few_shot import FewShotPromptTemplate
+# Multi-role prompt template
+chat_prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "You are a {role} specialized in {domain}. "
+     "Always give practical, code-focused answers."),
+    ("human", "{question}")
+])
 
-# Define a list of few-shot examples
-examples = [
-    {"input": "What is the capital of France?", "output": "Paris"},
-    {"input": "What is the largest ocean in the world?", "output": "Pacific Ocean"},
-]
+chain = chat_prompt | llm | StrOutputParser()
 
-# Create a FewShotPromptTemplate object
-prompt = FewShotPromptTemplate(examples=examples)
-
-# Use the prompt to format an input
-input_text = "What is the capital of Germany?"
-formatted_input = prompt.format(input=input_text)
-
-# Print the formatted input
-print(formatted_input)
-
+# Same chain, different personas
+result = chain.invoke({
+    "role": "senior backend engineer",
+    "domain": "FastAPI and async Python",
+    "question": "How do I handle database connection pools in FastAPI?"
+})
+print(result)
 ```
 
 ---
 
-### CoT Example
+### ChatPromptTemplate — Multi-Turn History
 
-``` python
+```python
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
 
-rom langchain.prompts.few_shot import FewShotPromptTemplate
-from langchain.prompts.prompt import PromptTemplate
+llm = ChatOpenAI(model="gpt-4o-mini")
 
-# Create a list of few-shot examples
+# MessagesPlaceholder enables dynamic chat history
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful Python tutor."),
+    MessagesPlaceholder(variable_name="history"),
+    ("human", "{question}")
+])
+
+chain = prompt | llm
+
+# Build up history across turns
+history = []
+
+def chat_turn(question: str) -> str:
+    response = chain.invoke({"question": question, "history": history})
+    history.append(HumanMessage(content=question))
+    history.append(AIMessage(content=response.content))
+    return response.content
+
+print(chat_turn("What is a decorator?"))
+print(chat_turn("Can you show me an example?"))  # uses history context
+print(chat_turn("How do I stack two decorators?"))
+```
+
+---
+
+### FewShotChatMessagePromptTemplate
+
+```python
+from langchain_core.prompts import (
+    FewShotChatMessagePromptTemplate, ChatPromptTemplate
+)
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+
 examples = [
     {
-        "question": "Who lived longer, Muhammad Ali or Alan Turing?",
-        "answer": """
-Are follow up questions needed here: Yes.
-Follow up: How old was Muhammad Ali when he died?
-Intermediate answer: Muhammad Ali was 74 years old when he died.
-Follow up: How old was Alan Turing when he died?
-Intermediate answer: Alan Turing was 41 years old when he died.
-So the final answer is: Muhammad Ali
-""",
+        "input": "Customer says: The app keeps crashing on login.",
+        "output": "I completely understand your frustration. Let me help "
+                  "resolve this immediately. Could you share which device "
+                  "and OS version you're using?"
     },
     {
-        "question": "When was the founder of craigslist born?",
-        "answer": """
-Are follow up questions needed here: Yes.
-Follow up: Who was the founder of craigslist?
-Intermediate answer: Craigslist was founded by Craig Newmark.
-Follow up: When was Craig Newmark born?
-Intermediate answer: Craig Newmark was born on December 6, 1952.
-So the final answer is: December 6, 1952
-""",
+        "input": "Customer says: I was charged twice for my order.",
+        "output": "I sincerely apologize for this billing issue. I'm raising "
+                  "a refund request right now. You'll see the reversal in "
+                  "3-5 business days."
     },
-    # Add more examples here
 ]
 
-# Create a formatter for the few-shot examples
-example_prompt = PromptTemplate(
-    input_variables=["question", "answer"], template="Question: {question}\n{answer}"
-)
+example_prompt = ChatPromptTemplate.from_messages([
+    ("human", "{input}"),
+    ("ai", "{output}"),
+])
 
-# Create a FewShotPromptTemplate object
-prompt = FewShotPromptTemplate(
+few_shot_prompt = FewShotChatMessagePromptTemplate(
     examples=examples,
     example_prompt=example_prompt,
-    suffix="Question: {input}",
-    input_variables=["input"],
 )
 
-# Format and print the prompt
-print(prompt.format(input="Who was the father of Mary Ball Washington?"))
+final_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are an empathetic customer support agent for ShopEasy."),
+    few_shot_prompt,
+    ("human", "{input}"),
+])
 
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
+chain = final_prompt | llm | StrOutputParser()
+result = chain.invoke({"input": "Customer says: My delivery is 5 days late."})
+print(result)
 ```
+
+---
+
+### Streaming with LCEL
+
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+import sys
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a technical writer."),
+    ("human", "Write a blog post introduction about: {topic}")
+])
+
+chain = prompt | llm | StrOutputParser()
+
+# Stream tokens as they arrive — essential for production UIs
+for chunk in chain.stream({"topic": "Python async/await patterns"}):
+    print(chunk, end="", flush=True)
+print()  # newline after streaming completes
+
+# Async streaming for FastAPI / web apps
+import asyncio
+
+async def stream_async():
+    async for chunk in chain.astream({"topic": "LLM application architecture"}):
+        print(chunk, end="", flush=True)
+
+asyncio.run(stream_async())
+```
+
+---
+
+### LangSmith — Observability (Setup)
+
+::: columns
+::: {.column width="55%"}
+LangSmith traces every LLM call, chain execution, and tool invocation — critical for debugging and evaluation.
+
+```bash
+# In your .env file:
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=lsv2_...
+LANGCHAIN_PROJECT=my-llm-project
+```
+
+With these env vars set, **every chain execution is automatically traced** — no code changes needed!
+:::
+
+::: {.column width="45%"}
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+
+# LangSmith traces this automatically if env vars are set
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant."),
+    ("human", "{question}")
+])
+
+chain = (prompt | ChatOpenAI(model="gpt-4o-mini")
+         | StrOutputParser())
+
+result = chain.invoke({"question": "Explain RAG in one sentence."})
+print(result)
+# View the full trace at: smith.langchain.com
+```
+::: {.callout-tip}
+LangSmith is free for up to 5,000 traces/month. Non-negotiable for production debugging.
+:::
+:::
+:::
+
 ---
 
 [Back to Index](#index)

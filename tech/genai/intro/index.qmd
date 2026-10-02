@@ -1,5 +1,5 @@
 ---
-title: "LLM App Development"
+title: "LLM App Development (2025)"
 ---
 
 {{< include slides/_00-index.qmd >}}
@@ -9,4 +9,5 @@ title: "LLM App Development"
 {{< include slides/_04-langchain-2.qmd >}}
 {{< include slides/_05-vectordb.qmd >}}
 {{< include slides/_06-risksnsecurity.qmd >}}
+{{< include slides/_08-modern-rag.qmd >}}
 {{< include slides/_07-conclusion.qmd >}}

@@ -2,25 +2,110 @@
 
 ---
 
-### So Far
+### What We've Covered
 
-* We have learn only Fundamentals
-* Explored only one Framework - LangChain
-* Covered High Level Components & APIs
+::: columns
+::: {.column width="50%"}
+#### Foundation Built
+
+- **GenAI & LLMs** — How they work, 2026 model landscape, choosing the right model
+- **Prompt Engineering** — Zero-shot, Few-shot, CoT, Structured Outputs, ReAct, System Prompt patterns
+- **LangChain** — LCEL pipes, Prompts, Chat history, Tools, Agents
+- **RAG** — End-to-end pipeline: load → chunk → embed → store → retrieve → generate
+- **Vector Databases** — Embeddings, Chroma, similarity search, chunking strategies
+- **Security** — OWASP LLM Top 10, Prompt Injection, Hallucination, PII protection, Guardrails
+:::
+
+::: {.column width="50%"}
+#### You Can Now Build
+
+- Chat applications with LangChain and any LLM
+- Document Q&A systems with RAG
+- Structured data extraction pipelines
+- Few-shot classifiers with LangChain
+- Tool-using agents with ReAct
+- Production-aware LLM apps with security guards
+
+::: {.callout-tip}
+The patterns you learned here (LCEL chains, RAG, tools, agents) are the **direct building blocks** of Agentic AI systems.
+:::
+:::
+:::
 
 ---
 
-### Way Forward
+### Your Way Forward
 
-* Deep Dive into Prompt Engineering & LangChain
-* Explore other frameworks like:
-  - LlamaIndex
-  - Haystack
-  - DSPy
-* Explore other Vector Stores
-* LLM App Development needs more experimentation
+::: columns
+::: {.column width="55%"}
+#### Deepen LangChain Mastery
+- Advanced RAG patterns: Hybrid Search, Reranking, Self-RAG
+- Custom document loaders and text splitters
+- Production observability with LangSmith
+
+#### Enter the Agentic AI World
+- **LangGraph** — Build stateful, cyclic, multi-agent workflows (extends LangChain)
+- **Google ADK** — Agent Development Kit for production multi-agent systems
+- **Human-in-the-loop** — Design agents with approval gates
+- **Multi-agent coordination** — Orchestrator + specialist agent patterns
+
+#### Evaluation & Production
+- **RAGAS** — RAG evaluation framework
+- **Prompt versioning** — LangSmith prompt hub
+- **CI/CD for LLM apps** — Automated golden-set evaluation
+:::
+
+::: {.column width="45%"}
+::: {.callout-note}
+**Next: Agentic AI Engineering**
+
+This course is the foundation. The Agentic AI Bootcamp covers:
+
+- Multi-agent architectures (ReAct, Plan-Execute, HITL)
+- LangGraph for stateful agent workflows
+- MCP (Model Context Protocol)
+- Production observability & evaluation
+- Security, governance & compliance at scale
+
+Everything you learned here maps directly to those advanced patterns.
+:::
+:::
+:::
 
 ---
 
-# Thank You
+### Key Takeaways
 
+::: columns
+::: {.column width="50%"}
+#### Do This in Production
+
+- ✅ Use `uv` for all Python projects
+- ✅ Use `with_structured_output()` over free-form JSON
+- ✅ Always version and test your prompts
+- ✅ Enable LangSmith tracing from day one
+- ✅ Use XML delimiters to prevent prompt injection
+- ✅ Apply defense-in-depth security (input + output validation)
+- ✅ Ground LLM answers in context to prevent hallucination
+- ✅ Plan for human-in-the-loop for high-impact actions
+:::
+
+::: {.column width="50%"}
+#### Avoid These Mistakes
+
+- ❌ Hardcoding API keys
+- ❌ Using `from langchain_core.pydantic_v1 import ...`
+- ❌ Trusting LLM output without validation
+- ❌ Skipping LangSmith in development
+- ❌ Using the most expensive model for everything
+- ❌ Re-embedding documents on every app restart
+- ❌ Giving agents unrestricted tool access
+- ❌ Skipping security review for customer-facing apps
+:::
+:::
+
+---
+
+# Thank You {.center}
+
+Happy Building! 🚀

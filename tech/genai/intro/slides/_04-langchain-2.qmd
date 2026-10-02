@@ -2,226 +2,446 @@
 
 ---
 
-### LangChain Components
+### Structured Output — The Modern Pattern
 
-![](images/langchaincomp.png)
+::: columns
+::: {.column width="55%"}
+`with_structured_output()` is the preferred way to get reliable structured data from LLMs in LangChain v0.3+.
 
----
+- Uses the model's native function-calling/tool-use API
+- Zero JSON parsing errors
+- Returns a Pydantic model instance with type safety
+- Replaces `JsonOutputParser` for most use cases
 
-### Model IO
+::: {.callout-important}
+**Breaking Change in v0.3+**
 
-We already covered following components
+❌ `from langchain_core.pydantic_v1 import BaseModel` — REMOVED
 
-* Prompts
-  - `PromptTemplate`
-  - `ChatPromptTemplate`
-  - etc
-* LLMs 
-  - Chat Model
-  - Instruct Model
+✅ `from pydantic import BaseModel` — Use this
+:::
+:::
 
----
-
-### Output Parsers
-
-* responsible for  transforming LLM output to a more suitable format.
-* Useful for generating structured output
-
-* Some Popular Output Parsers:
-
-| Name | Output Type | Description |
-|---- |----|---|
-| JSON | JSON |Returns a JSON object as specified. Pydantic and JSON schema can be used.|
-| CSV | List[str] |returns list of comma separated values|
-|Pydantic|pydantic.BaseModel|Takes a user defined Pydantic model and returns data in that format.|
-|YAML|pydantic.BaseModel|Takes a user defined Pydantic model and returns data in that format. Uses YAML to encode it.|
-: Output Parsers {tbl-colwidths="[10,25,65]"}
-
----
-
-### JSON
-
-* Define the desired JSON Output Schema
-
-``` python
-class Country(BaseModel):
-country: str = Field(description="Name of the country")
-capital_city: str = Field(description="Capital City of Country")
-
-```
-
-* Specify the schema to JSONOutputParser
-
-``` python
-from langchain_core.output_parsers import JsonOutputParser
-
-parser = JsonOutputParser(pydantic_object=Country)
-```
-
-* Define the prompt template
-
-``` python
-
-prompt = PromptTemplate(
-    template="{format_instructions}\n What is the capital city of {country}\n",
-    input_variables=["query"],
-    partial_variables={"format_instructions": parser.get_format_instructions()},
-)
-
-```
-
-* create and invoke the chain with input
-
-``` python
-chain = prompt | llm | parser
-
-resp = chain.invoke({"country": "India"})
-```
-
----
-
-### Complete Code
-
-``` python
-
+::: {.column width="45%"}
+```python
+# Install: uv add langchain-openai pydantic
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 from typing import List
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(temperature=0)
+class CodeReview(BaseModel):
+    summary: str = Field(description="Brief summary")
+    issues: List[str] = Field(
+        description="List of code issues found"
+    )
+    severity: str = Field(
+        description="critical/major/minor"
+    )
+    score: int = Field(
+        description="Code quality score 0-10"
+    )
 
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+reviewer = llm.with_structured_output(CodeReview)
 
-# Pydantic Model
-class Country(BaseModel):
-    country: str = Field(description="Name of the country")
-    capital_city: str = Field(description="Capital City of Country")
-
-
-# Model parser
-parser = JsonOutputParser(pydantic_object=Country)
-
-prompt = PromptTemplate(
-    template="{format_instructions}\n What is the capital city of {country}\n",
-    input_variables=["query"],
-    partial_variables={"format_instructions": parser.get_format_instructions()},
+code = "def div(a,b): return a/b"
+result = reviewer.invoke(
+    f"Review this Python code:\n{code}"
 )
-
-chain = prompt | llm | parser
-
-resp = chain.invoke({"country": "India"})
-
-print(resp)
-
+print(result.issues)   # ['No zero division check']
+print(result.score)    # 4
 ```
+:::
+:::
 
 ---
 
-### Observation
+### Output Parsers — Other Useful Types
 
-* Print `parser.get_format_instructions()` and observe the output
-
-``` python
-print(parser.get_format_instructions())
-```
-
----
-
-### CSV Output Parser
-
-``` python
-
+```python
+from langchain_core.output_parsers import (
+    StrOutputParser,
+    CommaSeparatedListOutputParser,
+    JsonOutputParser
+)
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import CommaSeparatedListOutputParser
 from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(temperature=0)
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-
-output_parser = CommaSeparatedListOutputParser()
-
-format_instructions = output_parser.get_format_instructions()
+# CommaSeparatedListOutputParser
+list_parser = CommaSeparatedListOutputParser()
 prompt = PromptTemplate(
-    template="List last Cricket One day World cup winning team details.\n{format_instructions}",
-    partial_variables={"format_instructions": format_instructions},
+    template="List 5 popular Python web frameworks.\n{format_instructions}",
+    partial_variables={"format_instructions": list_parser.get_format_instructions()},
     input_variables=[],
 )
+chain = prompt | llm | list_parser
+result = chain.invoke({})
+print(result)  # ['FastAPI', 'Django', 'Flask', 'Tornado', 'Sanic']
 
-model = ChatOpenAI(temperature=0)
-
-chain = prompt | model | output_parser
-
-resp = chain.invoke({})
-
-print(resp)
-
-
+# StrOutputParser — always use for simple text chains
+text_chain = PromptTemplate.from_template("Summarize: {text}") | llm | StrOutputParser()
+print(text_chain.invoke({"text": "A long document..."}))
 ```
 
 ---
 
-### Retrievals
+### Retrieval-Augmented Generation (RAG)
 
-* LLM Models data is snapshot based 
-* Latest or new knowledge will not be updated
-* RAG compensate the gap
-* external data is retrieved and then passed to the LLM for generation.
-* Typical RAG process will have following steps.
+::: columns
+::: {.column width="55%"}
+**The problem:** LLMs have a knowledge cutoff and don't know your private data.
 
+**RAG solution:** Retrieve relevant context from your documents at query time and inject it into the prompt.
 
-![](images/recomp.png)
+#### RAG Pipeline Steps:
+- **Step 1:** Load documents from source
+- **Step 2:** Split into chunks
+- **Step 3:** Embed chunks → store in vector DB
+- **Step 4:** At query time: embed query → retrieve similar chunks
+- **Step 5:** Inject chunks into prompt → generate answer
+:::
+
+::: {.column width="45%"}
+<div style="display:flex;flex-direction:column;gap:6px;font-size:0.8em;">
+<div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:6px;padding:8px;">
+  <div style="color:#60a5fa;font-weight:700;">Step 1: Load</div>
+  <div>PDFLoader, WebBaseLoader, CSVLoader...</div>
+</div>
+<div style="background:rgba(16,185,129,0.1);border:1px solid #10b981;border-radius:6px;padding:8px;">
+  <div style="color:#34d399;font-weight:700;">Step 2: Split</div>
+  <div>RecursiveCharacterTextSplitter (chunk_size, overlap)</div>
+</div>
+<div style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b;border-radius:6px;padding:8px;">
+  <div style="color:#fbbf24;font-weight:700;">Step 3: Embed & Store</div>
+  <div>OpenAIEmbeddings → ChromaDB / pgvector</div>
+</div>
+<div style="background:rgba(168,85,247,0.1);border:1px solid #a855f7;border-radius:6px;padding:8px;">
+  <div style="color:#c084fc;font-weight:700;">Step 4: Retrieve & Generate</div>
+  <div>similarity_search → inject → LLM → answer</div>
+</div>
+</div>
+:::
+:::
 
 ---
 
-### Components
+### RAG — Setup & Document Loading
 
-* For each step, LangChain provides components:
-
-- **Document loaders**: document loaders loads data from a (external) source as `Document`
-  - LangChain provides a general purpose `Document` Model with content and metadata about the data.
-- **Text Splitters**: splits (or chunking) a large document into smaller chunks
-- **Text embedding models**: helps in create vector embedding for a given text
-- **Vector stores**: abstracts all Vector store operations
-- **Retrievers**: different retrieval algorithms for retrieving data
-
----
-
-###  Chains
-
-* Chains are sequences of calls - to an LLM, or a tool, or a data preprocessing step. 
-* two types of off-the-shelf chains that LangChain supports.
-  - Chains that are built with LCEL. 
-  - Legacy Chains constructed by subclassing from a legacy Chain class.
-* The primary way to do  is with LCEL.
-
-* We already seen a simple LCEL chain earlier 
-
-``` python
-  prompt | llm | parser
+```bash
+# Install RAG dependencies
+uv add langchain chromadb langchain-openai langchain-community
+uv add pypdf  # for PDF loading
 ```
 
-* We will use legacy chain like `RetrievalQA` in RAG example
+```python
+from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+# Load from PDF
+loader = PyPDFLoader("company_handbook.pdf")
+docs = loader.load()  # returns list of Document objects
+print(f"Loaded {len(docs)} pages")
+print(f"First page preview: {docs[0].page_content[:200]}")
+print(f"Metadata: {docs[0].metadata}")
+
+# Load from web
+web_loader = WebBaseLoader("https://docs.langchain.com/docs/")
+web_docs = web_loader.load()
+
+# Split into chunks
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,      # ~750 words per chunk
+    chunk_overlap=200,    # 200 char overlap to preserve context at boundaries
+    separators=["\n\n", "\n", ".", " ", ""],  # split hierarchy
+)
+
+chunks = splitter.split_documents(docs)
+print(f"Split into {len(chunks)} chunks")
+```
 
 ---
 
-### Agents
+### RAG — Embedding & Vector Store
 
-* LLM Agents are designed to act as reasoning engines by leveraging LLM Model
-* Instead of doing tasks sequentially like Chains,  they decide next action and order by reasoning
+```python
+from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma
+
+# Create embedding model
+embedding_model = OpenAIEmbeddings(
+    model="text-embedding-3-small"  # fast & cheap
+)
+
+# Create vector store and embed all chunks
+# (this calls the embedding API for each chunk — costs tokens!)
+vectorstore = Chroma.from_documents(
+    documents=chunks,
+    embedding=embedding_model,
+    persist_directory="./chroma_db",  # saves to disk
+    collection_name="company_docs",
+)
+
+print(f"Stored {vectorstore._collection.count()} vectors")
+
+# Later: load existing vector store (no re-embedding)
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=embedding_model,
+    collection_name="company_docs",
+)
+
+# Test retrieval directly
+results = vectorstore.similarity_search("What is the vacation policy?", k=3)
+for doc in results:
+    print(doc.page_content[:150])
+```
 
 ---
 
-### Tools 
+### RAG — Full Q&A Chain
 
-* Tools are used to define a custom task
-* Each tool will have
-  - name
-  - description
-  - JSON schema to define the inputs
-  - function call
-  - how result should be returned
-* `Toolkits` are a set of tools which can be used by agents
+```python
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_chroma import Chroma
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+vectorstore = Chroma(
+    persist_directory="./chroma_db",
+    embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
+)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "Answer using ONLY the context below. "
+     "If the answer isn't in the context, say 'I don't know'.\n\n"
+     "Context:\n{context}"),
+    ("human", "{question}")
+])
+
+def format_docs(docs):
+    return "\n\n".join(d.page_content for d in docs)
+
+rag_chain = (
+    {"context": retriever | format_docs,
+     "question": RunnablePassthrough()}
+    | prompt | llm | StrOutputParser()
+)
+
+answer = rag_chain.invoke("What is the annual leave policy?")
+print(answer)
+```
+
+---
+
+### RAG with Source Citations
+
+```python
+from langchain_core.runnables import RunnableParallel
+
+# Return both the answer AND the source documents
+rag_with_sources = RunnableParallel(
+    answer=rag_chain,
+    sources=retriever
+)
+
+result = rag_with_sources.invoke("What is the vacation policy?")
+
+print("Answer:", result["answer"])
+print("\nSources used:")
+for i, doc in enumerate(result["sources"], 1):
+    source = doc.metadata.get("source", "Unknown")
+    page = doc.metadata.get("page", "N/A")
+    print(f"  Source {i}: {source} (page {page})")
+    print(f"  Preview: {doc.page_content[:100]}...")
+```
+
+---
+
+### Chains — LCEL vs Legacy
+
+::: columns
+::: {.column width="55%"}
+#### LCEL (Current Standard)
+```python
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+
+chain = (
+    ChatPromptTemplate.from_template("Summarize: {text}")
+    | ChatOpenAI(model="gpt-4o-mini")
+    | StrOutputParser()
+)
+result = chain.invoke({"text": "Long document..."})
+```
+
+**Benefits:**
+- Composable with `|` operator
+- Streaming, async, batch built-in
+- Easy to inspect and debug
+:::
+
+::: {.column width="45%"}
+#### Parallel Execution with LCEL
+```python
+from langchain_core.runnables import RunnableParallel
+
+# Run two chains in parallel
+map_chain = RunnableParallel(
+    summary=(
+        ChatPromptTemplate.from_template("Summarize: {text}")
+        | llm | StrOutputParser()
+    ),
+    keywords=(
+        ChatPromptTemplate.from_template(
+            "Extract 5 keywords from: {text}"
+        )
+        | llm | StrOutputParser()
+    ),
+)
+
+result = map_chain.invoke({"text": "Long document..."})
+print(result["summary"])
+print(result["keywords"])
+```
+:::
+:::
+
+---
+
+### LangChain Tools — Building Blocks for Agents
+
+::: columns
+::: {.column width="55%"}
+**Tools** are functions that agents can call to interact with the real world.
+
+Each tool has:
+- **Name** — how the agent refers to it
+- **Description** — tells the LLM when to use it
+- **Input schema** — typed parameters (Pydantic)
+- **Return value** — string or structured data
+
+`@tool` decorator is the simplest way to create tools.
+:::
+
+::: {.column width="45%"}
+```python
+from langchain_core.tools import tool
+from datetime import datetime
+import json
+
+@tool
+def get_current_time() -> str:
+    """Returns the current date and time."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+@tool
+def search_products(query: str, max_results: int = 5) -> str:
+    """Search the product catalog for items matching query."""
+    # In real code: query your database
+    return json.dumps([
+        {"name": f"Product matching '{query}'",
+         "price": 29.99, "in_stock": True}
+    ])
+
+@tool
+def calculate(expression: str) -> str:
+    """Safely evaluate a mathematical expression."""
+    allowed = {"__builtins__": {}}
+    try:
+        return str(eval(expression, allowed))
+    except Exception as e:
+        return f"Error: {e}"
+
+# Inspect the tool schema
+print(get_current_time.name)        # get_current_time
+print(get_current_time.description) # Returns the current...
+print(get_current_time.args)        # {} (no args)
+```
+:::
+:::
+
+---
+
+### Tool-Calling Agent (LangChain)
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage
+
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+@tool
+def get_weather(city: str) -> str:
+    """Get current weather for a city."""
+    return f"{city}: 24°C, partly cloudy, humidity 65%"
+
+@tool
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> str:
+    """Convert currency amounts. Supports USD, EUR, GBP, INR."""
+    rates = {"USD_INR": 83.5, "EUR_INR": 90.2, "GBP_INR": 105.8}
+    key = f"{from_currency}_{to_currency}"
+    rate = rates.get(key, 1.0)
+    result = amount * rate
+    return f"{amount} {from_currency} = {result:.2f} {to_currency}"
+
+tools = [get_weather, convert_currency]
+
+# Bind tools to the LLM — it will decide when to call them
+llm_with_tools = llm.bind_tools(tools)
+
+# The LLM decides which tool to call
+response = llm_with_tools.invoke([
+    HumanMessage(content="What's the weather in Delhi and convert 100 USD to INR?")
+])
+print(response.tool_calls)  # [{name: 'get_weather',...}, {name:'convert_currency',...}]
+```
+
+---
+
+### Agent Execution Loop
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage, ToolMessage
+
+llm = ChatOpenAI(model="gpt-4o", temperature=0)
+
+@tool
+def search_knowledge_base(query: str) -> str:
+    """Search the company knowledge base."""
+    return f"Found: Company policy on '{query}': Contact HR at hr@company.com"
+
+tools = [search_knowledge_base]
+tool_map = {t.name: t for t in tools}
+llm_with_tools = llm.bind_tools(tools)
+
+messages = [HumanMessage(content="What's the leave policy?")]
+
+# Simple agent loop (educational — use LangGraph in production)
+while True:
+    response = llm_with_tools.invoke(messages)
+    messages.append(response)
+
+    if not response.tool_calls:  # no tools needed, done
+        print("Final answer:", response.content)
+        break
+
+    for tool_call in response.tool_calls:
+        tool_result = tool_map[tool_call["name"]].invoke(tool_call["args"])
+        messages.append(ToolMessage(
+            content=tool_result,
+            tool_call_id=tool_call["id"]
+        ))
+```
 
 ---
 
