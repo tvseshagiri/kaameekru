@@ -42,20 +42,23 @@ In classical software, user data is strictly separated from executable code. In 
 :::
 
 ::: {.column width="50%"}
-```{mermaid}
-graph LR
-    Attacker[Attacker] -->|Injects Payload| Doc[(Tainted PDF / Web)]
-    Agent[Agent with Tools] -->|1. Reads Doc| Doc
-    Agent -->|2. Inadvertently Executes| DB[(Production DB)]
-    style Attacker fill:#b91c1c,stroke:#ef4444,color:#fff
-    style Doc fill:#451a03,stroke:#f97316,color:#fff
-    style Agent fill:#172554,stroke:#3b82f6,color:#fff
-    style DB fill:#b91c1c,stroke:#ef4444,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 2px;">
+<div style="background: rgba(185, 28, 28, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 14px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <span style="font-weight: 700; color: #ef4444; font-size: 0.88em;">🚨 Indirect Injection Exploit Chain</span>
+    <span style="font-size: 0.7em; background: #451a03; color: #f97316; padding: 2px 7px; border-radius: 4px; font-weight: 600;">High Risk</span>
+  </div>
+  <div style="font-size: 0.8em; color: #cbd5e1; line-height: 1.4;">
+    1. Attacker embeds hidden instructions in untrusted web / PDF.<br>
+    2. Agent reads document via retrieval tool.<br>
+    3. Model follows payload to execute mutating commands on private DB.
+  </div>
+</div>
 
-::: {.callout-caution appearance="simple"}
-⚠️ **Core Rule:** Never trust tool outputs as benign text. Treat all tool returns as untrusted external input.
-:::
+<div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 6px; padding: 6px 12px; font-size: 0.8em; color: #fcd34d;">
+  ⚠️ <strong>Core Rule:</strong> Treat all tool returns as untrusted external input.
+</div>
+</div>
 :::
 :::
 
@@ -101,20 +104,23 @@ No single guardrail stops 100% of attacks. Secure architectures stack multiple i
 :::
 
 ::: {.column width="50%"}
-```{mermaid}
-graph LR
-    User[User Input] --> L1[L1: Input Filter]
-    L1 --> L2[L2: XML Armor]
-    L2 --> LLM[LLM Engine]
-    LLM --> L3{L3: Tool Gate}
-    L3 -- Approved --> Tool[Tool Execution]
-    Tool --> L4[L4: Output Mask]
-    L4 --> Client[Client Stream]
-    style L1 fill:#172554,stroke:#3b82f6,color:#fff
-    style L2 fill:#172554,stroke:#3b82f6,color:#fff
-    style L3 fill:#b91c1c,stroke:#ef4444,color:#fff
-    style L4 fill:#064e3b,stroke:#10b981,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+<div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #3b82f6; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #60a5fa;">Ring 1 &middot; Heuristic Filter:</strong> Regex blocklist on known jailbreaks.
+</div>
+<div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #6366f1; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #818cf8;">Ring 2 &middot; XML Armor:</strong> Encapsulate user input in passive tags.
+</div>
+<div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #f59e0b; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #fbbf24;">Ring 3 &middot; Tool Execution Gates:</strong> Pydantic schemas &amp; path jail.
+</div>
+<div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #10b981; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #34d399;">Ring 4 &middot; Output DLP Masking:</strong> Strip PII and unverified image URLs.
+</div>
+<div style="background: rgba(30, 41, 59, 0.6); border-left: 4px solid #ef4444; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #f87171;">Ring 5 &middot; Human Approval Gate:</strong> HMAC token verification for mutations.
+</div>
+</div>
 :::
 :::
 
@@ -279,18 +285,20 @@ We will build a **Production Financial Security Guardrail Pipeline** for an ente
 :::
 
 ::: {.column width="45%"}
-```{mermaid}
-graph LR
-    Attack[Input] --> Guard[Security Guard]
-    Guard -->|Clean| Agent[Banking Agent]
-    Guard -->|Flagged| SecurityLog[(Audit Log)]
-    Agent --> Gate{Transfer > $1,000?}
-    Gate -- Yes --> Halt[Human Approval]
-    Gate -- No --> Exec[Execute Tool]
-    style Guard fill:#172554,stroke:#3b82f6,color:#fff
-    style SecurityLog fill:#b91c1c,stroke:#ef4444,color:#fff
-    style Halt fill:#451a03,stroke:#f97316,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #3b82f6; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #60a5fa;">Stage 1 &middot; Injection Interceptor:</strong> Heuristic check blocks jailbreaks.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #6366f1; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #818cf8;">Stage 2 &middot; PII Masking:</strong> Tokenizes account IDs before Gemini call.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #fbbf24;">Stage 3 &middot; Transfer Gate:</strong> Halts transfers &gt; $1,000 for human MFA.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #10b981; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #34d399;">Stage 4 &middot; Audit Trail:</strong> Records compliance timestamps &amp; trace IDs.
+</div>
+</div>
 :::
 :::
 

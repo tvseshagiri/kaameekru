@@ -42,21 +42,33 @@ Traditional APM tools measure server metrics. For AI agents, this is dangerously
 :::
 
 ::: {.column width="50%"}
-```{mermaid}
-graph LR
-    subgraph Traditional["Traditional APM (Blind)"]
-        User1[User] --> Web1[FastAPI 200 OK]
-    end
-    subgraph AgentTracing["Agent Semantic Trace"]
-        Root[Trace: agent.run] --> Span1[LLM: plan]
-        Root --> Span2[Tool: query_api]
-        Root --> Span3[LLM: reply]
-    end
-    style Root fill:#172554,stroke:#3b82f6,color:#fff
-    style Span1 fill:#1e1b4b,stroke:#6366f1,color:#fff
-    style Span2 fill:#064e3b,stroke:#10b981,color:#fff
-    style Span3 fill:#1e1b4b,stroke:#6366f1,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 2px;">
+<div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 14px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <span style="font-weight: 700; color: #ef4444; font-size: 0.88em;">❌ Traditional APM (Blind)</span>
+    <span style="font-size: 0.7em; background: #451a03; color: #f97316; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Status Codes</span>
+  </div>
+  <div style="font-size: 0.8em; color: #cbd5e1; line-height: 1.4;">
+    Monitors HTTP 200, CPU &amp; RAM. Completely blind to model reasoning loops.
+  </div>
+  <div style="margin-top: 6px; font-family: monospace; font-size: 0.78em; color: #f87171; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px;">
+    <b>Blindspot:</b> 40 retry loops cost $4.80 while server reports "Healthy 200"
+  </div>
+</div>
+
+<div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 10px 14px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <span style="font-weight: 700; color: #10b981; font-size: 0.88em;">✅ Agent Semantic Telemetry</span>
+    <span style="font-size: 0.7em; background: #064e3b; color: #34d399; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Full Observability</span>
+  </div>
+  <div style="font-size: 0.8em; color: #cbd5e1; line-height: 1.4;">
+    Tracks prompt tokens, tool arguments, latency breakdown, and reasoning spans.
+  </div>
+  <div style="margin-top: 6px; font-family: monospace; font-size: 0.78em; color: #34d399; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px;">
+    <b>Visibility:</b> Pinpoints exact offending span, token cost &amp; loop count
+  </div>
+</div>
+</div>
 :::
 :::
 
@@ -220,16 +232,20 @@ We will build a **Zero-Friction Local SQLite Trace Logger** and **FastAPI Trace 
 :::
 
 ::: {.column width="45%"}
-```{mermaid}
-graph LR
-    Agent[Agent Runtime] -->|Context| Tracer[SQLite Tracer]
-    Tracer --> DB[(traces.sqlite)]
-    DB --> API[FastAPI Explorer]
-    API --> UI[Developer Inspector]
-    style Tracer fill:#172554,stroke:#3b82f6,color:#fff
-    style DB fill:#451a03,stroke:#f97316,color:#fff
-    style API fill:#064e3b,stroke:#10b981,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #3b82f6; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #60a5fa;">Stage 1 &middot; Agent Runtime:</strong> Executes Gemini turn with nested spans.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #6366f1; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #818cf8;">Stage 2 &middot; SQLite Tracer:</strong> Measures latency &amp; tracks token usage.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #fbbf24;">Stage 3 &middot; traces.sqlite:</strong> Embedded zero-friction local storage.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #10b981; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #34d399;">Stage 4 &middot; FastAPI Explorer:</strong> Exposes <code>/traces/{id}</code> timeline API.
+</div>
+</div>
 :::
 :::
 

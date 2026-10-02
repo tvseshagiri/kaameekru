@@ -43,19 +43,27 @@ Moving from a single prototype to 50+ multi-agent systems across an enterprise r
 :::
 
 ::: {.column width="50%"}
-```{mermaid}
-graph LR
-    subgraph Governance["Enterprise Gateway Layer"]
-        Auth[RBAC Auth] --> Budget{Budget Gate}
-        Budget -- OK --> Rate[Rate Limiter]
-        Rate --> Router[Model Router]
-    end
-    Router --> Runtime[Agent Runtime]
-    Runtime --> Audit[(Immutable Audit)]
-    style Governance fill:#172554,stroke:#3b82f6,color:#fff
-    style Runtime fill:#064e3b,stroke:#10b981,color:#fff
-    style Audit fill:#451a03,stroke:#f97316,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 2px;">
+<div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 8px; padding: 8px 12px;">
+  <div style="font-weight: 700; color: #60a5fa; font-size: 0.85em; margin-bottom: 2px;">Pillar 1: RBAC &amp; Tenant Authentication</div>
+  <div style="font-size: 0.78em; color: #cbd5e1;">Verify API keys, validate department tenant IDs, and scope tool roles.</div>
+</div>
+
+<div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 8px 12px;">
+  <div style="font-weight: 700; color: #fbbf24; font-size: 0.85em; margin-bottom: 2px;">Pillar 2: Budget Circuit Breakers &amp; Rate Limits</div>
+  <div style="font-size: 0.78em; color: #cbd5e1;">Enforce token quotas; automatically trip HTTP 429 when budget is exhausted.</div>
+</div>
+
+<div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 8px 12px;">
+  <div style="font-weight: 700; color: #34d399; font-size: 0.85em; margin-bottom: 2px;">Pillar 3: Multi-Model Failover &amp; Routing</div>
+  <div style="font-size: 0.78em; color: #cbd5e1;">Route 85% to Flash; escalate to Pro; retry with backoff on provider errors.</div>
+</div>
+
+<div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 8px 12px;">
+  <div style="font-weight: 700; color: #c084fc; font-size: 0.85em; margin-bottom: 2px;">Pillar 4: Immutable Cryptographic Audit Ledger</div>
+  <div style="font-size: 0.78em; color: #cbd5e1;">SHA-256 block hash chaining for tamper-evident SOC2 / EU AI Act compliance.</div>
+</div>
+</div>
 :::
 :::
 
@@ -230,21 +238,26 @@ The Capstone brings together every core concept mastered across the 3 days into 
 :::
 
 ::: {.column width="45%"}
-```{mermaid}
-graph TD
-    Client[Client Request] --> Gate[FastAPI Gateway]
-    Gate --> Guard[Security Armor & PII]
-    Guard --> Graph[LangGraph / ADK Engine]
-    Graph --> Skill[Skill Index]
-    Graph --> MCP[FastMCP Tool Server]
-    Graph --> Trace[OTel SQLite Logger]
-    Graph --> Human{Human Approval}
-    Human --> Res[Verified Output]
-    style Gate fill:#172554,stroke:#3b82f6,color:#fff
-    style Graph fill:#064e3b,stroke:#10b981,color:#fff
-    style MCP fill:#451a03,stroke:#f97316,color:#fff
-    style Human fill:#b91c1c,stroke:#ef4444,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 2px;">
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #3b82f6; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #60a5fa;">1. Ingress &amp; Auth:</strong> FastAPI Gateway with Tenant RBAC
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #6366f1; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #818cf8;">2. Armor &amp; Privacy:</strong> XML boundary tags + PII Masking
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #10b981; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #34d399;">3. Orchestration:</strong> LangGraph state machine with checkpoints
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #f59e0b; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #fbbf24;">4. Extensibility:</strong> FastMCP SQLite Tools + Progressive Skills
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #a855f7; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #c084fc;">5. Telemetry:</strong> OpenTelemetry SQLite distributed spans
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #ef4444; padding: 6px 10px; border-radius: 4px; font-size: 0.76em; color: #cbd5e1;">
+  <strong style="color: #f87171;">6. Governance:</strong> Human sign-off gate for mutations &gt; $500
+</div>
+</div>
 :::
 :::
 

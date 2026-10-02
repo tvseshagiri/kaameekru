@@ -42,21 +42,33 @@ In traditional software, tests are deterministic. In agentic systems, stochastic
 :::
 
 ::: {.column width="50%"}
-```{mermaid}
-graph LR
-    subgraph AntiPattern["Vibes-Based (Fragile)"]
-        P1[Tweak Prompt] --> Manual[Manual Spot Check]
-        Manual --> Deploy1[Deploy & Hope]
-    end
-    subgraph EDD["Eval-Driven (Production)"]
-        Dataset[(Golden Dataset)] --> Runner[Automated Eval Harness]
-        Runner --> Gate{Pass Rate > 95%?}
-        Gate -- Yes --> Deploy2([Safe Deploy])
-        Gate -- No --> P2[Refine Prompt]
-    end
-    style Deploy2 fill:#064e3b,stroke:#10b981,color:#fff
-    style Gate fill:#172554,stroke:#3b82f6,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 2px;">
+<div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 14px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <span style="font-weight: 700; color: #ef4444; font-size: 0.88em;">❌ Vibes-Based Testing</span>
+    <span style="font-size: 0.7em; background: #451a03; color: #f97316; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Fragile</span>
+  </div>
+  <div style="font-size: 0.8em; color: #cbd5e1; line-height: 1.4;">
+    Tweak prompt &rarr; Spot check 3 queries &rarr; Deploy &amp; hope.
+  </div>
+  <div style="margin-top: 6px; font-family: monospace; font-size: 0.78em; color: #f87171; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px;">
+    <b>Impact:</b> Silent regressions in 30%+ of production queries
+  </div>
+</div>
+
+<div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 10px 14px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <span style="font-weight: 700; color: #10b981; font-size: 0.88em;">✅ Eval-Driven Development (EDD)</span>
+    <span style="font-size: 0.7em; background: #064e3b; color: #34d399; padding: 2px 7px; border-radius: 4px; font-weight: 600;">Production Gate</span>
+  </div>
+  <div style="font-size: 0.8em; color: #cbd5e1; line-height: 1.4;">
+    Golden Benchmark (100+ cases) &rarr; Automated Harness &rarr; Pass &ge; 95%?
+  </div>
+  <div style="margin-top: 6px; font-family: monospace; font-size: 0.78em; color: #34d399; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 4px;">
+    <b>Impact:</b> Automated merge blocks on regressions; verified ROI
+  </div>
+</div>
+</div>
 :::
 :::
 
@@ -337,17 +349,20 @@ We will build an **Automated Evaluation Harness** for an enterprise Customer Sup
 :::
 
 ::: {.column width="45%"}
-```{mermaid}
-graph LR
-    Dataset[(Eval Cases)] --> Harness[Eval Runner]
-    Harness --> Agent[Target Agent]
-    Agent --> Det[Level 1 & 2: Trajectory]
-    Agent --> Judge[Level 3: LLM Judge]
-    Det --> Report[Scorecard]
-    Judge --> Report
-    style Harness fill:#172554,stroke:#3b82f6,color:#fff
-    style Report fill:#064e3b,stroke:#10b981,color:#fff
-```
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #3b82f6; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #60a5fa;">Step 1 &middot; Eval Dataset:</strong> 20 Golden Cases with expected tools &amp; ground truth.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #6366f1; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #818cf8;">Step 2 &middot; Target Agent:</strong> Gemini 2.5 executes turn against query.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #f59e0b; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #fbbf24;">Step 3 &middot; Two-Tier Asserter:</strong> Level 1 &amp; 2 Trajectory + Level 3 LLM Judge.
+</div>
+<div style="background: rgba(30, 41, 59, 0.7); border-left: 4px solid #10b981; padding: 8px 12px; border-radius: 4px; font-size: 0.8em; color: #cbd5e1;">
+  <strong style="color: #34d399;">Step 4 &middot; Scorecard:</strong> Aggregates metrics &amp; gates deploy (&ge; 95%).
+</div>
+</div>
 :::
 :::
 
