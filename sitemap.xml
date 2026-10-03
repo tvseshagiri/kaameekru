@@ -2,70 +2,74 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/spring.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/python-ai.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/maven.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/genai/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.680Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/reactjs/react.html</loc>
-    <lastmod>2026-10-03T09:02:32.703Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/devops/devops.html</loc>
-    <lastmod>2026-10-03T09:02:32.679Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/python/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.702Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/es6/es6.html</loc>
-    <lastmod>2026-10-03T09:02:32.680Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/agentic-ai/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.676Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/python-ai/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.701Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/maven/maven.html</loc>
-    <lastmod>2026-10-03T09:02:32.700Z</lastmod>
-  </url>
-  <url>
-    <loc>https://tvseshagiri.github.io/kaameekru/tech/genai/intro/index.html</loc>
-    <lastmod>2026-10-03T09:02:32.696Z</lastmod>
+    <loc>https://tvseshagiri.github.io/kaameekru/courses/llm-app-dev.html</loc>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/tech/genai/poc/localllms.html</loc>
-    <lastmod>2026-10-03T09:02:32.700Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.364Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/genai/intro/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.360Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/maven/maven.html</loc>
+    <lastmod>2026-10-03T09:15:59.364Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/python-ai/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.366Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/agentic-ai/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.341Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/es6/es6.html</loc>
+    <lastmod>2026-10-03T09:15:59.345Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/python/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.366Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/devops/devops.html</loc>
+    <lastmod>2026-10-03T09:15:59.343Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/reactjs/react.html</loc>
+    <lastmod>2026-10-03T09:15:59.367Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/tech/genai/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.345Z</lastmod>
+  </url>
+  <url>
+    <loc>https://tvseshagiri.github.io/kaameekru/index.html</loc>
+    <lastmod>2026-10-03T09:15:59.341Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/javawebapp.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/agentic-ai.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
   <url>
     <loc>https://tvseshagiri.github.io/kaameekru/courses/reactjs.html</loc>
-    <lastmod>2026-10-03T09:02:32.675Z</lastmod>
+    <lastmod>2026-10-03T09:15:59.340Z</lastmod>
   </url>
 </urlset>

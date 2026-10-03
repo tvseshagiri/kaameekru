@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Spring Framework Curriculum – Kaameekru</title>
+<title>LLM Application Development Workshop – Kaameekru</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -361,8 +361,20 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#program-overview" id="toc-program-overview" class="nav-link active" data-scroll-target="#program-overview">Program Overview</a></li>
+  <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
+  <li><a href="#overall-learning-outcomes" id="toc-overall-learning-outcomes" class="nav-link" data-scroll-target="#overall-learning-outcomes">Overall Learning Outcomes</a></li>
+  <li><a href="#schedule-at-a-glance" id="toc-schedule-at-a-glance" class="nav-link" data-scroll-target="#schedule-at-a-glance">Schedule at a Glance</a></li>
+  <li><a href="#detailed-daily-curriculum" id="toc-detailed-daily-curriculum" class="nav-link" data-scroll-target="#detailed-daily-curriculum">Detailed Daily Curriculum</a></li>
+  <li><a href="#course-capstone-architecture" id="toc-course-capstone-architecture" class="nav-link" data-scroll-target="#course-capstone-architecture">Course Capstone Architecture</a></li>
+  <li><a href="#recommended-learning-pathway" id="toc-recommended-learning-pathway" class="nav-link" data-scroll-target="#recommended-learning-pathway">Recommended Learning Pathway</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -370,7 +382,8 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Spring Framework Curriculum</h1>
+<h1 class="title">LLM Application Development Workshop</h1>
+<p class="subtitle lead">2-Day Hands-on Intensive: Foundation Models, Prompt Engineering, LangChain LCEL &amp; Production RAG</p>
 </div>
 
 
@@ -387,44 +400,389 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="program-overview" class="level3">
+<h3 class="anchored" data-anchor-id="program-overview">Program Overview</h3>
+<p>This intensive, two-day hands-on workshop equips <strong>software engineers, backend developers, and technical leads</strong> with the practical skills required to build, evaluate, and safely deploy production-grade Large Language Model (LLM) applications.</p>
+<p>Participants progress from fundamental model mechanics, token budgeting, and API-enforced prompt engineering to building composable pipelines with <strong>LangChain (LCEL)</strong>, managing vector embeddings in <strong>ChromaDB</strong>, implementing <strong>Advanced Hybrid RAG with Reranking</strong>, and hardening systems against the <strong>OWASP LLM Top 10 (2025)</strong> vulnerabilities.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Quick Facts
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <ul>
-<li><p><strong>Introduction to the Spring Framework</strong></p>
+<li><strong>Audience:</strong> Software engineers, data engineers, and technical architects with Python proficiency.</li>
+<li><strong>Duration:</strong> 2 Days · 8 Core Sessions · 8 Guided Hands-on Labs · 1 Production Capstone.</li>
+<li><strong>Pacing:</strong> 30% Architecture &amp; Design Principles, 70% Practical Implementation &amp; Guided Labs.</li>
+<li><strong>Model Ecosystem:</strong> OpenAI (<code>gpt-4o-mini</code>, <code>o4-mini</code>), Google Gemini (<code>gemini-2.5-flash</code>), Groq (<code>llama-3.3-70b</code>), DeepSeek (<code>deepseek-reasoner</code>).</li>
+<li><strong>Tooling Standards:</strong> Python 3.11+ managed exclusively with <strong><code>uv</code></strong>, LangChain v0.3+, Pydantic v2, and ChromaDB.</li>
+<li><strong>Interactive Slide Deck:</strong> <a href="../tech/genai/intro/index.html" target="_blank">Launch LLM App Development Presentation</a></li>
+</ul>
+</div>
+</div>
+<hr>
+</section>
+<section id="prerequisites" class="level3">
+<h3 class="anchored" data-anchor-id="prerequisites">Prerequisites</h3>
+<ol type="1">
+<li><strong>Python Programming:</strong> Working proficiency with Python functions, classes, async syntax, dictionaries, and virtual environments (or completion of <a href="../courses/python-ai.html">Python for AI Engineers</a>).</li>
+<li><strong>Terminal &amp; Developer Tooling:</strong> Comfort executing CLI commands, managing environment variables (<code>.env</code>), and using Git (<code>clone</code>, <code>commit</code>).</li>
+<li><strong>Web &amp; API Basics:</strong> Understanding of HTTP REST requests, JSON payloads, and API key authentication.</li>
+</ol>
+<hr>
+</section>
+<section id="overall-learning-outcomes" class="level3">
+<h3 class="anchored" data-anchor-id="overall-learning-outcomes">Overall Learning Outcomes</h3>
+<p>By completing this 2-day workshop, participants will be able to:</p>
+<ol type="1">
+<li><strong>Navigate the 2026 Model Ecosystem:</strong> Evaluate LLMs across parameter scales, dense vs.&nbsp;Mixture-of-Experts (MoE) architectures, context windows, licensing (Apache 2.0 vs.&nbsp;proprietary), and provider trade-offs (Direct APIs vs.&nbsp;AWS Bedrock vs.&nbsp;Groq LPUs).</li>
+<li><strong>Master Modern Prompt Engineering:</strong> Construct zero-shot, few-shot, Chain-of-Thought (CoT), and self-consistency prompts using production XML delimiter separation to eliminate prompt drift.</li>
+<li><strong>Enforce Schema-First Reliability:</strong> Guarantee 100% valid JSON data extraction at the API boundary using Pydantic v2 and native model structured outputs (<code>with_structured_output</code>).</li>
+<li><strong>Orchestrate Pipelines with LCEL:</strong> Compose robust, type-safe processing chains with the LangChain Expression Language (<code>|</code> pipe operator), supporting streaming, async concurrency, and LangSmith tracing.</li>
+<li><strong>Implement Semantic Vector Search:</strong> Compute high-dimensional semantic similarity, configure optimal text chunking strategies, and operate ChromaDB with metadata filtering.</li>
+<li><strong>Build End-to-End RAG Architectures:</strong> Ingest unstructured PDFs/web docs, generate embeddings, retrieve relevant context, and synthesize factual answers with precise source citations.</li>
+<li><strong>Deploy Advanced &amp; Hybrid RAG:</strong> Overcome naive RAG limitations using multi-query expansion, HyDE, hybrid search (BM25 keyword + dense vector with RRF), and cross-encoder reranking.</li>
+<li><strong>Harden Against LLM Threats:</strong> Protect applications against direct/indirect prompt injection, enforce PII masking/restoration, integrate content moderation filters, and align with EU AI Act risk tiers.</li>
+<li><strong>Transition to Autonomous Agents:</strong> Implement ReAct reasoning loops, bind deterministic tools to chat models, and prepare the foundation for multi-agent systems in <a href="../courses/agentic-ai.html">Agentic AI Engineering</a>.</li>
+</ol>
+<hr>
+</section>
+<section id="schedule-at-a-glance" class="level3">
+<h3 class="anchored" data-anchor-id="schedule-at-a-glance">Schedule at a Glance</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 30%">
+<col style="width: 28%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Day</th>
+<th style="text-align: center;">Time</th>
+<th style="text-align: left;">Session</th>
+<th style="text-align: left;">Focus Area &amp; Slide Module</th>
+<th style="text-align: left;">Hands-on Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">09:00</td>
+<td style="text-align: left;"><strong>1. Foundations &amp; Model Landscape</strong></td>
+<td style="text-align: left;">GenAI mechanics, architectures, creators vs.&nbsp;providers &amp; setup</td>
+<td style="text-align: left;">Lab 1: Multi-Provider Inference &amp; Token Benchmark with <code>uv</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">10:45</td>
+<td style="text-align: left;"><strong>2. Systematic Prompt Engineering</strong></td>
+<td style="text-align: left;">CoT, self-consistency, XML hygiene &amp; structured outputs</td>
+<td style="text-align: left;">Lab 2: Schema-Validated Data Extractor with Pydantic v2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">13:00</td>
+<td style="text-align: left;"><strong>3. LangChain Core &amp; LCEL</strong></td>
+<td style="text-align: left;">Pipe operator, Runnables, chat history, streaming &amp; LangSmith</td>
+<td style="text-align: left;">Lab 3: Streaming Multi-Turn Assistant with LangSmith Tracing</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 1</strong></td>
+<td style="text-align: center;">14:45</td>
+<td style="text-align: left;"><strong>4. Advanced LangChain &amp; Tool Calling</strong></td>
+<td style="text-align: left;">Structured outputs, <code>RunnableParallel</code>, <code>@tool</code> &amp; ReAct loops</td>
+<td style="text-align: left;">Lab 4: ReAct Tool-Calling Agent with Custom Python Tools</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">09:00</td>
+<td style="text-align: left;"><strong>5. Embeddings &amp; Vector Stores</strong></td>
+<td style="text-align: left;">High-dim vectors, MRL, chunking strategies &amp; ChromaDB</td>
+<td style="text-align: left;">Lab 5: Document Chunking &amp; ChromaDB Vector Store Ingestion</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">10:45</td>
+<td style="text-align: left;"><strong>6. End-to-End RAG Pipelines</strong></td>
+<td style="text-align: left;">Context injection, prompt grounding &amp; source citations</td>
+<td style="text-align: left;">Lab 6: Technical Document Q&amp;A Chain with Transparent Sources</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">13:00</td>
+<td style="text-align: left;"><strong>7. Modern &amp; Production RAG</strong></td>
+<td style="text-align: left;">Multi-Query, HyDE, Hybrid Search (BM25+Dense) &amp; Reranking</td>
+<td style="text-align: left;">Lab 7: High-Precision Hybrid Search &amp; RAGAS Evaluation</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>Day 2</strong></td>
+<td style="text-align: center;">14:45</td>
+<td style="text-align: left;"><strong>8. Risks, Security &amp; Production Capstone</strong></td>
+<td style="text-align: left;">OWASP Top 10 (2025), PII masking, guardrails &amp; agent bridge</td>
+<td style="text-align: left;">Lab 8: Enterprise-Governed RAG Assistant Capstone</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="detailed-daily-curriculum" class="level3">
+<h3 class="anchored" data-anchor-id="detailed-daily-curriculum">Detailed Daily Curriculum</h3>
+<section id="day-1-foundations-prompt-engineering-langchain-orchestration" class="level4">
+<h4 class="anchored" data-anchor-id="day-1-foundations-prompt-engineering-langchain-orchestration">Day 1 · Foundations, Prompt Engineering &amp; LangChain Orchestration</h4>
+<p>Day 1 establishes foundational fluency: understanding transformer mechanics and model selection, mastering prompt design patterns with API-enforced schemas, and orchestrating composable pipelines with LangChain Expression Language.</p>
+<section id="session-1-0900-1030-genai-mechanics-model-taxonomy-the-2026-landscape" class="level5">
+<h5 class="anchored" data-anchor-id="session-1-0900-1030-genai-mechanics-model-taxonomy-the-2026-landscape">Session 1 · 09:00 – 10:30 · GenAI Mechanics, Model Taxonomy &amp; The 2026 Landscape</h5>
 <ul>
-<li>Understanding the Spring Framework and Its Ecosystem
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#intgenai"><code>_01-intro.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
 <ul>
-<li>Introduction to the Spring framework</li>
-<li>History and evolution of Spring</li>
-<li>Core concepts: Inversion of Control (IoC) and Dependency Injection (DI)</li>
+<li>What is Generative AI? Next-token prediction, self-attention, and context windows.</li>
+<li>Model Taxonomy: Text generation, reasoning models, multimodal vision/audio, embeddings, and code specialists.</li>
+<li>Key Model Attributes: Parameter scale, input/output modalities, training cutoff dates, licenses (Apache 2.0 vs.&nbsp;Llama Community vs.&nbsp;Proprietary), and benchmark interpretations (MMLU, HumanEval, GPQA).</li>
+<li>Architecture Paradigms: Dense Transformers vs.&nbsp;Mixture-of-Experts (MoE) vs.&nbsp;State Space Models (SSM/Mamba).</li>
+<li>Model Creators vs.&nbsp;Service Providers: Direct APIs (OpenAI, Anthropic, Gemini) vs.&nbsp;Cloud Hyperscalers (AWS Bedrock, Vertex AI) vs.&nbsp;Specialized LPUs (Groq).</li>
+<li>The “Silent” Creators: DeepSeek (R1 &amp; V3 breakthroughs), Alibaba/Qwen, Mistral, and Cohere.</li>
+<li>Reasoning Models: When to deploy thinking models (o3, o4-mini, Gemini 2.5 Thinking) vs.&nbsp;lightweight fast chat models.</li>
+<li>Tokens &amp; Cost Economics: Tokenizer mechanics with <code>tiktoken</code>, pricing per 1M tokens, and cost optimization.</li>
 </ul></li>
-<li>Configuring Spring with XML and Annotations
+<li><strong>Hands-on Lab 1:</strong>
 <ul>
-<li>Configuration options in Spring: XML-based and annotation-based</li>
-<li>Setting up a Spring project with XML configuration</li>
-<li>Utilizing annotations for component scanning and bean definitions</li>
-</ul></li>
-<li>Creating Spring Beans and Managing Their Lifecycle
-<ul>
-<li>Defining and configuring Spring beans</li>
-<li>Bean scopes (singleton, prototype, request, session)</li>
-<li>Understanding the bean lifecycle: initialization and destruction methods</li>
-</ul></li>
-<li>Dependency Injection in Action
-<ul>
-<li>Implementing dependency injection in Spring</li>
-<li>Constructor injection and setter injection</li>
-<li>Resolving bean dependencies</li>
-<li>Hands-on exercises on creating Spring applications</li>
-</ul></li>
+<li>Bootstrap a reproducible GenAI project using <code>uv</code> (<code>uv init</code>, <code>uv add</code>, <code>uv run</code>).</li>
+<li>Configure <code>.env</code> authentication across OpenAI, Google Gemini, and Groq.</li>
+<li>Benchmark latency, token usage, and response variations across models using official Python SDKs.</li>
 </ul></li>
 </ul>
-<p>Week 3: Spring Data Access with JDBC</p>
-<p>Day 1: JDBC Template and Data Source Configuration</p>
-<p>Overview of JDBC Template in Spring Configuring data sources for database connectivity Implementing data source properties Day 2: Executing Queries and Managing Connections</p>
-<p>Performing basic SQL queries with JDBC Handling prepared statements and result sets Managing database connections and resources Day 3: Handling Exceptions and Transactions</p>
-<p>Dealing with exceptions in JDBC operations Understanding transaction management Implementing programmatic and declarative transactions Day 4: Developing a Simple JDBC-Based Application</p>
-<p>Building a complete Java application with Spring JDBC CRUD operations with JDBC Best practices and error handling</p>
+<hr>
+</section>
+<section id="session-2-1045-1230-systematic-prompt-engineering-schema-first-development" class="level5">
+<h5 class="anchored" data-anchor-id="session-2-1045-1230-systematic-prompt-engineering-schema-first-development">Session 2 · 10:45 – 12:30 · Systematic Prompt Engineering &amp; Schema-First Development</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#pmpteng"><code>_02-pmtengg.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>Why Prompt Engineering is an Engineering Discipline: Versioning, testing against golden sets, and reproducibility.</li>
+<li>Anatomy of a Production Prompt: Instructions, background context, input parameters, and format constraints.</li>
+<li>In-Context Learning: Zero-Shot vs.&nbsp;Few-Shot prompting (<code>FewShotChatMessagePromptTemplate</code>).</li>
+<li>Advanced Reasoning Techniques: Chain-of-Thought (CoT), “Let’s think step by step”, and Self-Consistency majority voting.</li>
+<li>Schema-First Development: Why “respond in JSON” fails in production; enforcing type contracts with Pydantic v2 and native model function calling.</li>
+<li>Complex Data Extraction: Nested Pydantic schemas, field constraints, type safety, and automatic validation error feedback.</li>
+<li>Production System Prompt Architecture: XML Delimiter isolation (<code>&lt;rules&gt;</code>, <code>&lt;context&gt;</code>, <code>&lt;examples&gt;</code>) to mitigate instruction drift and injection.</li>
+<li>Inference Parameter Tuning: Temperature (deterministic <code>0.0</code> vs.&nbsp;creative <code>0.8</code>), Top-p nucleus sampling, Top-k, Max Tokens, and Stop Sequences.</li>
+</ul></li>
+<li><strong>Hands-on Lab 2:</strong>
+<ul>
+<li>Build a schema-enforced Customer Feedback Analyzer extracting sentiment, confidence scores, detected pain points, and urgency levels into a validated Pydantic model.</li>
+<li>Implement a Self-Consistency majority-voting pipeline for complex classification tasks.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="lunch-break-1230-1330" class="level5">
+<h5 class="anchored" data-anchor-id="lunch-break-1230-1330">Lunch Break · 12:30 – 13:30</h5>
+<hr>
+</section>
+<section id="session-3-1330-1430-langchain-architecture-the-expression-language-lcel" class="level5">
+<h5 class="anchored" data-anchor-id="session-3-1330-1430-langchain-architecture-the-expression-language-lcel">Session 3 · 13:30 – 14:30 · LangChain Architecture &amp; The Expression Language (LCEL)</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#langchain-1"><code>_03-langchain-1.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>The LangChain Ecosystem: <code>langchain-core</code>, dedicated provider integrations (<code>langchain-openai</code>, <code>langchain-google-genai</code>), and <code>langsmith</code>.</li>
+<li>LCEL Architecture: Composing pipelines using the pipe operator (<code>prompt | model | parser</code>).</li>
+<li>The <code>Runnable</code> Protocol: Uniform <code>.invoke()</code>, <code>.batch()</code>, <code>.stream()</code>, <code>.ainvoke()</code>, and <code>.astream()</code> interfaces.</li>
+<li>Dynamic Templating: <code>PromptTemplate</code> and role-based <code>ChatPromptTemplate</code> with persona injection.</li>
+<li>Conversational Context &amp; Memory: Managing multi-turn state using <code>MessagesPlaceholder</code> and message arrays (<code>HumanMessage</code>, <code>AIMessage</code>).</li>
+<li>Real-Time Token Streaming: Synchronous CLI streaming and asynchronous generator streaming for FastAPI web services.</li>
+<li>Distributed Observability: Setting up LangSmith tracing via zero-code environment variables (<code>LANGCHAIN_TRACING_V2=true</code>).</li>
+</ul></li>
+<li><strong>Hands-on Lab 3:</strong>
+<ul>
+<li>Construct a multi-turn conversational AI mentor with dynamic persona switching, stateful history, and token-by-token streaming.</li>
+<li>Inspect full execution latency, prompt inputs, and token breakdowns inside the LangSmith trace explorer.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="session-4-1445-1700-advanced-langchain-tool-calling-agentic-foundations" class="level5">
+<h5 class="anchored" data-anchor-id="session-4-1445-1700-advanced-langchain-tool-calling-agentic-foundations">Session 4 · 14:45 – 17:00 · Advanced LangChain, Tool Calling &amp; Agentic Foundations</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#langchain-2"><code>_04-langchain-2.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>Production Structured Outputs: <code>llm.with_structured_output(MyModel)</code> (migrated cleanly from deprecated <code>pydantic_v1</code>).</li>
+<li>Parallel Pipeline Execution: Running independent chains concurrently with <code>RunnableParallel</code> (e.g., simultaneous summary + keyword extraction).</li>
+<li>Foundation of AI Agents: The ReAct pattern (Reasoning + Acting) — <code>Thought -&gt; Action -&gt; Observation -&gt; Thought</code>.</li>
+<li>Creating Deterministic Tools: Using <code>@tool</code> decorators, explicit type signatures, docstring contracts, and error boundaries.</li>
+<li>Tool Binding: Equipping LLMs with tools via <code>llm.bind_tools([tools])</code> and inspecting returned <code>tool_calls</code> payloads.</li>
+<li>Autonomous Execution Loops: Implementing an iterative loop that executes tool invocations and returns <code>ToolMessage</code> feedback to the LLM.</li>
+</ul></li>
+<li><strong>Hands-on Lab 4:</strong>
+<ul>
+<li>Create custom Python tools for mathematical calculations, internal catalog queries, and live weather lookups.</li>
+<li>Implement an autonomous ReAct execution loop that decomposes user questions, calls multiple tools sequentially, and synthesizes a grounded answer.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="day-2-vector-databases-production-rag-ai-security" class="level4">
+<h4 class="anchored" data-anchor-id="day-2-vector-databases-production-rag-ai-security">Day 2 · Vector Databases, Production RAG &amp; AI Security</h4>
+<p>Day 2 focuses on grounding LLMs with private data: understanding high-dimensional vector spaces, building resilient RAG architectures, elevating retrieval accuracy with hybrid search and reranking, and securing deployments against adversarial threats.</p>
+<section id="session-5-0900-1030-semantic-embeddings-vector-databases" class="level5">
+<h5 class="anchored" data-anchor-id="session-5-0900-1030-semantic-embeddings-vector-databases">Session 5 · 09:00 – 10:30 · Semantic Embeddings &amp; Vector Databases</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#vector"><code>_05-vectordb.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>What are Embeddings? Translating textual semantics into high-dimensional vector coordinates.</li>
+<li>2025/2026 Embedding Models: OpenAI <code>text-embedding-3-small/large</code>, Google <code>text-embedding-004</code>, Voyage AI <code>voyage-3</code>, and open-source <code>BGE-M3</code>.</li>
+<li>Matryoshka Representation Learning (MRL): Truncating 3072-dim embeddings to 512 dimensions for 6x speedups with negligible precision loss.</li>
+<li>Vector Distance Mathematics: Cosine Similarity vs.&nbsp;Euclidean (L2) vs.&nbsp;Dot Product.</li>
+<li>Document Ingestion &amp; Chunking: Fixed-size, Recursive (<code>RecursiveCharacterTextSplitter</code>), and Markdown Header chunking.</li>
+<li>Chunk Overlap Strategies: Preserving semantic context across chunk boundaries without excessive duplication.</li>
+<li>Vector Database Landscape: ChromaDB (in-memory/local), <code>pgvector</code> (production Postgres), and Qdrant/Weaviate (distributed managed clusters).</li>
+</ul></li>
+<li><strong>Hands-on Lab 5:</strong>
+<ul>
+<li>Implement a document ingestion pipeline parsing real-world PDFs and Markdown documentation.</li>
+<li>Index document chunks into ChromaDB with rich metadata tags (department, author, timestamp).</li>
+<li>Execute similarity search queries with distance score thresholds and metadata filtering.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="session-6-1045-1230-end-to-end-retrieval-augmented-generation-rag" class="level5">
+<h5 class="anchored" data-anchor-id="session-6-1045-1230-end-to-end-retrieval-augmented-generation-rag">Session 6 · 10:45 – 12:30 · End-to-End Retrieval-Augmented Generation (RAG)</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#retrievals"><code>_04-langchain-2.qmd</code></a> &amp; <a href="../tech/genai/intro/index.html#vector"><code>_05-vectordb.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>The Core Problem: Overcoming LLM knowledge cutoff dates and preventing hallucinations on private proprietary data.</li>
+<li>The 5-Stage RAG Pipeline: Load $ ightarrow$ Split $ ightarrow$ Embed $ ightarrow$ Store $ ightarrow$ Retrieve $ ightarrow$ Generate.</li>
+<li>Building RAG with LCEL: Wiring <code>retriever | format_docs</code> and <code>RunnablePassthrough</code> directly into prompt templates.</li>
+<li>Prompt Grounding: Constructing strict context-boundary prompts instructing the model to answer <em>only</em> from supplied evidence.</li>
+<li>Source Transparency &amp; Citations: Returning both the generated answer and the source document metadata (file name, page numbers, text snippets).</li>
+</ul></li>
+<li><strong>Hands-on Lab 6:</strong>
+<ul>
+<li>Build an end-to-end Technical Documentation Q&amp;A system that answers complex engineering questions using loaded documentation.</li>
+<li>Format the final output to display verifiable source citations alongside the generated response.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="lunch-break-1230-1330-1" class="level5">
+<h5 class="anchored" data-anchor-id="lunch-break-1230-1330-1">Lunch Break · 12:30 – 13:30</h5>
+<hr>
+</section>
+<section id="session-7-1330-1445-modern-production-rag-patterns" class="level5">
+<h5 class="anchored" data-anchor-id="session-7-1330-1445-modern-production-rag-patterns">Session 7 · 13:30 – 14:45 · Modern &amp; Production RAG Patterns</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#modern-rag"><code>_08-modern-rag.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>The RAG Evolution: Naive RAG (2023) vs.&nbsp;Advanced RAG (2024) vs.&nbsp;Agentic RAG (2025).</li>
+<li>Pre-Retrieval Query Expansion: Using <code>MultiQueryRetriever</code> to generate multiple diverse query formulations from a single prompt.</li>
+<li>Hypothetical Document Embeddings (HyDE): Generating a plausible hypothetical answer to bridge vocabulary gaps in dense embedding space.</li>
+<li>Hybrid Search: Combining Dense Semantic Search with Sparse Keyword (BM25) search via Reciprocal Rank Fusion (RRF).</li>
+<li>Post-Retrieval Reranking: Deploying Cross-Encoder models (<code>bge-reranker-base</code>) to rescore and filter the top 20 retrieved candidates down to the top 4 most precise chunks.</li>
+<li>Hierarchical Retrieval: <code>ParentDocumentRetriever</code> — indexing small, granular child chunks for embedding search while returning broad parent context to the LLM.</li>
+<li>Automated RAG Evaluation: Measuring system quality with RAGAS metrics (<strong>Faithfulness</strong>, <strong>Answer Relevance</strong>, <strong>Context Precision</strong>, <strong>Context Recall</strong>).</li>
+</ul></li>
+<li><strong>Hands-on Lab 7:</strong>
+<ul>
+<li>Construct an Advanced Hybrid RAG pipeline combining BM25 keyword matching and Chroma dense search with Cross-Encoder reranking.</li>
+<li>Run automated RAGAS evaluation scripts to benchmark faithfulness and relevance scores before and after reranking.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="session-8-1500-1700-risks-security-guardrails-production-capstone" class="level5">
+<h5 class="anchored" data-anchor-id="session-8-1500-1700-risks-security-guardrails-production-capstone">Session 8 · 15:00 – 17:00 · Risks, Security, Guardrails &amp; Production Capstone</h5>
+<ul>
+<li><strong>Aligned Slide Module:</strong> <a href="../tech/genai/intro/index.html#security"><code>_06-risksnsecurity.qmd</code></a> &amp; <a href="../tech/genai/intro/index.html#end"><code>_07-conclusion.qmd</code></a></li>
+<li><strong>Topics Covered:</strong>
+<ul>
+<li>The New Attack Surface: Natural language as code and non-deterministic execution risks.</li>
+<li>The <strong>OWASP LLM Top 10 (2025 Edition)</strong>:
+<ul>
+<li><code>LLM01: Prompt Injection</code> (Direct jailbreaks vs.&nbsp;Indirect attacks).</li>
+<li><code>LLM02: Sensitive Information Disclosure</code> &amp; Data Leakage.</li>
+<li><code>LLM06: Excessive Agency</code> in tool-using systems.</li>
+<li><code>LLM07: System Prompt Leakage</code> &amp; Extraction.</li>
+<li><code>LLM08: Vector &amp; Embedding Weaknesses</code>.</li>
+<li><code>LLM10: Unbounded Consumption</code> &amp; Resource Exhaustion.</li>
+</ul></li>
+<li>Indirect Prompt Injection: How poisoned web pages and retrieved documents can hijack tool-calling agents.</li>
+<li>Data Privacy &amp; PII Sanitization: Pre-flight regex and NLP redaction before transmitting data to cloud LLMs, with post-generation placeholder restoration.</li>
+<li>Defense-in-Depth Architecture: Input schema validation, provider moderation APIs, hardened XML delimiters, output validators, and rate-limiting.</li>
+<li>Regulatory Governance: EU AI Act risk tiers (Unacceptable, High-Risk, Limited, Minimal) and mapping OWASP vulnerabilities to compliance articles.</li>
+<li>Production Dos &amp; Don’ts Checklist: Golden rules for shipping reliable LLM applications.</li>
+<li>The Bridge to Agentic AI: How LCEL, RAG, and tools seamlessly evolve into multi-agent workflows with LangGraph and MCP.</li>
+</ul></li>
+<li><strong>Hands-on Lab 8 (Capstone Project):</strong>
+<ul>
+<li><strong>The Governed Enterprise Assistant:</strong> Build a production-ready Q&amp;A system integrating:
+<ol type="1">
+<li>Pre-flight PII masking of customer queries.</li>
+<li>Input safety checks using OpenAI Moderation API.</li>
+<li>Hybrid retrieval over an internal knowledge base with cross-encoder reranking.</li>
+<li>Deterministic tool binding (currency converter and calculation tools).</li>
+<li>Strict Pydantic output schema validation with citation verification.</li>
+<li>Full trace telemetry emitted to LangSmith.</li>
+</ol></li>
+</ul></li>
+</ul>
+<hr>
+</section>
+</section>
+</section>
+<section id="course-capstone-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="course-capstone-architecture">Course Capstone Architecture</h3>
+<pre><code>[User Query]
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 1. Security Gate: PII Masking &amp; OpenAI Moderation API  │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 2. Hybrid Retrieval: BM25 (Keyword) + Chroma (Dense)   │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 3. Cross-Encoder Reranker: Filter Top 20 -&gt; Top 4      │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 4. LangChain LCEL Chain + Tool-Calling Dispatcher      │
+│    (Calculator, Currency Converter, Document Citation) │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 5. Output Guardrail: Pydantic v2 Schema Enforcement    │
+│    + PII Restoration + LangSmith Tracing               │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+[Validated Structured Response + Source Citations]</code></pre>
+<hr>
+</section>
+<section id="recommended-learning-pathway" class="level3">
+<h3 class="anchored" data-anchor-id="recommended-learning-pathway">Recommended Learning Pathway</h3>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
