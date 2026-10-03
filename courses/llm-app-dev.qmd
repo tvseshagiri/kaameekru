@@ -1,0 +1,268 @@
+---
+title: "LLM Application Development Workshop"
+subtitle: "2-Day Hands-on Intensive: Foundation Models, Prompt Engineering, LangChain LCEL & Production RAG"
+---
+
+### Program Overview
+
+This intensive, two-day hands-on workshop equips **software engineers, backend developers, and technical leads** with the practical skills required to build, evaluate, and safely deploy production-grade Large Language Model (LLM) applications.
+
+Participants progress from fundamental model mechanics, token budgeting, and API-enforced prompt engineering to building composable pipelines with **LangChain (LCEL)**, managing vector embeddings in **ChromaDB**, implementing **Advanced Hybrid RAG with Reranking**, and hardening systems against the **OWASP LLM Top 10 (2025)** vulnerabilities.
+
+::: {.callout-note}
+### Quick Facts
+- **Audience:** Software engineers, data engineers, and technical architects with Python proficiency.
+- **Duration:** 2 Days &middot; 8 Core Sessions &middot; 8 Guided Hands-on Labs &middot; 1 Production Capstone.
+- **Pacing:** 30% Architecture & Design Principles, 70% Practical Implementation & Guided Labs.
+- **Model Ecosystem:** OpenAI (`gpt-4o-mini`, `o4-mini`), Google Gemini (`gemini-2.5-flash`), Groq (`llama-3.3-70b`), DeepSeek (`deepseek-reasoner`).
+- **Tooling Standards:** Python 3.11+ managed exclusively with **`uv`**, LangChain v0.3+, Pydantic v2, and ChromaDB.
+- **Interactive Slide Deck:** [Launch LLM App Development Presentation](../tech/genai/intro/index.html){target="_blank"}
+:::
+
+---
+
+### Prerequisites
+
+1. **Python Programming:** Working proficiency with Python functions, classes, async syntax, dictionaries, and virtual environments (or completion of [Python for AI Engineers](python-ai.qmd)).
+2. **Terminal & Developer Tooling:** Comfort executing CLI commands, managing environment variables (`.env`), and using Git (`clone`, `commit`).
+3. **Web & API Basics:** Understanding of HTTP REST requests, JSON payloads, and API key authentication.
+
+---
+
+### Overall Learning Outcomes
+
+By completing this 2-day workshop, participants will be able to:
+
+1. **Navigate the 2026 Model Ecosystem:** Evaluate LLMs across parameter scales, dense vs. Mixture-of-Experts (MoE) architectures, context windows, licensing (Apache 2.0 vs. proprietary), and provider trade-offs (Direct APIs vs. AWS Bedrock vs. Groq LPUs).
+2. **Master Modern Prompt Engineering:** Construct zero-shot, few-shot, Chain-of-Thought (CoT), and self-consistency prompts using production XML delimiter separation to eliminate prompt drift.
+3. **Enforce Schema-First Reliability:** Guarantee 100% valid JSON data extraction at the API boundary using Pydantic v2 and native model structured outputs (`with_structured_output`).
+4. **Orchestrate Pipelines with LCEL:** Compose robust, type-safe processing chains with the LangChain Expression Language (`|` pipe operator), supporting streaming, async concurrency, and LangSmith tracing.
+5. **Implement Semantic Vector Search:** Compute high-dimensional semantic similarity, configure optimal text chunking strategies, and operate ChromaDB with metadata filtering.
+6. **Build End-to-End RAG Architectures:** Ingest unstructured PDFs/web docs, generate embeddings, retrieve relevant context, and synthesize factual answers with precise source citations.
+7. **Deploy Advanced & Hybrid RAG:** Overcome naive RAG limitations using multi-query expansion, HyDE, hybrid search (BM25 keyword + dense vector with RRF), and cross-encoder reranking.
+8. **Harden Against LLM Threats:** Protect applications against direct/indirect prompt injection, enforce PII masking/restoration, integrate content moderation filters, and align with EU AI Act risk tiers.
+9. **Transition to Autonomous Agents:** Implement ReAct reasoning loops, bind deterministic tools to chat models, and prepare the foundation for multi-agent systems in [Agentic AI Engineering](agentic-ai.qmd).
+
+---
+
+### Schedule at a Glance
+
+| Day | Time | Session | Focus Area & Slide Module | Hands-on Deliverable |
+| :---: | :---: | :--- | :--- | :--- |
+| **Day 1** | 09:00 | **1. Foundations & Model Landscape** | GenAI mechanics, architectures, creators vs. providers & setup | Lab 1: Multi-Provider Inference & Token Benchmark with `uv` |
+| **Day 1** | 10:45 | **2. Systematic Prompt Engineering** | CoT, self-consistency, XML hygiene & structured outputs | Lab 2: Schema-Validated Data Extractor with Pydantic v2 |
+| **Day 1** | 13:00 | **3. LangChain Core & LCEL** | Pipe operator, Runnables, chat history, streaming & LangSmith | Lab 3: Streaming Multi-Turn Assistant with LangSmith Tracing |
+| **Day 1** | 14:45 | **4. Advanced LangChain & Tool Calling** | Structured outputs, `RunnableParallel`, `@tool` & ReAct loops | Lab 4: ReAct Tool-Calling Agent with Custom Python Tools |
+| **Day 2** | 09:00 | **5. Embeddings & Vector Stores** | High-dim vectors, MRL, chunking strategies & ChromaDB | Lab 5: Document Chunking & ChromaDB Vector Store Ingestion |
+| **Day 2** | 10:45 | **6. End-to-End RAG Pipelines** | Context injection, prompt grounding & source citations | Lab 6: Technical Document Q&A Chain with Transparent Sources |
+| **Day 2** | 13:00 | **7. Modern & Production RAG** | Multi-Query, HyDE, Hybrid Search (BM25+Dense) & Reranking | Lab 7: High-Precision Hybrid Search & RAGAS Evaluation |
+| **Day 2** | 14:45 | **8. Risks, Security & Production Capstone** | OWASP Top 10 (2025), PII masking, guardrails & agent bridge | Lab 8: Enterprise-Governed RAG Assistant Capstone |
+
+: {tbl-colwidths="[10,12,30,28,20]"}
+
+---
+
+### Detailed Daily Curriculum
+
+#### Day 1 &middot; Foundations, Prompt Engineering & LangChain Orchestration
+
+Day 1 establishes foundational fluency: understanding transformer mechanics and model selection, mastering prompt design patterns with API-enforced schemas, and orchestrating composable pipelines with LangChain Expression Language.
+
+##### Session 1 &middot; 09:00 &ndash; 10:30 &middot; GenAI Mechanics, Model Taxonomy & The 2026 Landscape
+- **Aligned Slide Module:** [`_01-intro.qmd`](../tech/genai/intro/index.html#intgenai)
+- **Topics Covered:**
+  - What is Generative AI? Next-token prediction, self-attention, and context windows.
+  - Model Taxonomy: Text generation, reasoning models, multimodal vision/audio, embeddings, and code specialists.
+  - Key Model Attributes: Parameter scale, input/output modalities, training cutoff dates, licenses (Apache 2.0 vs. Llama Community vs. Proprietary), and benchmark interpretations (MMLU, HumanEval, GPQA).
+  - Architecture Paradigms: Dense Transformers vs. Mixture-of-Experts (MoE) vs. State Space Models (SSM/Mamba).
+  - Model Creators vs. Service Providers: Direct APIs (OpenAI, Anthropic, Gemini) vs. Cloud Hyperscalers (AWS Bedrock, Vertex AI) vs. Specialized LPUs (Groq).
+  - The "Silent" Creators: DeepSeek (R1 & V3 breakthroughs), Alibaba/Qwen, Mistral, and Cohere.
+  - Reasoning Models: When to deploy thinking models (o3, o4-mini, Gemini 2.5 Thinking) vs. lightweight fast chat models.
+  - Tokens & Cost Economics: Tokenizer mechanics with `tiktoken`, pricing per 1M tokens, and cost optimization.
+- **Hands-on Lab 1:**
+  - Bootstrap a reproducible GenAI project using `uv` (`uv init`, `uv add`, `uv run`).
+  - Configure `.env` authentication across OpenAI, Google Gemini, and Groq.
+  - Benchmark latency, token usage, and response variations across models using official Python SDKs.
+
+---
+
+##### Session 2 &middot; 10:45 &ndash; 12:30 &middot; Systematic Prompt Engineering & Schema-First Development
+- **Aligned Slide Module:** [`_02-pmtengg.qmd`](../tech/genai/intro/index.html#pmpteng)
+- **Topics Covered:**
+  - Why Prompt Engineering is an Engineering Discipline: Versioning, testing against golden sets, and reproducibility.
+  - Anatomy of a Production Prompt: Instructions, background context, input parameters, and format constraints.
+  - In-Context Learning: Zero-Shot vs. Few-Shot prompting (`FewShotChatMessagePromptTemplate`).
+  - Advanced Reasoning Techniques: Chain-of-Thought (CoT), "Let's think step by step", and Self-Consistency majority voting.
+  - Schema-First Development: Why "respond in JSON" fails in production; enforcing type contracts with Pydantic v2 and native model function calling.
+  - Complex Data Extraction: Nested Pydantic schemas, field constraints, type safety, and automatic validation error feedback.
+  - Production System Prompt Architecture: XML Delimiter isolation (`<rules>`, `<context>`, `<examples>`) to mitigate instruction drift and injection.
+  - Inference Parameter Tuning: Temperature (deterministic `0.0` vs. creative `0.8`), Top-p nucleus sampling, Top-k, Max Tokens, and Stop Sequences.
+- **Hands-on Lab 2:**
+  - Build a schema-enforced Customer Feedback Analyzer extracting sentiment, confidence scores, detected pain points, and urgency levels into a validated Pydantic model.
+  - Implement a Self-Consistency majority-voting pipeline for complex classification tasks.
+
+---
+
+##### Lunch Break &middot; 12:30 &ndash; 13:30
+
+---
+
+##### Session 3 &middot; 13:30 &ndash; 14:30 &middot; LangChain Architecture & The Expression Language (LCEL)
+- **Aligned Slide Module:** [`_03-langchain-1.qmd`](../tech/genai/intro/index.html#langchain-1)
+- **Topics Covered:**
+  - The LangChain Ecosystem: `langchain-core`, dedicated provider integrations (`langchain-openai`, `langchain-google-genai`), and `langsmith`.
+  - LCEL Architecture: Composing pipelines using the pipe operator (`prompt | model | parser`).
+  - The `Runnable` Protocol: Uniform `.invoke()`, `.batch()`, `.stream()`, `.ainvoke()`, and `.astream()` interfaces.
+  - Dynamic Templating: `PromptTemplate` and role-based `ChatPromptTemplate` with persona injection.
+  - Conversational Context & Memory: Managing multi-turn state using `MessagesPlaceholder` and message arrays (`HumanMessage`, `AIMessage`).
+  - Real-Time Token Streaming: Synchronous CLI streaming and asynchronous generator streaming for FastAPI web services.
+  - Distributed Observability: Setting up LangSmith tracing via zero-code environment variables (`LANGCHAIN_TRACING_V2=true`).
+- **Hands-on Lab 3:**
+  - Construct a multi-turn conversational AI mentor with dynamic persona switching, stateful history, and token-by-token streaming.
+  - Inspect full execution latency, prompt inputs, and token breakdowns inside the LangSmith trace explorer.
+
+---
+
+##### Session 4 &middot; 14:45 &ndash; 17:00 &middot; Advanced LangChain, Tool Calling & Agentic Foundations
+- **Aligned Slide Module:** [`_04-langchain-2.qmd`](../tech/genai/intro/index.html#langchain-2)
+- **Topics Covered:**
+  - Production Structured Outputs: `llm.with_structured_output(MyModel)` (migrated cleanly from deprecated `pydantic_v1`).
+  - Parallel Pipeline Execution: Running independent chains concurrently with `RunnableParallel` (e.g., simultaneous summary + keyword extraction).
+  - Foundation of AI Agents: The ReAct pattern (Reasoning + Acting) &mdash; `Thought -> Action -> Observation -> Thought`.
+  - Creating Deterministic Tools: Using `@tool` decorators, explicit type signatures, docstring contracts, and error boundaries.
+  - Tool Binding: Equipping LLMs with tools via `llm.bind_tools([tools])` and inspecting returned `tool_calls` payloads.
+  - Autonomous Execution Loops: Implementing an iterative loop that executes tool invocations and returns `ToolMessage` feedback to the LLM.
+- **Hands-on Lab 4:**
+  - Create custom Python tools for mathematical calculations, internal catalog queries, and live weather lookups.
+  - Implement an autonomous ReAct execution loop that decomposes user questions, calls multiple tools sequentially, and synthesizes a grounded answer.
+
+---
+
+#### Day 2 &middot; Vector Databases, Production RAG & AI Security
+
+Day 2 focuses on grounding LLMs with private data: understanding high-dimensional vector spaces, building resilient RAG architectures, elevating retrieval accuracy with hybrid search and reranking, and securing deployments against adversarial threats.
+
+##### Session 5 &middot; 09:00 &ndash; 10:30 &middot; Semantic Embeddings & Vector Databases
+- **Aligned Slide Module:** [`_05-vectordb.qmd`](../tech/genai/intro/index.html#vector)
+- **Topics Covered:**
+  - What are Embeddings? Translating textual semantics into high-dimensional vector coordinates.
+  - 2025/2026 Embedding Models: OpenAI `text-embedding-3-small/large`, Google `text-embedding-004`, Voyage AI `voyage-3`, and open-source `BGE-M3`.
+  - Matryoshka Representation Learning (MRL): Truncating 3072-dim embeddings to 512 dimensions for 6x speedups with negligible precision loss.
+  - Vector Distance Mathematics: Cosine Similarity vs. Euclidean (L2) vs. Dot Product.
+  - Document Ingestion & Chunking: Fixed-size, Recursive (`RecursiveCharacterTextSplitter`), and Markdown Header chunking.
+  - Chunk Overlap Strategies: Preserving semantic context across chunk boundaries without excessive duplication.
+  - Vector Database Landscape: ChromaDB (in-memory/local), `pgvector` (production Postgres), and Qdrant/Weaviate (distributed managed clusters).
+- **Hands-on Lab 5:**
+  - Implement a document ingestion pipeline parsing real-world PDFs and Markdown documentation.
+  - Index document chunks into ChromaDB with rich metadata tags (department, author, timestamp).
+  - Execute similarity search queries with distance score thresholds and metadata filtering.
+
+---
+
+##### Session 6 &middot; 10:45 &ndash; 12:30 &middot; End-to-End Retrieval-Augmented Generation (RAG)
+- **Aligned Slide Module:** [`_04-langchain-2.qmd`](../tech/genai/intro/index.html#retrievals) & [`_05-vectordb.qmd`](../tech/genai/intro/index.html#vector)
+- **Topics Covered:**
+  - The Core Problem: Overcoming LLM knowledge cutoff dates and preventing hallucinations on private proprietary data.
+  - The 5-Stage RAG Pipeline: Load $ightarrow$ Split $ightarrow$ Embed $ightarrow$ Store $ightarrow$ Retrieve $ightarrow$ Generate.
+  - Building RAG with LCEL: Wiring `retriever | format_docs` and `RunnablePassthrough` directly into prompt templates.
+  - Prompt Grounding: Constructing strict context-boundary prompts instructing the model to answer *only* from supplied evidence.
+  - Source Transparency & Citations: Returning both the generated answer and the source document metadata (file name, page numbers, text snippets).
+- **Hands-on Lab 6:**
+  - Build an end-to-end Technical Documentation Q&A system that answers complex engineering questions using loaded documentation.
+  - Format the final output to display verifiable source citations alongside the generated response.
+
+---
+
+##### Lunch Break &middot; 12:30 &ndash; 13:30
+
+---
+
+##### Session 7 &middot; 13:30 &ndash; 14:45 &middot; Modern & Production RAG Patterns
+- **Aligned Slide Module:** [`_08-modern-rag.qmd`](../tech/genai/intro/index.html#modern-rag)
+- **Topics Covered:**
+  - The RAG Evolution: Naive RAG (2023) vs. Advanced RAG (2024) vs. Agentic RAG (2025).
+  - Pre-Retrieval Query Expansion: Using `MultiQueryRetriever` to generate multiple diverse query formulations from a single prompt.
+  - Hypothetical Document Embeddings (HyDE): Generating a plausible hypothetical answer to bridge vocabulary gaps in dense embedding space.
+  - Hybrid Search: Combining Dense Semantic Search with Sparse Keyword (BM25) search via Reciprocal Rank Fusion (RRF).
+  - Post-Retrieval Reranking: Deploying Cross-Encoder models (`bge-reranker-base`) to rescore and filter the top 20 retrieved candidates down to the top 4 most precise chunks.
+  - Hierarchical Retrieval: `ParentDocumentRetriever` &mdash; indexing small, granular child chunks for embedding search while returning broad parent context to the LLM.
+  - Automated RAG Evaluation: Measuring system quality with RAGAS metrics (**Faithfulness**, **Answer Relevance**, **Context Precision**, **Context Recall**).
+- **Hands-on Lab 7:**
+  - Construct an Advanced Hybrid RAG pipeline combining BM25 keyword matching and Chroma dense search with Cross-Encoder reranking.
+  - Run automated RAGAS evaluation scripts to benchmark faithfulness and relevance scores before and after reranking.
+
+---
+
+##### Session 8 &middot; 15:00 &ndash; 17:00 &middot; Risks, Security, Guardrails & Production Capstone
+- **Aligned Slide Module:** [`_06-risksnsecurity.qmd`](../tech/genai/intro/index.html#security) & [`_07-conclusion.qmd`](../tech/genai/intro/index.html#end)
+- **Topics Covered:**
+  - The New Attack Surface: Natural language as code and non-deterministic execution risks.
+  - The **OWASP LLM Top 10 (2025 Edition)**:
+    - `LLM01: Prompt Injection` (Direct jailbreaks vs. Indirect attacks).
+    - `LLM02: Sensitive Information Disclosure` & Data Leakage.
+    - `LLM06: Excessive Agency` in tool-using systems.
+    - `LLM07: System Prompt Leakage` & Extraction.
+    - `LLM08: Vector & Embedding Weaknesses`.
+    - `LLM10: Unbounded Consumption` & Resource Exhaustion.
+  - Indirect Prompt Injection: How poisoned web pages and retrieved documents can hijack tool-calling agents.
+  - Data Privacy & PII Sanitization: Pre-flight regex and NLP redaction before transmitting data to cloud LLMs, with post-generation placeholder restoration.
+  - Defense-in-Depth Architecture: Input schema validation, provider moderation APIs, hardened XML delimiters, output validators, and rate-limiting.
+  - Regulatory Governance: EU AI Act risk tiers (Unacceptable, High-Risk, Limited, Minimal) and mapping OWASP vulnerabilities to compliance articles.
+  - Production Dos & Don'ts Checklist: Golden rules for shipping reliable LLM applications.
+  - The Bridge to Agentic AI: How LCEL, RAG, and tools seamlessly evolve into multi-agent workflows with LangGraph and MCP.
+- **Hands-on Lab 8 (Capstone Project):**
+  - **The Governed Enterprise Assistant:** Build a production-ready Q&A system integrating:
+    1. Pre-flight PII masking of customer queries.
+    2. Input safety checks using OpenAI Moderation API.
+    3. Hybrid retrieval over an internal knowledge base with cross-encoder reranking.
+    4. Deterministic tool binding (currency converter and calculation tools).
+    5. Strict Pydantic output schema validation with citation verification.
+    6. Full trace telemetry emitted to LangSmith.
+
+---
+
+### Course Capstone Architecture
+
+```
+[User Query]
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 1. Security Gate: PII Masking & OpenAI Moderation API  │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 2. Hybrid Retrieval: BM25 (Keyword) + Chroma (Dense)   │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 3. Cross-Encoder Reranker: Filter Top 20 -> Top 4      │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 4. LangChain LCEL Chain + Tool-Calling Dispatcher      │
+│    (Calculator, Currency Converter, Document Citation) │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+┌────────────────────────────────────────────────────────┐
+│ 5. Output Guardrail: Pydantic v2 Schema Enforcement    │
+│    + PII Restoration + LangSmith Tracing               │
+└────────────────────────────────────────────────────────┘
+      │
+      ▼
+[Validated Structured Response + Source Citations]
+```
+
+---
+
+### Recommended Learning Pathway
+
+This workshop serves as the central pillar of the engineering curriculum:
+
+1. **Step 1 (Prerequisite):** [Python for AI Engineers Curriculum](python-ai.qmd) &mdash; 5-Day bootcamp mastering `uv`, Pydantic v2, async concurrency, and typing.
+2. **Step 2 (This Course):** **LLM Application Development Workshop** &mdash; 2-Day intensive mastering foundation models, LCEL, ChromaDB, Advanced RAG, and AI security.
+3. **Step 3 (Advanced Specialization):** [Agentic AI Engineering Bootcamp](agentic-ai.qmd) &mdash; 3-Day hands-on intensive on autonomous agents, LangGraph, Model Context Protocol (MCP), and multi-agent coordination.

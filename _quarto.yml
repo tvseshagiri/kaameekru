@@ -43,6 +43,8 @@ website:
             text: "ReactJS Curriculum"
           - href: courses/python-ai.qmd
             text: "Python for AI Engineers"
+          - href: courses/llm-app-dev.qmd
+            text: "LLM App Development"
           - href: courses/agentic-ai.qmd
             text: "Agentic AI Engineering"
     right:
