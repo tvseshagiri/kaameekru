@@ -79,9 +79,9 @@
   {
     "objectID": "tech/genai/intro/index.html#index",
     "href": "tech/genai/intro/index.html#index",
-    "title": "LLM App Development",
+    "title": "LLM App Development (2025)",
     "section": "Topics",
-    "text": "Topics\n\nIntroduction to GenAI\nPrompt Engineering\nIntroduction LangChain\nAdvanced LangChain\nEmbedding & Vector Databases\nRisks & Security\nConclusion"
+    "text": "Topics\n\nIntroduction to GenAI\nPrompt Engineering\nIntroduction to LangChain\nAdvanced LangChain & RAG\nEmbedding & Vector Databases\nRisks & Security\nModern RAG Patterns\nConclusion"
   },
   {
     "objectID": "courses/javawebapp.html",
